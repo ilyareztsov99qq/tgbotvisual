@@ -174,7 +174,6 @@
     .cardio-btn:active { transform: scale(.96); }
     .cardio-emoji { font-size: 32px; line-height: 1; }
     .cardio-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
-    /* Task detail */
     .detail-textarea { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 20px; font-weight: 600; line-height: 1.3; outline: none; resize: none; padding: 4px 0; }
     .detail-textarea::placeholder { color: var(--text-tertiary); }
     .subtask-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--divider); }
@@ -185,16 +184,13 @@
     .subtask-text.done { text-decoration: line-through; color: var(--text-tertiary); }
     .subtask-input { flex: 1; padding: 8px 12px; border-radius: 10px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; }
     .subtask-input:focus { border-color: var(--blue); }
-    /* Notes */
     .note-item { padding: 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 16px; margin-bottom: 10px; position: relative; }
     .note-date { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; }
     .note-text { font-size: 14px; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-    /* Habits */
     .habit-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; }
     .habit-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
     .habit-check.active { background: var(--green); border-color: var(--green); color: #fff; }
     .habit-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
-    /* Settings */
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
@@ -205,7 +201,6 @@
   <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
 
   <div class="max-w-5xl mx-auto px-4 sm:px-8 pt-6 relative z-10">
-
     <!-- HOME -->
     <section id="screen-home" class="screen active">
       <header class="flex justify-between items-center mb-8">
@@ -342,8 +337,6 @@
       </div>
       <div id="tasks-content"></div>
     </section>
-
-    <!-- TASK DETAIL -->
     <section id="screen-task-detail" class="screen">
       <header class="flex items-center justify-between mb-6">
         <button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
@@ -470,7 +463,6 @@
       <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><h1 id="placeholder-title" class="text-xl font-semibold text-primary">Раздел</h1></header>
       <div class="apple-card p-10 rounded-[28px] text-center"><div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--neutral-fill);"><i data-lucide="construction" class="w-8 h-8 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">В разработке</p></div>
     </section>
-
   </div>
 
   <button id="fab" class="fab" onclick="onFabTap()" style="display: none;"><i data-lucide="plus" class="w-6 h-6"></i></button>
@@ -592,7 +584,102 @@
 
   <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
 
-  <script>
+  <script>    // ============================================================
+    // ⚙️ API-КОНСТАНТЫ — ЗАМЕНИТЬ URL
+    // ============================================================
+    const WEBAPP_URL = 'https://script.google.com/macros/s/ВАШ_SCRIPT_ID/exec';
+    const INIT_DATA = window.Telegram?.WebApp?.initData || '';
+
+    const SERVER_CAT_MAP = {
+      '🛒 Супермаркеты/Еда': 'food', '🍷 Вино/Бары/Отдых': 'bars', '🏋️ Спорт/Здоровье': 'sport',
+      '📱 Связь/Подписки': 'subs', '🚕 Такси/Транспорт': 'transport', '🛍️ Шопинг/Одежда': 'shopping',
+      '🏠 Дом/Быт': 'home', '📚 Образование': 'edu', '📦 Прочее': 'other',
+      'Зарплата': 'salary', 'Фриланс/Проекты': 'freelance', 'Пассивный доход': 'passive',
+      'Подарки': 'gift', 'Прочие доходы': 'other_in'
+    };
+    const SERVER_ACC_MAP = { 'Основная карта': 'card', 'Кредитка': 'credit', 'Наличные': 'cash', 'Накопления / Инвест': 'invest' };
+    const CAT_TO_SERVER = {
+      food: '🛒 Супермаркеты/Еда', transport: '🚕 Такси/Транспорт', bars: '🍷 Вино/Бары/Отдых',
+      sport: '🏋️ Спорт/Здоровье', subs: '📱 Связь/Подписки', home: '🏠 Дом/Быт',
+      shopping: '🛍️ Шопинг/Одежда', health: '🏋️ Спорт/Здоровье', edu: '📚 Образование', other: '📦 Прочее',
+      salary: 'Зарплата', freelance: 'Фриланс/Проекты', passive: 'Пассивный доход', gift: 'Подарки', other_in: 'Прочие доходы'
+    };
+    const ACC_TO_SERVER = { card: 'Основная карта', credit: 'Кредитка', cash: 'Наличные', invest: 'Накопления / Инвест' };
+
+    async function apiGet(action, params = {}) {
+      if (!INIT_DATA) throw new Error('Not in Telegram');
+      const q = new URLSearchParams({ action, initData: INIT_DATA, ...params });
+      const res = await fetch(`${WEBAPP_URL}?${q}`, { method: 'GET' });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'API error');
+      return json.data;
+    }
+
+    async function apiPost(action, payload) {
+      if (!INIT_DATA) return null;
+      try {
+        const res = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action, initData: INIT_DATA, payload })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || 'API error');
+        return json.data;
+      } catch (e) {
+        console.warn('apiPost failed:', action, e);
+        return null;
+      }
+    }
+
+    async function bootstrapFromBackend() {
+      if (!INIT_DATA) return false;
+      try {
+        const data = await apiGet('getAll');
+        if (!data) return false;
+        if (Array.isArray(data.transactions)) {
+          const mapped = data.transactions.map(t => ({
+            id: t.id, type: t.type, amount: t.amount,
+            category: t.category, categoryId: SERVER_CAT_MAP[t.category] || 'other',
+            categoryIcon: 'package', categoryColor: 'gray',
+            account: t.account, accountId: SERVER_ACC_MAP[t.account] || 'card',
+            comment: t.comment, date: t.date
+          }));
+          localStorage.setItem('aura_trx_buffer', JSON.stringify(mapped));
+        }
+        if (Array.isArray(data.tasks)) {
+          const current = loadTasks();
+          const merged = data.tasks.map(t => {
+            const local = current.find(x => x.id === t.id);
+            return local ? { ...t, subtasks: local.subtasks || [] } : { ...t, subtasks: [] };
+          });
+          localStorage.setItem('aura_tasks', JSON.stringify(merged));
+        }
+        if (Array.isArray(data.notes)) localStorage.setItem('aura_notes', JSON.stringify(data.notes));
+        if (Array.isArray(data.habits)) localStorage.setItem('aura_habits', JSON.stringify(data.habits));
+        if (data.habitLog) localStorage.setItem('aura_habit_log', JSON.stringify(data.habitLog));
+        if (Array.isArray(data.body)) localStorage.setItem('aura_body', JSON.stringify(data.body));
+        if (Array.isArray(data.workoutLog)) localStorage.setItem('aura_workout_log', JSON.stringify(data.workoutLog));
+        if (Array.isArray(data.cardio)) localStorage.setItem('aura_cardio', JSON.stringify(data.cardio));
+        if (data.workoutPlan && Object.keys(data.workoutPlan).length > 0) {
+          localStorage.setItem('aura_workout_plan', JSON.stringify(data.workoutPlan));
+        }
+        if (data.foodMenu) {
+          const all = JSON.parse(localStorage.getItem('aura_food_menu') || '{}');
+          all[todayStr()] = data.foodMenu;
+          localStorage.setItem('aura_food_menu', JSON.stringify(all));
+        }
+        if (Array.isArray(data.shopping) && data.shopping.length > 0) {
+          localStorage.setItem('aura_shopping', JSON.stringify(data.shopping));
+        }
+        if (data.profile) localStorage.setItem('aura_profile', JSON.stringify(data.profile));
+        return true;
+      } catch (e) {
+        console.warn('bootstrap failed', e);
+        return false;
+      }
+    }
+
     // =========== TELEGRAM INIT ===========
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
@@ -601,7 +688,8 @@
       if (scheme === 'light') { document.body.classList.add('light'); if (tg) { tg.setHeaderColor('#F2F2F7'); tg.setBackgroundColor('#F2F2F7'); } }
       else { document.body.classList.remove('light'); if (tg) { tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000'); } }
     }
-    applyTheme(); if (tg) tg.onEvent('themeChanged', applyTheme);
+    applyTheme();
+    if (tg) tg.onEvent('themeChanged', applyTheme);
     function haptic(s='light') { try { tg?.HapticFeedback?.impactOccurred(s); } catch(e) {} }
     function hapticNotify(t='success') { try { tg?.HapticFeedback?.notificationOccurred(t); } catch(e) {} }
     let toastTimeout;
@@ -613,7 +701,7 @@
       toastTimeout = setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(20px)'; }, 2200);
     }
 
-    // =========== NAVIGATION ===============
+    // =========== NAVIGATION ===========
     let history = ['home']; let currentScreen = 'home';
     function showScreen(name) {
       currentScreen = name;
@@ -683,7 +771,7 @@
       if (d) { const b = document.getElementById('balance'); b.style.transition = 'opacity .15s ease'; b.style.opacity = '0'; setTimeout(() => { b.textContent = d; b.style.opacity = '1'; }, 150); }
     }
 
-    // =========== TRANSACTIONS ===============
+    // =========== TRANSACTIONS ===========
     const CATEGORIES = [
       {id:'food',label:'Еда',icon:'shopping-cart',color:'orange'},{id:'transport',label:'Транспорт',icon:'car',color:'blue'},
       {id:'bars',label:'Бары',icon:'wine',color:'purple'},{id:'sport',label:'Спорт',icon:'dumbbell',color:'red'},
@@ -744,7 +832,7 @@
       const btn = document.getElementById('trx-submit'); const ready = getAmountNumber()>0 && trxState.categoryId;
       btn.disabled = !ready; btn.textContent = ready ? `Записать ${trxState.type==='income'?'+':''}${formatAmount(trxState.amountStr)} ₽` : 'Записать';
     }
-    function submitTrx() {
+    async function submitTrx() {
       if (getAmountNumber()<=0 || !trxState.categoryId) return;
       hapticNotify('success');
       const catList = trxState.type==='expense'?CATEGORIES:CATEGORIES_INCOME;
@@ -752,10 +840,18 @@
       const trx = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), type: trxState.type, amount: getAmountNumber(),
         category: cat?.label||'', categoryId: trxState.categoryId, categoryIcon: cat?.icon||'package', categoryColor: cat?.color||'gray',
         account: acc?.label||'', accountId: trxState.accountId, comment: document.getElementById('trx-comment').value.trim(), date: new Date().toISOString() };
-      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_transaction', payload: trx})); } catch(e) {}
       const all = loadTrx(); all.unshift(trx); saveTrx(all);
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
       closeTrx(); toast(`${trx.type==='income'?'+':'−'}${trx.amount.toLocaleString('ru-RU')} ₽ · ${cat?.label||''}`);
+      try {
+        if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_transaction', payload: trx}));
+      } catch(e) {}
+      apiPost('addTransaction', {
+        type: trx.type, amount: trx.amount,
+        category: CAT_TO_SERVER[trx.categoryId] || '📦 Прочее',
+        account: ACC_TO_SERVER[trx.accountId] || 'Основная карта',
+        comment: trx.comment
+      });
     }
     function loadTrx() { try { return JSON.parse(localStorage.getItem('aura_trx_buffer')||'[]'); } catch(e) { return []; } }
     function saveTrx(arr) { try { localStorage.setItem('aura_trx_buffer', JSON.stringify(arr.slice(0,200))); } catch(e) {} }
@@ -772,7 +868,7 @@
         </div><span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span></div>`;
     }
 
-    // =========== TASKS ===============
+    // =========== TASKS ===========
     let taskState = { dateOption:'today', customDate:'', priority:'' }; let currentTaskTab = 'today';
     function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function addDays(s,n) { const d = new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -804,7 +900,7 @@
     function setTaskPrio(p) { haptic('light'); taskState.priority = p; renderTaskChips(); }
     function updateTaskSubmit() { document.getElementById('task-submit').disabled = !document.getElementById('task-text').value.trim(); }
     document.getElementById('task-text').addEventListener('input', updateTaskSubmit);
-    function submitTask() {
+    async function submitTask() {
       const text = document.getElementById('task-text').value.trim(); if (!text) return;
       hapticNotify('success');
       let date = '';
@@ -815,12 +911,32 @@
       const tagsRaw = document.getElementById('task-tags').value.trim();
       const tags = tagsRaw ? tagsRaw.split(/[\s,]+/).filter(Boolean).map(t => t.startsWith('#')?t:'#'+t).join(' ') : '';
       const task = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, done:false, date, time: document.getElementById('task-time').value, priority: taskState.priority, tags, createdAt: new Date().toISOString(), doneAt: null, subtasks: [] };
-      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_task', payload: task})); } catch(e) {}
       const all = loadTasks(); all.unshift(task); saveTasks(all);
       closeTask(); renderTasksScreen(); renderHomeTasks(); toast('Задача создана');
+      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_task', payload: task})); } catch(e) {}
+      const res = await apiPost('addTask', { text: task.text, date: task.date, time: task.time, priority: task.priority, tags: task.tags });
+      if (res && res.id) {
+        const fresh = loadTasks();
+        const idx = fresh.findIndex(x => x.id === task.id);
+        if (idx >= 0) { fresh[idx].id = res.id; saveTasks(fresh); }
+      }
     }
-    function toggleTaskDone(id) { haptic('medium'); const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return; t.done = !t.done; t.doneAt = t.done?new Date().toISOString():null; saveTasks(all); if (t.done) hapticNotify('success'); renderTasksScreen(); renderHomeTasks(); if (currentScreen==='task-detail') renderTaskDetail(t); }
-    function deleteTask(id) { haptic('medium'); saveTasks(loadTasks().filter(t=>t.id!==id)); renderTasksScreen(); renderHomeTasks(); toast('Удалено'); }
+    function toggleTaskDone(id) {
+      haptic('medium');
+      const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
+      t.done = !t.done; t.doneAt = t.done?new Date().toISOString():null; saveTasks(all);
+      if (t.done) hapticNotify('success');
+      renderTasksScreen(); renderHomeTasks();
+      if (currentScreen === 'task-detail') renderTaskDetail(t);
+      apiPost('updateTask', { id, done: t.done });
+    }
+    function deleteTask(id) {
+      haptic('medium');
+      saveTasks(loadTasks().filter(t=>t.id!==id));
+      renderTasksScreen(); renderHomeTasks();
+      toast('Удалено');
+      apiPost('deleteTask', { id });
+    }
     function setTaskTab(tab) { haptic('light'); currentTaskTab = tab; document.querySelectorAll('[data-task-tab]').forEach(b => b.classList.toggle('active', b.dataset.taskTab===tab)); renderTasksScreen(); }
     function renderTasksScreen() {
       const el = document.getElementById('tasks-content'); if (!el) return;
@@ -885,7 +1001,7 @@
       lucide.createIcons();
     }
 
-    // =========== TASK DETAIL ===============
+    // =========== TASK DETAIL ===========
     let currentTaskId = null;
     function openTaskDetail(id) {
       haptic('light'); currentTaskId = id;
@@ -895,10 +1011,8 @@
     }
     function renderTaskDetail(task) {
       const el = document.getElementById('task-detail-content'); if (!el) return;
-      const today = todayStr();
       const flagColor = task.priority==='!!!'?'var(--red)':task.priority==='!!'?'var(--yellow)':'';
       const subs = task.subtasks || [];
-
       let html = `
         <div class="apple-card p-6 rounded-[24px] mb-4">
           <div class="flex items-start gap-3 mb-4">
@@ -906,70 +1020,33 @@
             <textarea class="detail-textarea" onblur="updateTaskField('${task.id}','text',this.value)" rows="2" placeholder="Текст задачи">${escapeHtml(task.text)}</textarea>
           </div>
           ${flagColor?`<div class="h-1 rounded-full mb-4" style="background:${flagColor};"></div>`:''}
-
-          <div class="task-section" style="margin-top:0;">
-            <div class="task-section-label">Приоритет</div>
-            <div class="task-chip-row">
-              <button class="task-chip ${task.priority===''?'active':''}" onclick="setDetailPrio('${task.id}','')">Обычная</button>
-              <button class="task-chip ${task.priority==='!!'?'active-yellow':''}" onclick="setDetailPrio('${task.id}','!!')">Важная</button>
-              <button class="task-chip ${task.priority==='!!!'?'active-red':''}" onclick="setDetailPrio('${task.id}','!!!')">Срочная</button>
+          <div class="task-section" style="margin-top:0;"><div class="task-section-label">Приоритет</div><div class="task-chip-row">
+            <button class="task-chip ${task.priority===''?'active':''}" onclick="setDetailPrio('${task.id}','')">Обычная</button>
+            <button class="task-chip ${task.priority==='!!'?'active-yellow':''}" onclick="setDetailPrio('${task.id}','!!')">Важная</button>
+            <button class="task-chip ${task.priority==='!!!'?'active-red':''}" onclick="setDetailPrio('${task.id}','!!!')">Срочная</button>
+          </div></div>
+          <div class="task-section"><div class="task-section-label">Дата</div><div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-sm text-primary">${task.date ? new Date(task.date+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'2-digit',month:'short'}) : 'Без даты'}</span>
+            <div class="task-chip-row" style="margin:0;">
+              <button class="task-chip" onclick="shiftTaskDate('${task.id}',1)">+1д</button>
+              <button class="task-chip" onclick="shiftTaskDate('${task.id}',3)">+3д</button>
+              <button class="task-chip" onclick="shiftTaskDate('${task.id}',7)">+7д</button>
+              ${task.date?`<button class="task-chip" onclick="updateTaskField('${task.id}','date','')">×</button>`:''}
             </div>
-          </div>
-
-          <div class="task-section">
-            <div class="task-section-label">Дата</div>
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-sm text-primary">${task.date ? new Date(task.date+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'2-digit',month:'short'}) : 'Без даты'}</span>
-              <div class="task-chip-row" style="margin:0;">
-                <button class="task-chip" onclick="shiftTaskDate('${task.id}',1)">+1д</button>
-                <button class="task-chip" onclick="shiftTaskDate('${task.id}',3)">+3д</button>
-                <button class="task-chip" onclick="shiftTaskDate('${task.id}',7)">+7д</button>
-                ${task.date?`<button class="task-chip" onclick="updateTaskField('${task.id}','date','')">×</button>`:''}
-              </div>
-            </div>
-          </div>
-
-          <div class="task-section">
-            <div class="task-section-label">Время</div>
-            <input type="time" class="task-time-input" value="${task.time||''}" onblur="updateTaskField('${task.id}','time',this.value)">
-          </div>
-
-          <div class="task-section">
-            <div class="task-section-label">Теги</div>
-            <input type="text" class="task-time-input" value="${escapeHtml(task.tags||'')}" placeholder="#дом #работа" onblur="updateTaskField('${task.id}','tags',this.value)">
-          </div>
+          </div></div>
+          <div class="task-section"><div class="task-section-label">Время</div><input type="time" class="task-time-input" value="${task.time||''}" onblur="updateTaskField('${task.id}','time',this.value)"></div>
+          <div class="task-section"><div class="task-section-label">Теги</div><input type="text" class="task-time-input" value="${escapeHtml(task.tags||'')}" placeholder="#дом #работа" onblur="updateTaskField('${task.id}','tags',this.value)"></div>
         </div>
-
         <div class="apple-card p-6 rounded-[24px] mb-4">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm font-semibold text-primary">Подзадачи</h3>
-            <span class="text-xs text-tertiary">${subs.filter(s=>s.done).length} / ${subs.length}</span>
-          </div>
-          <div id="subtask-list">
-            ${subs.map(s => `
-              <div class="subtask-row">
-                <button class="subtask-check ${s.done?'active':''}" onclick="toggleSubtask('${task.id}','${s.id}')">${s.done?'<i data-lucide="check" class="w-3 h-3"></i>':''}</button>
-                <span class="subtask-text ${s.done?'done':''}">${escapeHtml(s.text)}</span>
-                <button class="back-btn p-1" onclick="deleteSubtask('${task.id}','${s.id}')" style="opacity:.5;"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-              </div>
-            `).join('')}
-          </div>
-          <div class="flex gap-2 mt-3">
-            <input id="subtask-input" class="subtask-input" placeholder="Новая подзадача" onkeypress="if(event.key==='Enter')addSubtask('${task.id}')">
-            <button onclick="addSubtask('${task.id}')" class="apple-glass px-3 rounded-xl text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
-          </div>
+          <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Подзадачи</h3><span class="text-xs text-tertiary">${subs.filter(s=>s.done).length} / ${subs.length}</span></div>
+          <div>${subs.map(s => `<div class="subtask-row"><button class="subtask-check ${s.done?'active':''}" onclick="toggleSubtask('${task.id}','${s.id}')">${s.done?'<i data-lucide="check" class="w-3 h-3"></i>':''}</button><span class="subtask-text ${s.done?'done':''}">${escapeHtml(s.text)}</span><button class="back-btn p-1" onclick="deleteSubtask('${task.id}','${s.id}')" style="opacity:.5;"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>`).join('')}</div>
+          <div class="flex gap-2 mt-3"><input id="subtask-input" class="subtask-input" placeholder="Новая подзадача" onkeypress="if(event.key==='Enter')addSubtask('${task.id}')"><button onclick="addSubtask('${task.id}')" class="apple-glass px-3 rounded-xl text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button></div>
         </div>
-
         <div class="grid grid-cols-2 gap-3 mb-4">
-          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary flex items-center justify-center gap-2" onclick="postponeTaskDetail('${task.id}')">
-            <i data-lucide="clock" class="w-4 h-4 text-secondary"></i>Отложить
-          </button>
-          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium" style="color:var(--red);" onclick="deleteTaskFromDetail()">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>Удалить
-          </button>
+          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary flex items-center justify-center gap-2" onclick="postponeTaskDetail('${task.id}')"><i data-lucide="clock" class="w-4 h-4 text-secondary"></i>Отложить</button>
+          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium" style="color:var(--red);" onclick="deleteTaskFromDetail()"><i data-lucide="trash-2" class="w-4 h-4"></i>Удалить</button>
         </div>
-        <div class="h-4"></div>
-      `;
+        <div class="h-4"></div>`;
       el.innerHTML = html;
       lucide.createIcons();
     }
@@ -977,12 +1054,14 @@
       const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
       t[field] = value; saveTasks(all);
       if (field === 'text' && value.trim()) toast('Сохранено');
+      apiPost('updateTask', { id, [field]: value });
     }
     function setDetailPrio(id, p) {
       haptic('light');
       const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
       t.priority = p; saveTasks(all);
       const updated = loadTasks().find(x=>x.id===id); renderTaskDetail(updated);
+      apiPost('updateTask', { id, priority: p });
     }
     function shiftTaskDate(id, days) {
       haptic('light');
@@ -990,6 +1069,7 @@
       const base = t.date || todayStr();
       t.date = addDays(base, days); saveTasks(all);
       const updated = loadTasks().find(x=>x.id===id); renderTaskDetail(updated);
+      apiPost('updateTask', { id, date: t.date });
     }
     function toggleSubtask(taskId, subId) {
       haptic('light');
@@ -1021,19 +1101,8 @@
       haptic('light');
       const options = [1, 3, 7, 30];
       const el = document.getElementById('task-detail-content');
-      const task = loadTasks().find(t=>t.id===id);
-      const flagColor = task.priority==='!!!'?'var(--red)':task.priority==='!!'?'var(--yellow)':'';
-      const subs = task.subtasks || [];
-      const html = `
-        <div class="apple-card p-6 rounded-[24px] mb-4">
-          <h3 class="text-sm font-semibold text-primary mb-4">Отложить на сколько?</h3>
-          <div class="grid grid-cols-2 gap-3">
-            ${options.map(d => `<button onclick="doPostpone('${id}', ${d})" class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary">${d} ${d===1?'день':d<5?'дня':'дней'}</button>`).join('')}
-          </div>
-          <button onclick="openTaskDetail('${id}')" class="mt-3 w-full apple-glass p-3 rounded-2xl text-sm font-medium text-primary">Отмена</button>
-        </div>`;
-      el.innerHTML = html;
-      lucide.createIcons();
+      const html = `<div class="apple-card p-6 rounded-[24px] mb-4"><h3 class="text-sm font-semibold text-primary mb-4">Отложить на сколько?</h3><div class="grid grid-cols-2 gap-3">${options.map(d => `<button onclick="doPostpone('${id}', ${d})" class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary">${d} ${d===1?'день':d<5?'дня':'дней'}</button>`).join('')}</div><button onclick="openTaskDetail('${id}')" class="mt-3 w-full apple-glass p-3 rounded-2xl text-sm font-medium text-primary">Отмена</button></div>`;
+      el.innerHTML = html; lucide.createIcons();
     }
     function doPostpone(id, days) {
       hapticNotify('success');
@@ -1041,6 +1110,7 @@
       t.date = addDays(todayStr(), days); saveTasks(all);
       toast(`Отложено на ${days} дн.`);
       navigate('tasks', {tab:true});
+      apiPost('updateTask', { id, date: t.date });
     }
     function deleteTaskFromDetail() {
       if (!currentTaskId) return;
@@ -1048,10 +1118,11 @@
       saveTasks(loadTasks().filter(t=>t.id!==currentTaskId));
       renderTasksScreen(); renderHomeTasks();
       toast('Удалено');
+      apiPost('deleteTask', { id: currentTaskId });
       navigate('tasks', {tab:true});
     }
 
-    // =========== FOOD ===============
+    // =========== FOOD ===========
     const MEAL_ICONS = { breakfast:{icon:'sunrise',color:'orange'}, lunch:{icon:'sun',color:'yellow'}, dinner:{icon:'moon',color:'purple'}, snack:{icon:'coffee',color:'teal'} };
     const MEAL_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Снек' };
     const MEAL_ORDER = ['breakfast','lunch','dinner','snack'];
@@ -1114,7 +1185,14 @@
       });
       el.innerHTML = html; lucide.createIcons();
     }
-    function toggleShopping(id) { haptic('light'); const items = loadShopping(); const it = items.find(i=>i.id===id); if (!it) return; it.checked=!it.checked; saveShopping(items); if (it.checked) hapticNotify('success'); renderShoppingScreen(); }
+    function toggleShopping(id) {
+      haptic('light');
+      const items = loadShopping(); const it = items.find(i=>i.id===id); if (!it) return;
+      it.checked=!it.checked; saveShopping(items);
+      if (it.checked) hapticNotify('success');
+      renderShoppingScreen();
+      apiPost('toggleShopping', { id, checked: it.checked });
+    }
     function clearBoughtShopping() { haptic('medium'); const items = loadShopping(); const rem = items.filter(i=>!i.checked); if (rem.length===items.length) { toast('Нет отмеченных'); return; } saveShopping(rem); renderShoppingScreen(); toast('Купленное удалено'); }
     function renderHomeMenuPreview() {
       const el = document.getElementById('home-menu-preview'); if (!el) return;
@@ -1124,7 +1202,7 @@
       el.innerHTML = `<div>${lines}</div><div class="mt-2 pt-2 border-t divider flex justify-between text-[11px]"><span class="text-tertiary">Съедено:</span><span class="font-semibold text-primary">${eK} / ${tK} ккал</span></div>`;
     }
 
-    // =========== WORKOUT ===============
+    // =========== WORKOUT ===========
     const DEFAULT_WORKOUT_PLAN = {
       1:{split:'Верх тела',exercises:[{name:'Жим лёжа',weight:60,sets:3,reps:8},{name:'Тяга блока',weight:50,sets:3,reps:10},{name:'Жим гантелей',weight:20,sets:3,reps:10},{name:'Махи в стороны',weight:8,sets:3,reps:12}]},
       3:{split:'Низ тела',exercises:[{name:'Присед',weight:80,sets:3,reps:8},{name:'Румынская тяга',weight:70,sets:3,reps:8},{name:'Выпады',weight:20,sets:3,reps:10},{name:'Икры',weight:40,sets:3,reps:15}]},
@@ -1218,7 +1296,7 @@
     }
     function openBodyForm() { haptic('medium'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value=''); document.getElementById('body-sheet').classList.add('show'); document.getElementById('body-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('body-weight').focus(),350); }
     function closeBodyForm() { haptic('light'); document.getElementById('body-sheet').classList.remove('show'); document.getElementById('body-sheet-overlay').classList.remove('show'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).blur()); }
-    function submitBodyMeasurement() {
+    async function submitBodyMeasurement() {
       const w = parseFloat(document.getElementById('body-weight').value);
       if (isNaN(w) || w <= 0) { toast('Введи вес'); return; }
       hapticNotify('success');
@@ -1227,6 +1305,7 @@
       saveBody(body);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_body', payload: body[body.length-1]})); } catch(e) {}
       closeBodyForm(); renderWorkoutBody(); renderWorkoutHub(); toast('Замер сохранён');
+      apiPost('addBody', body[body.length-1]);
     }
     let currentCardioType = null;
     function renderWorkoutCardio() {
@@ -1248,7 +1327,7 @@
     function openCardioForm(type) { haptic('medium'); currentCardioType = type; const opt = CARDIO_OPTIONS.find(o => o.id===type); document.getElementById('cardio-sheet-title').textContent = opt ? opt.name : 'Кардио'; document.getElementById('cardio-minutes').value = ''; document.getElementById('cardio-sheet').classList.add('show'); document.getElementById('cardio-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('cardio-minutes').focus(),350); }
     function closeCardioForm() { haptic('light'); document.getElementById('cardio-sheet').classList.remove('show'); document.getElementById('cardio-sheet-overlay').classList.remove('show'); document.getElementById('cardio-minutes').blur(); }
     function setCardioMinutes(n) { haptic('light'); document.getElementById('cardio-minutes').value = n; }
-    function submitCardio() {
+    async function submitCardio() {
       const m = parseInt(document.getElementById('cardio-minutes').value, 10);
       if (isNaN(m) || m <= 0) { toast('Введи минуты'); return; }
       hapticNotify('success');
@@ -1257,6 +1336,7 @@
       logs.unshift(entry); saveCardio(logs);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_cardio', payload: entry})); } catch(e) {}
       closeCardioForm(); renderWorkoutCardio(); renderWorkoutHub(); toast(`${m} мин записано`);
+      apiPost('addCardio', { type: entry.type, minutes: entry.minutes });
     }
     function renderHomeWorkoutPreview() {
       const el = document.getElementById('home-workout-preview'); if (!el) return;
@@ -1268,13 +1348,13 @@
       el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
     }
 
-    // =========== NOTES ===============
+    // =========== NOTES ===========
     function loadNotes() { try { return JSON.parse(localStorage.getItem('aura_notes')||'[]'); } catch(e) { return []; } }
     function saveNotes(arr) { try { localStorage.setItem('aura_notes', JSON.stringify(arr)); } catch(e) {} }
     function openNoteForm() { haptic('medium'); document.getElementById('note-text').value = ''; document.getElementById('note-submit').disabled = true; document.getElementById('note-sheet').classList.add('show'); document.getElementById('note-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('note-text').focus(),350); }
     function closeNoteForm() { haptic('light'); document.getElementById('note-sheet').classList.remove('show'); document.getElementById('note-sheet-overlay').classList.remove('show'); document.getElementById('note-text').blur(); }
     document.getElementById('note-text').addEventListener('input', () => { document.getElementById('note-submit').disabled = !document.getElementById('note-text').value.trim(); });
-    function submitNote() {
+    async function submitNote() {
       const text = document.getElementById('note-text').value.trim(); if (!text) return;
       hapticNotify('success');
       const notes = loadNotes();
@@ -1282,23 +1362,31 @@
       notes.unshift(note); saveNotes(notes);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
       closeNoteForm(); renderNotes(); toast('Заметка добавлена');
+      const res = await apiPost('addNote', { text: note.text });
+      if (res && res.id) {
+        const fresh = loadNotes();
+        const idx = fresh.findIndex(n => n.id === note.id);
+        if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); }
+      }
     }
-    function deleteNote(id) { haptic('light'); saveNotes(loadNotes().filter(n=>n.id!==id)); renderNotes(); toast('Удалено'); }
+    function deleteNote(id) {
+      haptic('light');
+      saveNotes(loadNotes().filter(n=>n.id!==id));
+      renderNotes(); toast('Удалено');
+      apiPost('deleteNote', { id });
+    }
     function renderNotes() {
       const notes = loadNotes(); const el = document.getElementById('notes-content'); if (!el) return;
       if (!notes.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
       el.innerHTML = notes.map(n => {
         const d = new Date(n.createdAt);
         const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-        return `<div class="note-item" onclick="if(confirm('Удалить заметку?'))deleteNote('${n.id}')">
-          <div class="note-date">${ds}</div>
-          <div class="note-text">${escapeHtml(n.text)}</div>
-        </div>`;
+        return `<div class="note-item" onclick="if(confirm('Удалить заметку?'))deleteNote('${n.id}')"><div class="note-date">${ds}</div><div class="note-text">${escapeHtml(n.text)}</div></div>`;
       }).join('');
       lucide.createIcons();
     }
 
-    // =========== HABITS ===============
+    // =========== HABITS ===========
     function loadHabits() { try { return JSON.parse(localStorage.getItem('aura_habits')||'[]'); } catch(e) { return []; } }
     function saveHabits(arr) { try { localStorage.setItem('aura_habits', JSON.stringify(arr)); } catch(e) {} }
     function loadHabitLog() { try { return JSON.parse(localStorage.getItem('aura_habit_log')||'{}'); } catch(e) { return {}; } }
@@ -1306,14 +1394,26 @@
     function openHabitForm() { haptic('medium'); document.getElementById('habit-name').value = ''; document.getElementById('habit-submit').disabled = true; document.getElementById('habit-sheet').classList.add('show'); document.getElementById('habit-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('habit-name').focus(),350); }
     function closeHabitForm() { haptic('light'); document.getElementById('habit-sheet').classList.remove('show'); document.getElementById('habit-sheet-overlay').classList.remove('show'); document.getElementById('habit-name').blur(); }
     document.getElementById('habit-name').addEventListener('input', () => { document.getElementById('habit-submit').disabled = !document.getElementById('habit-name').value.trim(); });
-    function submitHabit() {
+    async function submitHabit() {
       const name = document.getElementById('habit-name').value.trim(); if (!name) return;
       hapticNotify('success');
       const habits = loadHabits();
       habits.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name });
-      saveHabits(habits); closeHabitForm(); renderHabits(); toast('Привычка добавлена');
+      saveHabits(habits);
+      closeHabitForm(); renderHabits(); toast('Привычка добавлена');
+      await apiPost('addHabit', { name });
+      // обновим id с сервера
+      try {
+        const fresh = await apiGet('getAll');
+        if (fresh && Array.isArray(fresh.habits)) localStorage.setItem('aura_habits', JSON.stringify(fresh.habits));
+      } catch (e) {}
     }
-    function deleteHabit(id) { haptic('light'); saveHabits(loadHabits().filter(h=>h.id!==id)); renderHabits(); toast('Удалено'); }
+    function deleteHabit(id) {
+      haptic('light');
+      saveHabits(loadHabits().filter(h=>h.id!==id));
+      renderHabits(); toast('Удалено');
+      apiPost('deleteHabit', { id });
+    }
     function toggleHabitToday(id) {
       haptic('medium');
       const log = loadHabitLog(); const today = todayStr();
@@ -1322,67 +1422,48 @@
       saveHabitLog(log);
       if (log[today][id]) hapticNotify('success');
       renderHabits();
+      apiPost('toggleHabit', { id, done: log[today][id] });
     }
     function renderHabits() {
       const habits = loadHabits(); const log = loadHabitLog(); const today = todayStr();
       const el = document.getElementById('habits-content'); if (!el) return;
       if (!habits.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="check-circle" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Привычек нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
-
-      // Прогресс за 7 дней
       const weekDays = [];
       for (let i = 6; i >= 0; i--) weekDays.push(addDays(today, -i));
       const totalPossible = habits.length * 7;
       let totalDone = 0;
       weekDays.forEach(d => { const day = log[d] || {}; habits.forEach(h => { if (day[h.id]) totalDone++; }); });
       const pct = totalPossible > 0 ? Math.round(totalDone/totalPossible*100) : 0;
-
-      let html = `<div class="apple-card p-6 rounded-[28px] mb-4">
-        <div class="flex justify-between items-center mb-2"><div><p class="text-xs text-secondary">За неделю</p><p class="text-3xl font-semibold numbers text-primary mt-1">${pct}%</p></div><div class="text-right text-xs text-tertiary">${totalDone} / ${totalPossible}</div></div>
-        <div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,var(--green),var(--teal));"></div></div>
-      </div>`;
-
+      let html = `<div class="apple-card p-6 rounded-[28px] mb-4"><div class="flex justify-between items-center mb-2"><div><p class="text-xs text-secondary">За неделю</p><p class="text-3xl font-semibold numbers text-primary mt-1">${pct}%</p></div><div class="text-right text-xs text-tertiary">${totalDone} / ${totalPossible}</div></div><div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,var(--green),var(--teal));"></div></div></div>`;
       html += `<div class="section-title" style="margin-top:0;">Сегодня</div>`;
       habits.forEach(h => {
         const done = (log[today] || {})[h.id];
-        html += `<div class="habit-row">
-          <button class="habit-check ${done?'active':''}" onclick="toggleHabitToday('${h.id}')">${done?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button>
-          <span class="habit-name">${escapeHtml(h.name)}</span>
-          <button class="back-btn p-1" onclick="deleteHabit('${h.id}')" style="opacity:.5;"><i data-lucide="x" class="w-4 h-4"></i></button>
-        </div>`;
+        html += `<div class="habit-row"><button class="habit-check ${done?'active':''}" onclick="toggleHabitToday('${h.id}')">${done?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button><span class="habit-name">${escapeHtml(h.name)}</span><button class="back-btn p-1" onclick="deleteHabit('${h.id}')" style="opacity:.5;"><i data-lucide="x" class="w-4 h-4"></i></button></div>`;
       });
-
-      // Мини-график за 7 дней
       html += `<div class="apple-card p-5 rounded-[24px] mt-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-3">Последние 7 дней</h3><div class="flex gap-1 justify-between items-end" style="height:60px;">`;
       weekDays.forEach(d => {
         const day = log[d] || {};
         const done = habits.filter(h => day[h.id]).length;
         const p = habits.length > 0 ? (done / habits.length) * 100 : 0;
         const isToday = d === today;
-        html += `<div class="flex-1 flex flex-col items-center gap-1">
-          <div style="flex:1;display:flex;align-items:flex-end;width:100%;"><div style="width:100%;height:${Math.max(4,p)}%;background:${isToday?'var(--green)':'rgba(52,199,89,.5)'};border-radius:3px;"></div></div>
-          <span class="text-[9px] ${isToday?'text-primary font-semibold':'text-tertiary'}">${new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'narrow'})}</span>
-        </div>`;
+        html += `<div class="flex-1 flex flex-col items-center gap-1"><div style="flex:1;display:flex;align-items:flex-end;width:100%;"><div style="width:100%;height:${Math.max(4,p)}%;background:${isToday?'var(--green)':'rgba(52,199,89,.5)'};border-radius:3px;"></div></div><span class="text-[9px] ${isToday?'text-primary font-semibold':'text-tertiary'}">${new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'narrow'})}</span></div>`;
       });
       html += `</div></div>`;
-
       el.innerHTML = html; lucide.createIcons();
     }
 
-    // =========== REPORTS ===============
+    // =========== REPORTS ===========
     function renderReports() {
       const el = document.getElementById('reports-content');
       const trx = loadTrx(); const tasks = loadTasks(); const notes = loadNotes();
       const today = todayStr(); const weekAgo = addDays(today, -7); const monthStart = today.slice(0,7) + '-01';
-
       const monthTrx = trx.filter(t => t.date.slice(0,10) >= monthStart);
       const monthSpent = monthTrx.filter(t => t.type==='expense').reduce((s,t)=>s+t.amount, 0);
       const monthIncome = monthTrx.filter(t => t.type==='income').reduce((s,t)=>s+t.amount, 0);
       const weekDoneTasks = tasks.filter(t => t.done && t.doneAt && t.doneAt.slice(0,10) >= weekAgo).length;
       const weekCardio = loadCardio().filter(c => c.date.slice(0,10) >= weekAgo).reduce((s,c)=>s+c.minutes, 0);
       const weekWorkouts = loadWorkoutLog().filter(l => l.date.slice(0,10) >= weekAgo).length;
-      const body = loadBody();
-      const weight = body.length ? body[body.length-1].weight : null;
-
+      const body = loadBody(); const weight = body.length ? body[body.length-1].weight : null;
       let html = `
         <div class="apple-card p-6 rounded-[28px] mb-4">
           <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Финансы · месяц</h3>
@@ -1392,7 +1473,6 @@
           </div>
           <div class="flex justify-between items-center mt-3 pt-3 border-t divider"><span class="text-xs text-tertiary">Сальдо</span><span class="text-sm font-semibold numbers" style="color:${monthIncome-monthSpent>=0?'var(--green)':'var(--red)'};">${(monthIncome-monthSpent).toLocaleString('ru-RU')} ₽</span></div>
         </div>
-
         <div class="apple-card p-6 rounded-[28px] mb-4">
           <h3 class="text-xs font-semibold uppercase text-secondary mb-4">За неделю</h3>
           <div class="space-y-3">
@@ -1402,20 +1482,12 @@
             <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Заметок</span><span class="text-sm font-semibold numbers text-primary">${notes.length}</span></div>
           </div>
         </div>
-
-        ${weight ? `<div class="apple-card p-6 rounded-[28px] mb-4">
-          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Вес</h3>
-          <div class="text-center"><p class="text-4xl font-semibold numbers text-primary">${weight}<span class="text-base text-tertiary font-medium ml-1">кг</span></p></div>
-        </div>` : ''}
-
-        <div class="apple-card p-6 rounded-[28px] text-center">
-          <p class="text-xs text-tertiary">Детальная аналитика появится после подключения бэкенда</p>
-        </div>
-      `;
+        ${weight ? `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">Вес</h3><div class="text-center"><p class="text-4xl font-semibold numbers text-primary">${weight}<span class="text-base text-tertiary font-medium ml-1">кг</span></p></div></div>` : ''}
+        <div class="apple-card p-6 rounded-[28px] text-center"><p class="text-xs text-tertiary">Детальная аналитика — после следующей итерации</p></div>`;
       el.innerHTML = html; lucide.createIcons();
     }
 
-    // =========== SETTINGS ===============
+    // =========== SETTINGS ===========
     function loadProfile() { try { return JSON.parse(localStorage.getItem('aura_profile')||'{"targetWeight":77,"dailyKcal":1850,"dailyProtein":135,"startWeight":84}'); } catch(e) { return {targetWeight:77,dailyKcal:1850,dailyProtein:135,startWeight:84}; } }
     function saveProfile(p) { try { localStorage.setItem('aura_profile', JSON.stringify(p)); } catch(e) {} }
     function renderSettings() {
@@ -1427,33 +1499,22 @@
           <div class="settings-row"><span class="settings-label">Калории/день</span><input class="settings-input" type="number" value="${p.dailyKcal}" onblur="updateProfile('dailyKcal', this.value)"></div>
           <div class="settings-row"><span class="settings-label">Белок/день</span><input class="settings-input" type="number" value="${p.dailyProtein}" onblur="updateProfile('dailyProtein', this.value)"></div>
         </div>
-
-        <div class="apple-card p-6 rounded-[28px] mb-4">
-          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Счета</h3>
-          <div class="settings-row"><span class="settings-label">💳 Основная</span><span class="text-xs text-tertiary numbers">82 300 ₽</span></div>
-          <div class="settings-row"><span class="settings-label">💳 Кредитка</span><span class="text-xs numbers" style="color:var(--red);">−12 500 ₽</span></div>
-          <div class="settings-row"><span class="settings-label">💵 Наличные</span><span class="text-xs text-tertiary numbers">5 000 ₽</span></div>
-          <div class="settings-row"><span class="settings-label">📈 Инвест</span><span class="text-xs text-tertiary numbers">1 767 700 ₽</span></div>
-        </div>
-
         <div class="apple-card p-6 rounded-[28px] mb-4">
           <h3 class="text-xs font-semibold uppercase text-secondary mb-4">О приложении</h3>
-          <div class="settings-row"><span class="settings-label">Версия</span><span class="text-xs text-tertiary">0.6.0 · Mini App</span></div>
-          <div class="settings-row"><span class="settings-label">Данные</span><span class="text-xs text-tertiary">LocalStorage</span></div>
+          <div class="settings-row"><span class="settings-label">Версия</span><span class="text-xs text-tertiary">0.7.0 · Mini App</span></div>
+          <div class="settings-row"><span class="settings-label">Синхронизация</span><span class="text-xs text-tertiary">${INIT_DATA ? 'Google Sheets ✓' : 'Только локально'}</span></div>
         </div>
-
         <button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255,45,85,.2);">
           <div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
           <div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Удалит всё локально</p></div>
-        </button>
-      `;
+        </button>`;
       el.innerHTML = html; lucide.createIcons();
     }
     function updateProfile(key, value) {
       const p = loadProfile(); p[key] = parseFloat(value) || 0; saveProfile(p); toast('Сохранено');
     }
 
-    // =========== HELPERS ===============
+    // =========== HELPERS ===========
     function escapeHtml(t) { if (t===null||t===undefined) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function clearAllLocalData() {
       if (!confirm('Удалить все локальные данные?')) return;
@@ -1468,9 +1529,19 @@
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
+    // =========== INIT ===========
     lucide.createIcons();
     showScreen('home');
+
+    // Сначала локальные данные, потом синк с сервером
     renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
+
+    bootstrapFromBackend().then(ok => {
+      if (ok) {
+        renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
+      }
+    });
   </script>
 </body>
 </html>
+    
