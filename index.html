@@ -4,78 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Aura Finance</title>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
   <style>
     :root {
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
-      --bg: #000000; --text-primary: #FFFFFF; --text-secondary: #A1A1A6; --text-tertiary: #6B7280;
-      --card-bg: rgba(22, 22, 24, 0.8); --card-border: rgba(255, 255, 255, 0.08); --card-border-hover: rgba(255, 255, 255, 0.2);
-      --glass-bg: rgba(28, 28, 30, 0.65); --glass-border: rgba(255, 255, 255, 0.12);
-      --divider: rgba(255, 255, 255, 0.05); --neutral-fill: rgba(255, 255, 255, 0.06); --neutral-fill-hover: rgba(255, 255, 255, 0.1);
-      --key-bg: rgba(255, 255, 255, 0.08); --key-bg-active: rgba(255, 255, 255, 0.18); --field-bg: rgba(255, 255, 255, 0.06);
+      --bg: #000; --text-primary: #FFF; --text-secondary: #A1A1A6; --text-tertiary: #6B7280;
+      --card-bg: rgba(22,22,24,0.8); --card-border: rgba(255,255,255,0.08); --card-border-hover: rgba(255,255,255,0.2);
+      --glass-bg: rgba(28,28,30,0.65); --glass-border: rgba(255,255,255,0.12);
+      --divider: rgba(255,255,255,0.05); --neutral-fill: rgba(255,255,255,0.06); --neutral-fill-hover: rgba(255,255,255,0.1);
+      --key-bg: rgba(255,255,255,0.08); --key-bg-active: rgba(255,255,255,0.18); --field-bg: rgba(255,255,255,0.06);
       --blue: #007AFF; --green: #34C759; --orange: #FF9500; --purple: #AF52DE; --red: #FF2D55;
       --yellow: #FFCC00; --teal: #5AC8FA; --pink: #FF2D55; --indigo: #5856D6; --gray: #8E8E93;
     }
     body.light {
       --bg: #F2F2F7; --text-primary: #1D1D1F; --text-secondary: #6E6E73; --text-tertiary: #86868B;
-      --card-bg: rgba(255, 255, 255, 0.85); --card-border: rgba(0, 0, 0, 0.06); --card-border-hover: rgba(0, 0, 0, 0.12);
-      --glass-bg: rgba(255, 255, 255, 0.75); --glass-border: rgba(0, 0, 0, 0.08);
-      --divider: rgba(0, 0, 0, 0.06); --neutral-fill: rgba(0, 0, 0, 0.04); --neutral-fill-hover: rgba(0, 0, 0, 0.08);
-      --key-bg: rgba(255, 255, 255, 0.9); --key-bg-active: rgba(0, 0, 0, 0.08); --field-bg: rgba(0, 0, 0, 0.04);
+      --card-bg: rgba(255,255,255,0.85); --card-border: rgba(0,0,0,0.06); --card-border-hover: rgba(0,0,0,0.12);
+      --glass-bg: rgba(255,255,255,0.75); --glass-border: rgba(0,0,0,0.08);
+      --divider: rgba(0,0,0,0.06); --neutral-fill: rgba(0,0,0,0.04); --neutral-fill-hover: rgba(0,0,0,0.08);
+      --key-bg: rgba(255,255,255,0.9); --key-bg-active: rgba(0,0,0,0.08); --field-bg: rgba(0,0,0,0.04);
     }
-    body {
-      font-family: var(--font-stack); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-      background-color: var(--bg); color: var(--text-primary); user-select: none; -webkit-tap-highlight-color: transparent;
-      min-height: 100vh; padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-      transition: background-color 0.3s ease, color 0.3s ease; overflow-x: hidden;
-    }
+    body { font-family: var(--font-stack); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; background: var(--bg); color: var(--text-primary); user-select: none; -webkit-tap-highlight-color: transparent; min-height: 100vh; padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transition: background-color .3s ease, color .3s ease; overflow-x: hidden; }
     input, textarea { user-select: text; }
     .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); } .text-tertiary { color: var(--text-tertiary); }
     .numbers { font-variant-numeric: tabular-nums; } .divider { border-color: var(--divider); }
     .apple-glass { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); }
-    .apple-card { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 0.5px solid var(--card-border); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease; }
-    .apple-card:hover { border-color: var(--card-border-hover); } .apple-card.tappable:active { transform: scale(0.98); }
-    .chart-line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawLine 2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .chart-area { opacity: 0; animation: fadeIn 1.5s ease 0.5s forwards; }
+    .apple-card { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 0.5px solid var(--card-border); transition: transform .3s cubic-bezier(.25,1,.5,1), border-color .3s ease; }
+    .apple-card:hover { border-color: var(--card-border-hover); } .apple-card.tappable:active { transform: scale(.98); }
+    .chart-line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawLine 2s cubic-bezier(.16,1,.3,1) forwards; }
+    .chart-area { opacity: 0; animation: fadeIn 1.5s ease .5s forwards; }
     @keyframes drawLine { to { stroke-dashoffset: 0; } } @keyframes fadeIn { to { opacity: 1; } }
-    .screen { display: none; animation: fadeSlide 0.3s ease; } .screen.active { display: block; }
+    .screen { display: none; animation: fadeSlide .3s ease; } .screen.active { display: block; }
     @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .nav-btn { transition: color 0.2s ease, transform 0.15s ease; color: var(--text-secondary); }
-    .nav-btn.active { color: var(--blue); } .nav-btn:active { transform: scale(0.94); }
-    .segmented-btn { transition: all 0.2s ease; color: var(--text-secondary); }
+    .nav-btn { transition: color .2s ease, transform .15s ease; color: var(--text-secondary); }
+    .nav-btn.active { color: var(--blue); } .nav-btn:active { transform: scale(.94); }
+    .segmented-btn { transition: all .2s ease; color: var(--text-secondary); }
     .segmented-btn.active { background: var(--neutral-fill-hover); color: var(--text-primary); }
-    .spotlight-1 { background: rgba(0, 122, 255, 0.1); } .spotlight-2 { background: rgba(175, 82, 222, 0.1); }
-    body.light .spotlight-1 { background: rgba(0, 122, 255, 0.08); } body.light .spotlight-2 { background: rgba(175, 82, 222, 0.08); }
-    .back-btn { color: var(--text-secondary); transition: color 0.2s ease; } .back-btn:active { color: var(--text-primary); }
-    .hub-tile { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 18px; background: var(--card-bg); border: 0.5px solid var(--card-border); transition: transform 0.2s ease, border-color 0.2s ease; }
-    .hub-tile:active { transform: scale(0.98); border-color: var(--card-border-hover); }
+    .spotlight-1 { background: rgba(0,122,255,.1); } .spotlight-2 { background: rgba(175,82,222,.1); }
+    body.light .spotlight-1 { background: rgba(0,122,255,.08); } body.light .spotlight-2 { background: rgba(175,82,222,.08); }
+    .back-btn { color: var(--text-secondary); transition: color .2s ease; } .back-btn:active { color: var(--text-primary); }
+    .hub-tile { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 18px; background: var(--card-bg); border: 0.5px solid var(--card-border); transition: transform .2s ease, border-color .2s ease; }
+    .hub-tile:active { transform: scale(.98); border-color: var(--card-border-hover); }
     .hub-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .progress-track { background: var(--neutral-fill); overflow: hidden; } .progress-fill { transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
-    .fab { position: fixed; right: 20px; bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4); z-index: 40; transition: transform 0.2s ease; }
-    .fab:active { transform: scale(0.92); }
-    .trx-sheet { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; flex-direction: column; padding-top: env(safe-area-inset-top, 0); padding-bottom: env(safe-area-inset-bottom, 0); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+    .progress-track { background: var(--neutral-fill); overflow: hidden; } .progress-fill { transition: width .6s cubic-bezier(.25,1,.5,1); }
+    .fab { position: fixed; right: 20px; bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0,122,255,.4); z-index: 40; }
+    .fab:active { transform: scale(.92); }
+    .trx-sheet { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; flex-direction: column; padding-top: env(safe-area-inset-top,0); padding-bottom: env(safe-area-inset-bottom,0); transform: translateY(100%); transition: transform .35s cubic-bezier(.25,1,.5,1); }
     .trx-sheet.show { display: flex; transform: translateY(0); }
     .trx-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; flex-shrink: 0; }
     .trx-close { width: 36px; height: 36px; border-radius: 50%; background: var(--neutral-fill); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
-    .trx-close:active { transform: scale(0.9); }
+    .trx-close:active { transform: scale(.9); }
     .trx-type-switch { display: flex; padding: 3px; background: var(--neutral-fill); border-radius: 999px; }
-    .trx-type-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 999px; color: var(--text-secondary); transition: all 0.2s ease; }
-    .trx-type-btn.active { background: var(--card-bg); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .trx-type-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 999px; color: var(--text-secondary); transition: all .2s ease; }
+    .trx-type-btn.active { background: var(--card-bg); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
     .trx-amount { padding: 12px 20px 16px; flex-shrink: 0; text-align: center; }
-    .trx-amount-value { font-size: 44px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text-primary); line-height: 1.1; }
+    .trx-amount-value { font-size: 44px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--text-primary); line-height: 1.1; }
     .trx-amount-value.income { color: var(--green); } .trx-amount-cur { font-size: 24px; font-weight: 500; color: var(--text-tertiary); margin-left: 4px; }
     .trx-scroll { flex: 1; overflow-y: auto; padding: 0 16px; }
-    .trx-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; color: var(--text-tertiary); margin: 4px 0 10px; }
-    .category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-    .category-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); transition: all 0.15s ease; }
-    .category-btn:active { transform: scale(0.94); } .category-btn.active { border-color: var(--blue); background: rgba(0, 122, 255, 0.12); }
+    .trx-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; color: var(--text-tertiary); margin: 4px 0 10px; }
+    .category-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+    .category-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 14px; background: var(--card-bg); border: 1px solid var(--card-border); }
+    .category-btn:active { transform: scale(.94); } .category-btn.active { border-color: var(--blue); background: rgba(0,122,255,.12); }
     .category-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
     .category-label { font-size: 10px; font-weight: 500; color: var(--text-secondary); text-align: center; line-height: 1.1; }
     .category-btn.active .category-label { color: var(--text-primary); }
@@ -86,33 +79,33 @@
     .trx-comment { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; margin-bottom: 8px; }
     .trx-comment:focus { border-color: var(--blue); } .trx-comment::placeholder { color: var(--text-tertiary); }
     .trx-keypad-wrap { flex-shrink: 0; padding: 8px 16px; }
-    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .key { height: 56px; border-radius: 12px; background: var(--key-bg); color: var(--text-primary); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; transition: background 0.1s ease, transform 0.1s ease; }
-    .key:active { background: var(--key-bg-active); transform: scale(0.96); } .key.delete { color: var(--text-secondary); }
+    .keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+    .key { height: 56px; border-radius: 12px; background: var(--key-bg); color: var(--text-primary); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; }
+    .key:active { background: var(--key-bg-active); transform: scale(.96); } .key.delete { color: var(--text-secondary); }
     .submit-btn { flex-shrink: 0; margin: 8px 16px 12px; padding: 16px; border-radius: 16px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; }
-    .submit-btn:active { transform: scale(0.98); } .submit-btn:disabled { opacity: 0.4; pointer-events: none; }
+    .submit-btn:active { transform: scale(.98); } .submit-btn:disabled { opacity: .4; pointer-events: none; }
     .submit-btn.expense { background: var(--blue); } .submit-btn.income { background: var(--green); }
-    .task-sheet { position: fixed; left: 0; right: 0; bottom: 0; top: 8vh; background: var(--bg); border-top-left-radius: 24px; border-top-right-radius: 24px; z-index: 200; display: none; flex-direction: column; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 -8px 32px rgba(0,0,0,0.3); }
+    .task-sheet { position: fixed; left: 0; right: 0; bottom: 0; top: 8vh; background: var(--bg); border-top-left-radius: 24px; border-top-right-radius: 24px; z-index: 200; display: none; flex-direction: column; transform: translateY(100%); transition: transform .35s cubic-bezier(.25,1,.5,1); box-shadow: 0 -8px 32px rgba(0,0,0,.3); }
     .task-sheet.show { display: flex; transform: translateY(0); }
-    .task-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 199; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+    .task-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 199; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
     .task-sheet-overlay.show { opacity: 1; pointer-events: auto; }
-    .task-drag-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--text-tertiary); opacity: 0.4; margin: 10px auto 0; flex-shrink: 0; }
+    .task-drag-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--text-tertiary); opacity: .4; margin: 10px auto 0; flex-shrink: 0; }
     .task-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px 8px; flex-shrink: 0; }
     .task-sheet-body { flex: 1; overflow-y: auto; padding: 8px 20px; }
-    .task-sheet-footer { flex-shrink: 0; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 0.5px solid var(--divider); background: var(--bg); }
+    .task-sheet-footer { flex-shrink: 0; padding: 12px 20px calc(12px + env(safe-area-inset-bottom,0px)); border-top: 0.5px solid var(--divider); background: var(--bg); }
     .task-input { width: 100%; padding: 14px 16px; border-radius: 14px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 17px; font-weight: 500; outline: none; resize: none; }
     .task-input:focus { border-color: var(--blue); } .task-input::placeholder { color: var(--text-tertiary); font-weight: 400; }
     .task-section { margin-top: 18px; }
-    .task-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; color: var(--text-tertiary); margin-bottom: 8px; }
+    .task-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; color: var(--text-tertiary); margin-bottom: 8px; }
     .task-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .task-chip { padding: 8px 14px; font-size: 13px; font-weight: 500; border-radius: 999px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-secondary); transition: all 0.15s ease; }
+    .task-chip { padding: 8px 14px; font-size: 13px; font-weight: 500; border-radius: 999px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-secondary); }
     .task-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
     .task-chip.active-red { background: var(--red); color: #fff; border-color: var(--red); }
     .task-chip.active-yellow { background: var(--yellow); color: #000; border-color: var(--yellow); }
     .task-time-input { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; }
     .task-time-input:focus { border-color: var(--blue); } .task-time-input::placeholder { color: var(--text-tertiary); }
     .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--divider); }
-    .task-item:last-child { border-bottom: none; } .task-item.done { opacity: 0.5; }
+    .task-item:last-child { border-bottom: none; } .task-item.done { opacity: .5; }
     .task-item.done .task-text { text-decoration: line-through; color: var(--text-tertiary); }
     .task-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; color: transparent; }
     .task-check.active { background: var(--green); border-color: var(--green); color: #fff; }
@@ -121,81 +114,93 @@
     .task-meta-item { display: inline-flex; align-items: center; gap: 3px; }
     .task-flag { width: 4px; align-self: stretch; border-radius: 2px; flex-shrink: 0; margin: 4px 0; }
     .meal-card { padding: 16px; border-radius: 20px; background: var(--card-bg); border: 0.5px solid var(--card-border); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-    .meal-card.eaten { opacity: 0.65; } .meal-card.eaten .meal-name { text-decoration: line-through; }
+    .meal-card.eaten { opacity: .65; } .meal-card.eaten .meal-name { text-decoration: line-through; }
     .meal-icon-wrap { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .meal-body { flex: 1; min-width: 0; }
-    .meal-type { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-    .meal-name { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meal-type { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+    .meal-name { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .meal-kbju { font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
     .meal-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
     .meal-check.active { background: var(--green); border-color: var(--green); color: #fff; }
     .dish-hero { padding: 24px 0 20px; text-align: center; }
     .dish-emoji { font-size: 64px; line-height: 1; margin-bottom: 12px; }
-    .dish-name { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 4px; }
+    .dish-name { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--text-primary); margin-bottom: 4px; }
     .dish-type { font-size: 13px; color: var(--text-tertiary); }
-    .kbju-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+    .kbju-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
     .kbju-cell { padding: 12px 8px; border-radius: 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); text-align: center; }
-    .kbju-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; color: var(--text-tertiary); margin-bottom: 4px; }
+    .kbju-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; color: var(--text-tertiary); margin-bottom: 4px; }
     .kbju-value { font-size: 18px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
     .kbju-unit { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
-    .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin: 20px 0 10px; }
+    .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-secondary); margin: 20px 0 10px; }
     .ingredient-item { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 6px; }
     .ingredient-name { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     .ingredient-qty { font-size: 13px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
     .recipe-step { display: flex; gap: 12px; margin-bottom: 14px; }
     .recipe-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .recipe-text { font-size: 14px; line-height: 1.5; color: var(--text-primary); padding-top: 4px; }
-    .rate-row { display: flex; gap: 10px; margin-top: 16px; }
-    .rate-btn { flex: 1; padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-primary); font-size: 14px; font-weight: 600; }
-    .rate-btn.active { background: rgba(52, 199, 89, 0.15); border-color: var(--green); color: var(--green); }
-    .rate-btn.dislike.active { background: rgba(255, 45, 85, 0.15); border-color: var(--red); color: var(--red); }
-    .shop-category { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--text-tertiary); margin: 20px 4px 8px; }
+    .shop-category { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--text-tertiary); margin: 20px 4px 8px; }
     .shop-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 6px; }
-    .shop-item.checked { opacity: 0.45; } .shop-item.checked .shop-name { text-decoration: line-through; }
+    .shop-item.checked { opacity: .45; } .shop-item.checked .shop-name { text-decoration: line-through; }
     .shop-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
     .shop-check.active { background: var(--green); border-color: var(--green); color: #fff; }
     .shop-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
     .shop-qty { font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
     .food-progress-card { padding: 20px; border-radius: 24px; background: var(--card-bg); border: 0.5px solid var(--card-border); margin-bottom: 12px; }
     .food-progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-    .food-progress-big { font-size: 24px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .food-progress-big { font-size: 24px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
     .food-progress-total { font-size: 14px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-
-    /* Workout-specific */
-    .ex-item { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: opacity 0.2s ease; }
-    .ex-item.done { opacity: 0.5; }
+    .ex-item { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+    .ex-item.done { opacity: .5; }
     .ex-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
     .ex-check.active { background: var(--green); border-color: var(--green); color: #fff; }
     .ex-body { flex: 1; min-width: 0; }
     .ex-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
     .ex-plan { font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-    .ex-done { font-size: 12px; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; margin-top: 2px; }
-
     .day-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; }
-    .day-row.today { border-color: var(--blue); background: rgba(0, 122, 255, 0.08); }
+    .day-row.today { border-color: var(--blue); background: rgba(0,122,255,.08); }
     .day-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
     .day-split { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
     .day-count { font-size: 12px; font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-
     .pr-item { padding: 12px 0; border-bottom: 0.5px solid var(--divider); display: flex; justify-content: space-between; align-items: center; }
     .pr-item:last-child { border-bottom: none; }
     .pr-name { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     .pr-value { font-size: 14px; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
-
     .body-field { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
     .body-field-label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-primary); font-weight: 500; }
     .body-field-value { font-size: 16px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
     .body-field-diff { font-size: 11px; margin-left: 6px; font-weight: 500; }
     .body-field-diff.down { color: var(--green); } .body-field-diff.up { color: var(--red); }
-
-    .cardio-btn { padding: 16px; border-radius: 18px; background: var(--card-bg); border: 0.5px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 6px; transition: all 0.2s ease; }
-    .cardio-btn:active { transform: scale(0.96); }
+    .cardio-btn { padding: 16px; border-radius: 18px; background: var(--card-bg); border: 0.5px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .cardio-btn:active { transform: scale(.96); }
     .cardio-emoji { font-size: 32px; line-height: 1; }
     .cardio-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    /* Task detail */
+    .detail-textarea { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 20px; font-weight: 600; line-height: 1.3; outline: none; resize: none; padding: 4px 0; }
+    .detail-textarea::placeholder { color: var(--text-tertiary); }
+    .subtask-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--divider); }
+    .subtask-row:last-child { border-bottom: none; }
+    .subtask-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
+    .subtask-check.active { background: var(--green); border-color: var(--green); color: #fff; }
+    .subtask-text { flex: 1; font-size: 14px; color: var(--text-primary); }
+    .subtask-text.done { text-decoration: line-through; color: var(--text-tertiary); }
+    .subtask-input { flex: 1; padding: 8px 12px; border-radius: 10px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; }
+    .subtask-input:focus { border-color: var(--blue); }
+    /* Notes */
+    .note-item { padding: 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 16px; margin-bottom: 10px; position: relative; }
+    .note-date { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; }
+    .note-text { font-size: 14px; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    /* Habits */
+    .habit-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; }
+    .habit-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
+    .habit-check.active { background: var(--green); border-color: var(--green); color: #fff; }
+    .habit-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    /* Settings */
+    .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
+    .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
   </style>
 </head>
 <body>
-
   <div class="fixed top-[-100px] left-1/4 w-[500px] h-[500px] spotlight-1 rounded-full blur-[140px] pointer-events-none"></div>
   <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -206,10 +211,7 @@
       <header class="flex justify-between items-center mb-8">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-full apple-glass flex items-center justify-center font-bold text-xs text-primary">AF</div>
-          <div>
-            <span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Общий капитал</span>
-            <h1 class="text-sm font-semibold tracking-tight text-primary">Aura Portfolio</h1>
-          </div>
+          <div><span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Общий капитал</span><h1 class="text-sm font-semibold tracking-tight text-primary">Aura Portfolio</h1></div>
         </div>
         <div class="apple-glass p-1 rounded-full flex space-x-1">
           <button onclick="setPeriod(this)" class="segmented-btn active px-3 py-1 text-xs font-medium rounded-full">M</button>
@@ -217,80 +219,45 @@
           <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">Y</button>
         </div>
       </header>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
           <div class="apple-card p-6 sm:p-8 rounded-[28px] relative overflow-hidden">
             <div class="flex justify-between items-start">
-              <div>
-                <p class="text-xs font-medium text-secondary">Текущий баланс</p>
-                <div id="balance" class="text-4xl sm:text-5xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 1 842 500</div>
-              </div>
-              <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52, 199, 89, 0.1); border: 0.5px solid rgba(52, 199, 89, 0.25); color: var(--green);">
-                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span>
-              </div>
+              <div><p class="text-xs font-medium text-secondary">Текущий баланс</p><div id="balance" class="text-4xl sm:text-5xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 1 842 500</div></div>
+              <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52,199,89,.1); border: .5px solid rgba(52,199,89,.25); color: var(--green);"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span></div>
             </div>
             <div class="h-44 w-full mt-4 flex items-end">
               <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
-                <defs><linearGradient id="appleGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.35" /><stop offset="100%" stop-color="var(--blue)" stop-opacity="0" />
-                </linearGradient></defs>
-                <path class="chart-area" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20 L 500 150 L 0 150 Z" fill="url(#appleGradient)" />
-                <path class="chart-line" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" />
+                <defs><linearGradient id="appleGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity=".35"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>
+                <path class="chart-area" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20 L 500 150 L 0 150 Z" fill="url(#appleGradient)"/>
+                <path class="chart-line" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round"/>
               </svg>
             </div>
           </div>
-
-          <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175, 82, 222, 0.2);">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);">
-              <i data-lucide="sparkles" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--purple);">Умный инсайт</h4>
-              <p class="text-xs sm:text-sm text-primary mt-0.5">В этом месяце траты на кафе снизились на 12%. Вы экономите ~6 400 ₽ в неделю.</p>
-            </div>
+          <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175,82,222,.2);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+            <div><h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--purple);">Умный инсайт</h4><p class="text-xs sm:text-sm text-primary mt-0.5">В этом месяце траты на кафе снизились на 12%.</p></div>
           </div>
-
           <div class="grid grid-cols-2 gap-4">
-            <button onclick="openTrx('expense')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
-              <i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Трата</span>
-            </button>
-            <button onclick="openTrx('income')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
-              <i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Доход</span>
-            </button>
+            <button onclick="openTrx('expense')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Трата</span></button>
+            <button onclick="openTrx('income')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Доход</span></button>
           </div>
-
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-sm font-semibold tracking-wide text-primary">Задачи на сегодня</h3>
-              <button onclick="navigate('tasks', {tab: true})" class="text-xs font-medium" style="color: var(--blue);">Все →</button>
-            </div>
+            <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-semibold text-primary">Задачи на сегодня</h3><button onclick="navigate('tasks', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Все →</button></div>
             <div id="home-tasks-list"></div>
           </div>
-
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="text-sm font-semibold tracking-wide text-primary">Меню на сегодня</h3>
-              <button onclick="navigate('food', {tab: true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button>
-            </div>
+            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Меню</h3><button onclick="navigate('food', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
             <div id="home-menu-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
-
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="text-sm font-semibold tracking-wide text-primary">Тренировка</h3>
-              <button onclick="navigate('workout', {tab: true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button>
-            </div>
+            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Тренировка</h3><button onclick="navigate('workout', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
             <div id="home-workout-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
         </div>
-
         <div class="space-y-6">
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-sm font-semibold tracking-wide text-primary">Категории</h3>
-              <button onclick="navigate('fin-analytics')" class="back-btn"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-semibold text-primary">Категории</h3><button onclick="navigate('fin-analytics')" class="back-btn"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div>
             <div class="h-2 w-full rounded-full flex overflow-hidden mb-6 gap-0.5" style="background: var(--neutral-fill);">
               <div style="width: 40%; background: var(--orange);" class="h-full rounded-sm"></div>
               <div style="width: 25%; background: var(--blue);" class="h-full rounded-sm"></div>
@@ -298,23 +265,13 @@
               <div style="width: 15%; background: var(--red);" class="h-full rounded-sm"></div>
             </div>
             <div class="space-y-3">
-              <div class="flex justify-between items-center text-xs">
-                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--orange);"></span><span class="text-primary">Супермаркеты</span></div>
-                <span class="font-semibold numbers text-secondary">42 800 ₽</span>
-              </div>
-              <div class="flex justify-between items-center text-xs">
-                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--blue);"></span><span class="text-primary">Авто и транспорт</span></div>
-                <span class="font-semibold numbers text-secondary">18 400 ₽</span>
-              </div>
-              <div class="flex justify-between items-center text-xs">
-                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--purple);"></span><span class="text-primary">Подписки и сервисы</span></div>
-                <span class="font-semibold numbers text-secondary">6 200 ₽</span>
-              </div>
+              <div class="flex justify-between items-center text-xs"><div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--orange);"></span><span class="text-primary">Супермаркеты</span></div><span class="font-semibold numbers text-secondary">42 800 ₽</span></div>
+              <div class="flex justify-between items-center text-xs"><div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--blue);"></span><span class="text-primary">Транспорт</span></div><span class="font-semibold numbers text-secondary">18 400 ₽</span></div>
+              <div class="flex justify-between items-center text-xs"><div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--purple);"></span><span class="text-primary">Подписки</span></div><span class="font-semibold numbers text-secondary">6 200 ₽</span></div>
             </div>
           </div>
-
           <div class="apple-card p-6 rounded-[28px]">
-            <h3 class="text-sm font-semibold tracking-wide text-primary mb-4">Последнее</h3>
+            <h3 class="text-sm font-semibold text-primary mb-4">Последнее</h3>
             <div id="home-recent" class="space-y-3"></div>
           </div>
         </div>
@@ -323,119 +280,61 @@
 
     <!-- FINANCE -->
     <section id="screen-finance" class="screen">
-      <header class="mb-6">
-        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Октябрь 2026</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">Финансы</h1>
-      </header>
+      <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Октябрь 2026</p><h1 class="text-2xl font-semibold text-primary">Финансы</h1></header>
       <div class="apple-card p-6 rounded-[28px] mb-4">
         <div class="flex justify-between items-start mb-5">
-          <div><p class="text-xs text-secondary">Всего на счетах</p><div class="text-3xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 1 842 500</div></div>
-          <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52, 199, 89, 0.1); border: 0.5px solid rgba(52, 199, 89, 0.25); color: var(--green);">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span>
-          </div>
+          <div><p class="text-xs text-secondary">Всего на счетах</p><div class="text-3xl font-semibold mt-1 numbers text-primary">₽ 1 842 500</div></div>
+          <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52,199,89,.1); border: .5px solid rgba(52,199,89,.25); color: var(--green);"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <button onclick="openTrx('expense')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2">
-            <i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-xs font-medium text-primary">Трата</span>
-          </button>
-          <button onclick="openTrx('income')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2">
-            <i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i><span class="text-xs font-medium text-primary">Доход</span>
-          </button>
+          <button onclick="openTrx('expense')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2"><i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-xs font-medium text-primary">Трата</span></button>
+          <button onclick="openTrx('income')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2"><i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i><span class="text-xs font-medium text-primary">Доход</span></button>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="navigate('fin-budget')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(0, 122, 255, 0.15); color: var(--blue);"><i data-lucide="wallet" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Бюджет</p><p class="text-sm font-semibold text-primary">33 100 ₽</p></div>
-        </button>
-        <button onclick="navigate('fin-capital')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Капитал</p><p class="text-sm font-semibold text-primary">1.84М ₽</p></div>
-        </button>
-        <button onclick="navigate('fin-goals')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(255, 149, 0, 0.15); color: var(--orange);"><i data-lucide="target" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Копилки</p><p class="text-sm font-semibold text-primary">57 000 ₽</p></div>
-        </button>
-        <button onclick="navigate('fin-analytics')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);"><i data-lucide="pie-chart" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Аналитика</p><p class="text-sm font-semibold text-primary">Топы</p></div>
-        </button>
+        <button onclick="navigate('fin-budget')" class="hub-tile"><div class="hub-icon" style="background: rgba(0,122,255,.15); color: var(--blue);"><i data-lucide="wallet" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Бюджет</p><p class="text-sm font-semibold text-primary">33 100 ₽</p></div></button>
+        <button onclick="navigate('fin-capital')" class="hub-tile"><div class="hub-icon" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Капитал</p><p class="text-sm font-semibold text-primary">1.84М ₽</p></div></button>
+        <button onclick="navigate('fin-goals')" class="hub-tile"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="target" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Копилки</p><p class="text-sm font-semibold text-primary">57 000 ₽</p></div></button>
+        <button onclick="navigate('fin-analytics')" class="hub-tile"><div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="pie-chart" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Аналитика</p><p class="text-sm font-semibold text-primary">Топы</p></div></button>
       </div>
       <div class="apple-card p-6 rounded-[28px]">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-sm font-semibold tracking-wide text-primary">История</h3>
-          <button onclick="navigate('fin-history')" class="back-btn text-xs font-medium" style="color: var(--blue);">Все →</button>
-        </div>
+        <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-semibold text-primary">История</h3><button onclick="navigate('fin-history')" class="back-btn text-xs font-medium" style="color: var(--blue);">Все →</button></div>
         <div id="finance-recent" class="space-y-3"></div>
       </div>
     </section>
 
-    <!-- BUDGET, CAPITAL, GOALS, HISTORY, ANALYTICS (same as before) -->
     <section id="screen-fin-budget" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Октябрь</p><h1 class="text-xl font-semibold tracking-tight text-primary">Бюджет</h1></div>
-      </header>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Октябрь</p><h1 class="text-xl font-semibold text-primary">Бюджет</h1></div></header>
       <div class="apple-card p-6 rounded-[28px] mb-4">
         <div class="flex justify-between mb-2 text-xs"><span class="text-secondary">Израсходовано</span><span class="text-tertiary numbers">78 400 / 150 000 ₽</span></div>
         <div class="progress-track h-3 rounded-full mb-4"><div class="progress-fill h-full rounded-full" style="width: 52%; background: linear-gradient(90deg, var(--blue), var(--teal));"></div></div>
-        <div class="text-center mb-4"><p class="text-xs text-secondary mb-1">Осталось на месяц</p><p class="text-4xl font-semibold tracking-tight numbers text-primary">₽ 71 600</p></div>
+        <div class="text-center mb-4"><p class="text-xs text-secondary mb-1">Осталось</p><p class="text-4xl font-semibold numbers text-primary">₽ 71 600</p></div>
         <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase tracking-wide">На сегодня</p><p class="text-lg font-semibold numbers text-primary mt-1">₽ 2 300</p></div>
-          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase tracking-wide">Потрачено</p><p class="text-lg font-semibold numbers mt-1" style="color: var(--red);">₽ 1 890</p></div>
+          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">На сегодня</p><p class="text-lg font-semibold numbers text-primary mt-1">₽ 2 300</p></div>
+          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">Потрачено</p><p class="text-lg font-semibold numbers mt-1" style="color: var(--red);">₽ 1 890</p></div>
         </div>
       </div>
     </section>
-
     <section id="screen-fin-capital" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Итого</p><h1 class="text-xl font-semibold tracking-tight text-primary">Капитал</h1></div>
-      </header>
-      <div class="apple-card p-6 rounded-[28px] mb-4">
-        <p class="text-xs text-secondary mb-1">Всего на счетах</p>
-        <div class="text-4xl font-semibold tracking-tight numbers text-primary mb-1">₽ 1 842 500</div>
-        <p class="text-xs text-tertiary">обновлено только что</p>
-      </div>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Итого</p><h1 class="text-xl font-semibold text-primary">Капитал</h1></div></header>
+      <div class="apple-card p-6 rounded-[28px] mb-4"><p class="text-xs text-secondary mb-1">Всего на счетах</p><div class="text-4xl font-semibold numbers text-primary mb-1">₽ 1 842 500</div><p class="text-xs text-tertiary">обновлено только что</p></div>
     </section>
-
     <section id="screen-fin-goals" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Финансы</p><h1 class="text-xl font-semibold tracking-tight text-primary">Копилки</h1></div>
-      </header>
-      <div class="apple-card p-10 rounded-[28px] text-center">
-        <p class="text-sm text-tertiary">Копилки — в следующей итерации</p>
-      </div>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Финансы</p><h1 class="text-xl font-semibold text-primary">Копилки</h1></div></header>
+      <div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-tertiary">Копилки — в следующей итерации</p></div>
     </section>
-
     <section id="screen-fin-history" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Все операции</p><h1 class="text-xl font-semibold tracking-tight text-primary">История</h1></div>
-      </header>
-      <div class="apple-card p-5 rounded-[24px]">
-        <h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">Сегодня</h3>
-        <div id="today-transactions" class="space-y-3"></div>
-      </div>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Операции</p><h1 class="text-xl font-semibold text-primary">История</h1></div></header>
+      <div class="apple-card p-5 rounded-[24px]"><h3 class="text-xs font-semibold uppercase text-secondary mb-2">Сегодня</h3><div id="today-transactions" class="space-y-3"></div></div>
     </section>
-
     <section id="screen-fin-analytics" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Октябрь</p><h1 class="text-xl font-semibold tracking-tight text-primary">Аналитика</h1></div>
-      </header>
-      <div class="apple-card p-6 rounded-[28px] text-center py-10">
-        <p class="text-sm text-tertiary">Аналитика — в следующей итерации</p>
-      </div>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Октябрь</p><h1 class="text-xl font-semibold text-primary">Аналитика</h1></div></header>
+      <div class="apple-card p-6 rounded-[28px] text-center py-10"><p class="text-sm text-tertiary">Аналитика — в следующей итерации</p></div>
     </section>
 
     <!-- TASKS -->
     <section id="screen-tasks" class="screen">
-      <header class="mb-6">
-        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1" id="tasks-date-label">Сегодня</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">Задачи</h1>
-      </header>
+      <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="tasks-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Задачи</h1></header>
       <div class="apple-glass p-1 rounded-full flex space-x-1 mb-6">
         <button data-task-tab="today" onclick="setTaskTab('today')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Сегодня</button>
         <button data-task-tab="week" onclick="setTaskTab('week')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Неделя</button>
@@ -444,193 +343,132 @@
       <div id="tasks-content"></div>
     </section>
 
+    <!-- TASK DETAIL -->
+    <section id="screen-task-detail" class="screen">
+      <header class="flex items-center justify-between mb-6">
+        <button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <button onclick="deleteTaskFromDetail()" class="back-btn" style="color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+      </header>
+      <div id="task-detail-content"></div>
+    </section>
+
     <!-- FOOD -->
     <section id="screen-food" class="screen">
       <header class="flex items-center justify-between mb-6">
-        <div>
-          <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1" id="food-date-label">Сегодня</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-primary">Питание</h1>
-        </div>
-        <button onclick="navigate('food-shop')" class="apple-glass px-3 py-2 rounded-full text-xs font-medium text-primary flex items-center gap-1.5">
-          <i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Покупки</span>
-        </button>
+        <div><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="food-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Питание</h1></div>
+        <button onclick="navigate('food-shop')" class="apple-glass px-3 py-2 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Покупки</span></button>
       </header>
       <div class="food-progress-card">
         <div class="food-progress-row">
-          <div>
-            <p class="text-xs text-secondary mb-1">Калории за день</p>
-            <div><span class="food-progress-big" id="food-kcal-eaten">0</span><span class="food-progress-total">/ <span id="food-kcal-plan">1850</span> ккал</span></div>
-          </div>
-          <div class="text-right">
-            <p class="text-[10px] text-tertiary uppercase tracking-wide">Белок</p>
-            <p class="text-sm font-semibold text-primary numbers" id="food-protein-eaten">0 / 135 г</p>
-          </div>
+          <div><p class="text-xs text-secondary mb-1">Калории</p><div><span class="food-progress-big" id="food-kcal-eaten">0</span><span class="food-progress-total">/ <span id="food-kcal-plan">1850</span> ккал</span></div></div>
+          <div class="text-right"><p class="text-[10px] text-tertiary uppercase">Белок</p><p class="text-sm font-semibold numbers text-primary" id="food-protein-eaten">0 / 135 г</p></div>
         </div>
         <div class="progress-track h-2 rounded-full"><div id="food-progress-fill" class="progress-fill h-full rounded-full" style="width: 0%; background: linear-gradient(90deg, var(--green), var(--teal));"></div></div>
       </div>
       <div id="meals-list"></div>
     </section>
-
     <section id="screen-food-dish" class="screen">
-      <header class="flex items-center justify-between mb-4">
-        <button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <button onclick="toast('Скоро: замена блюда')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Заменить</button>
-      </header>
+      <header class="flex items-center justify-between mb-4"><button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><button onclick="toast('Скоро')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Заменить</button></header>
       <div id="dish-content"></div>
     </section>
-
     <section id="screen-food-shop" class="screen">
       <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center">
-          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-          <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Питание</p><h1 class="text-xl font-semibold tracking-tight text-primary">Покупки</h1></div>
-        </div>
+        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Питание</p><h1 class="text-xl font-semibold text-primary">Покупки</h1></div></div>
         <button onclick="clearBoughtShopping()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Очистить</button>
       </header>
       <div id="shop-content"></div>
     </section>
 
-    <!-- WORKOUT HUB -->
+    <!-- WORKOUT -->
     <section id="screen-workout" class="screen">
-      <header class="mb-6">
-        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Спорт</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">Тренировки</h1>
-      </header>
-
+      <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Спорт</p><h1 class="text-2xl font-semibold text-primary">Тренировки</h1></header>
       <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="navigate('workout-today')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(255, 45, 85, 0.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Сегодня</p><p class="text-sm font-semibold text-primary" id="hub-today-label">—</p></div>
-        </button>
-        <button onclick="navigate('workout-plan')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(0, 122, 255, 0.15); color: var(--blue);"><i data-lucide="calendar" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">План</p><p class="text-sm font-semibold text-primary">Неделя</p></div>
-        </button>
-        <button onclick="navigate('workout-progress')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Прогресс</p><p class="text-sm font-semibold text-primary">Рекорды</p></div>
-        </button>
-        <button onclick="navigate('workout-body')" class="hub-tile">
-          <div class="hub-icon" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);"><i data-lucide="activity" class="w-5 h-5"></i></div>
-          <div class="text-left"><p class="text-xs text-secondary">Замеры</p><p class="text-sm font-semibold text-primary" id="hub-body-label">—</p></div>
-        </button>
+        <button onclick="navigate('workout-today')" class="hub-tile"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Сегодня</p><p class="text-sm font-semibold text-primary" id="hub-today-label">—</p></div></button>
+        <button onclick="navigate('workout-plan')" class="hub-tile"><div class="hub-icon" style="background: rgba(0,122,255,.15); color: var(--blue);"><i data-lucide="calendar" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">План</p><p class="text-sm font-semibold text-primary">Неделя</p></div></button>
+        <button onclick="navigate('workout-progress')" class="hub-tile"><div class="hub-icon" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Прогресс</p><p class="text-sm font-semibold text-primary">Рекорды</p></div></button>
+        <button onclick="navigate('workout-body')" class="hub-tile"><div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="activity" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Замеры</p><p class="text-sm font-semibold text-primary" id="hub-body-label">—</p></div></button>
       </div>
-
       <button onclick="navigate('workout-cardio')" class="hub-tile w-full">
-        <div class="hub-icon" style="background: rgba(255, 149, 0, 0.15); color: var(--orange);"><i data-lucide="footprints" class="w-5 h-5"></i></div>
+        <div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="footprints" class="w-5 h-5"></i></div>
         <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Кардио</p><p class="text-[11px] text-tertiary" id="hub-cardio-label">—</p></div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
       </button>
-
-      <button onclick="toast('Скоро: AI-тренер')" class="hub-tile w-full mt-3" style="border-color: rgba(175, 82, 222, 0.2);">
-        <div class="hub-icon" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
-        <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">AI-тренер</p><p class="text-[11px] text-tertiary">Диалог, план, разбор</p></div>
+      <button onclick="toast('Скоро: AI-тренер')" class="hub-tile w-full mt-3" style="border-color: rgba(175,82,222,.2);">
+        <div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+        <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">AI-тренер</p><p class="text-[11px] text-tertiary">Диалог, план</p></div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
       </button>
     </section>
-
-    <!-- WORKOUT TODAY -->
     <section id="screen-workout-today" class="screen">
-      <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center">
-          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-          <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase" id="workout-today-label">Сегодня</p><h1 class="text-xl font-semibold tracking-tight text-primary">Тренировка</h1></div>
-        </div>
-      </header>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium" id="workout-today-label">Сегодня</p><h1 class="text-xl font-semibold text-primary">Тренировка</h1></div></header>
       <div id="workout-today-content"></div>
     </section>
-
-    <!-- WORKOUT PLAN -->
     <section id="screen-workout-plan" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Спорт</p><h1 class="text-xl font-semibold tracking-tight text-primary">План недели</h1></div>
-      </header>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">План</h1></div></header>
       <div id="workout-plan-content"></div>
     </section>
-
-    <!-- WORKOUT PROGRESS -->
     <section id="screen-workout-progress" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Спорт</p><h1 class="text-xl font-semibold tracking-tight text-primary">Прогресс</h1></div>
-      </header>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">Прогресс</h1></div></header>
       <div id="workout-progress-content"></div>
     </section>
-
-    <!-- WORKOUT BODY -->
     <section id="screen-workout-body" class="screen">
       <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center">
-          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-          <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Спорт</p><h1 class="text-xl font-semibold tracking-tight text-primary">Замеры</h1></div>
-        </div>
+        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">Замеры</h1></div></div>
         <button onclick="openBodyForm()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
       </header>
       <div id="workout-body-content"></div>
     </section>
-
-    <!-- WORKOUT CARDIO -->
     <section id="screen-workout-cardio" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <div><p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Спорт</p><h1 class="text-xl font-semibold tracking-tight text-primary">Кардио</h1></div>
-      </header>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">Кардио</h1></div></header>
       <div id="workout-cardio-content"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section id="screen-notes" class="screen">
+      <header class="flex items-center justify-between mb-6">
+        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Заметки</h1></div></div>
+        <button onclick="openNoteForm()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
+      </header>
+      <div id="notes-content"></div>
+    </section>
+
+    <!-- HABITS -->
+    <section id="screen-habits" class="screen">
+      <header class="flex items-center justify-between mb-6">
+        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Привычки</h1></div></div>
+        <button onclick="openHabitForm()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
+      </header>
+      <div id="habits-content"></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="screen-reports" class="screen">
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Отчёты</h1></div></header>
+      <div id="reports-content"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="screen-settings" class="screen">
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Настройки</h1></div></header>
+      <div id="settings-content"></div>
     </section>
 
     <!-- MORE -->
     <section id="screen-more" class="screen">
-      <header class="mb-6">
-        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Разделы</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">Ещё</h1>
-      </header>
+      <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Разделы</p><h1 class="text-2xl font-semibold text-primary">Ещё</h1></header>
       <div class="space-y-3">
-        <button onclick="navigate('food', {tab: true})" class="hub-tile w-full">
-          <div class="hub-icon" style="background: rgba(255, 149, 0, 0.15); color: var(--orange);"><i data-lucide="utensils" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Питание</p><p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p></div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-        </button>
-        <button onclick="navigate('workout', {tab: true})" class="hub-tile w-full">
-          <div class="hub-icon" style="background: rgba(255, 45, 85, 0.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Тренировки</p><p class="text-[11px] text-tertiary">План, прогресс, замеры</p></div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-        </button>
-        <button onclick="navigate('placeholder', {title: 'Заметки'})" class="hub-tile w-full">
-          <div class="hub-icon" style="background: rgba(90, 200, 250, 0.15); color: var(--teal);"><i data-lucide="notebook" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Заметки</p><p class="text-[11px] text-tertiary">Быстрые записи</p></div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-        </button>
-        <button onclick="navigate('placeholder', {title: 'Отчёты'})" class="hub-tile w-full">
-          <div class="hub-icon" style="background: rgba(88, 86, 214, 0.15); color: var(--indigo);"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Отчёты</p><p class="text-[11px] text-tertiary">Неделя, месяц, поиск</p></div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-        </button>
-        <button onclick="navigate('placeholder', {title: 'Привычки'})" class="hub-tile w-full">
-          <div class="hub-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--green);"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Привычки</p><p class="text-[11px] text-tertiary">Трекер</p></div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-        </button>
-        <button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255, 45, 85, 0.2);">
-          <div class="hub-icon" style="background: rgba(255, 45, 85, 0.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
-          <div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Удалит тестовые данные</p></div>
-        </button>
+        <button onclick="navigate('food', {tab:true})" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="utensils" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Питание</p><p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('workout', {tab:true})" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Тренировки</p><p class="text-[11px] text-tertiary">План, прогресс, замеры</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('notes')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(90,200,250,.15); color: var(--teal);"><i data-lucide="notebook" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Заметки</p><p class="text-[11px] text-tertiary">Быстрые записи</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('reports')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(88,86,214,.15); color: var(--indigo);"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Отчёты</p><p class="text-[11px] text-tertiary">Итоги и статистика</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('habits')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="check-circle" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Привычки</p><p class="text-[11px] text-tertiary">Трекер</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('settings')" class="hub-tile w-full"><div class="hub-icon" style="background: var(--neutral-fill); color: var(--text-secondary);"><i data-lucide="settings" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Настройки</p><p class="text-[11px] text-tertiary">Профиль, счета</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
       </div>
     </section>
 
-    <!-- PLACEHOLDER -->
     <section id="screen-placeholder" class="screen">
-      <header class="flex items-center mb-6">
-        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-        <h1 id="placeholder-title" class="text-xl font-semibold tracking-tight text-primary">Раздел</h1>
-      </header>
-      <div class="apple-card p-10 rounded-[28px] text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--neutral-fill);">
-          <i data-lucide="construction" class="w-8 h-8 text-tertiary"></i>
-        </div>
-        <p class="text-sm font-medium text-primary mb-1">В разработке</p>
-        <p class="text-xs text-tertiary">Этот раздел появится в следующей итерации</p>
-      </div>
+      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><h1 id="placeholder-title" class="text-xl font-semibold text-primary">Раздел</h1></header>
+      <div class="apple-card p-10 rounded-[28px] text-center"><div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--neutral-fill);"><i data-lucide="construction" class="w-8 h-8 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">В разработке</p></div>
     </section>
 
   </div>
@@ -639,21 +477,18 @@
 
   <nav class="fixed inset-x-0 flex justify-center z-50 px-4" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));">
     <div class="apple-glass px-6 py-3 rounded-full flex items-center space-x-8 shadow-2xl">
-      <button data-nav="home" onclick="navigate('home', {tab: true})" class="nav-btn active flex flex-col items-center"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Обзор</span></button>
-      <button data-nav="finance" onclick="navigate('finance', {tab: true})" class="nav-btn flex flex-col items-center"><i data-lucide="coins" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Финансы</span></button>
-      <button data-nav="tasks" onclick="navigate('tasks', {tab: true})" class="nav-btn flex flex-col items-center"><i data-lucide="list-check" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Задачи</span></button>
-      <button data-nav="more" onclick="navigate('more', {tab: true})" class="nav-btn flex flex-col items-center"><i data-lucide="grid-2x2" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Ещё</span></button>
+      <button data-nav="home" onclick="navigate('home', {tab:true})" class="nav-btn active flex flex-col items-center"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Обзор</span></button>
+      <button data-nav="finance" onclick="navigate('finance', {tab:true})" class="nav-btn flex flex-col items-center"><i data-lucide="coins" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Финансы</span></button>
+      <button data-nav="tasks" onclick="navigate('tasks', {tab:true})" class="nav-btn flex flex-col items-center"><i data-lucide="list-check" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Задачи</span></button>
+      <button data-nav="more" onclick="navigate('more', {tab:true})" class="nav-btn flex flex-col items-center"><i data-lucide="grid-2x2" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Ещё</span></button>
     </div>
   </nav>
 
-  <!-- TRANSACTION SHEET (сокр.) -->
+  <!-- TRANSACTION SHEET -->
   <div id="trx-sheet" class="trx-sheet">
     <div class="trx-header">
       <button class="trx-close" onclick="closeTrx()"><i data-lucide="x" class="w-5 h-5"></i></button>
-      <div class="trx-type-switch">
-        <button id="type-expense-btn" class="trx-type-btn active" onclick="setTrxType('expense')">Расход</button>
-        <button id="type-income-btn" class="trx-type-btn" onclick="setTrxType('income')">Доход</button>
-      </div>
+      <div class="trx-type-switch"><button id="type-expense-btn" class="trx-type-btn active" onclick="setTrxType('expense')">Расход</button><button id="type-income-btn" class="trx-type-btn" onclick="setTrxType('income')">Доход</button></div>
       <div class="w-9"></div>
     </div>
     <div class="trx-amount"><div id="trx-amount-display" class="trx-amount-value">0<span class="trx-amount-cur">₽</span></div></div>
@@ -663,7 +498,7 @@
       <div class="trx-section-label">Счёт</div>
       <div id="account-chips" class="account-chips"></div>
       <div class="trx-section-label">Комментарий</div>
-      <input id="trx-comment" class="trx-comment" type="text" placeholder="Например, обед в кафе" maxlength="80">
+      <input id="trx-comment" class="trx-comment" type="text" placeholder="Например, обед" maxlength="80">
       <div class="h-4"></div>
     </div>
     <div class="trx-keypad-wrap"><div class="keypad">
@@ -680,86 +515,71 @@
   <div id="task-sheet-overlay" class="task-sheet-overlay" onclick="closeTask()"></div>
   <div id="task-sheet" class="task-sheet">
     <div class="task-drag-handle"></div>
-    <div class="task-sheet-header">
-      <button class="trx-close" onclick="closeTask()"><i data-lucide="x" class="w-5 h-5"></i></button>
-      <h2 class="text-base font-semibold text-primary">Новая задача</h2>
-      <div class="w-9"></div>
-    </div>
+    <div class="task-sheet-header"><button class="trx-close" onclick="closeTask()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая задача</h2><div class="w-9"></div></div>
     <div class="task-sheet-body">
       <textarea id="task-text" class="task-input" rows="2" placeholder="Что нужно сделать?" maxlength="200"></textarea>
-      <div class="task-section">
-        <div class="task-section-label">Когда</div>
-        <div class="task-chip-row" id="task-date-chips">
-          <button class="task-chip" data-opt="today" onclick="setTaskDate('today')">Сегодня</button>
-          <button class="task-chip" data-opt="tomorrow" onclick="setTaskDate('tomorrow')">Завтра</button>
-          <button class="task-chip" data-opt="after" onclick="setTaskDate('after')">Послезавтра</button>
-          <button class="task-chip" data-opt="custom" onclick="setTaskDate('custom')">Дата</button>
-          <button class="task-chip" data-opt="none" onclick="setTaskDate('none')">Без даты</button>
-        </div>
-        <input id="task-custom-date" type="date" class="task-time-input mt-2" style="display:none;">
-      </div>
+      <div class="task-section"><div class="task-section-label">Когда</div><div class="task-chip-row" id="task-date-chips">
+        <button class="task-chip" data-opt="today" onclick="setTaskDate('today')">Сегодня</button>
+        <button class="task-chip" data-opt="tomorrow" onclick="setTaskDate('tomorrow')">Завтра</button>
+        <button class="task-chip" data-opt="after" onclick="setTaskDate('after')">Послезавтра</button>
+        <button class="task-chip" data-opt="custom" onclick="setTaskDate('custom')">Дата</button>
+        <button class="task-chip" data-opt="none" onclick="setTaskDate('none')">Без даты</button>
+      </div><input id="task-custom-date" type="date" class="task-time-input mt-2" style="display:none;"></div>
       <div class="task-section"><div class="task-section-label">Время</div><input id="task-time" type="time" class="task-time-input"></div>
-      <div class="task-section">
-        <div class="task-section-label">Приоритет</div>
-        <div class="task-chip-row">
-          <button class="task-chip active" data-prio="" onclick="setTaskPrio('')">Обычная</button>
-          <button class="task-chip" data-prio="!!" onclick="setTaskPrio('!!')">Важная</button>
-          <button class="task-chip" data-prio="!!!" onclick="setTaskPrio('!!!')">Срочная</button>
-        </div>
-      </div>
+      <div class="task-section"><div class="task-section-label">Приоритет</div><div class="task-chip-row">
+        <button class="task-chip active" data-prio="" onclick="setTaskPrio('')">Обычная</button>
+        <button class="task-chip" data-prio="!!" onclick="setTaskPrio('!!')">Важная</button>
+        <button class="task-chip" data-prio="!!!" onclick="setTaskPrio('!!!')">Срочная</button>
+      </div></div>
       <div class="task-section"><div class="task-section-label">Теги</div><input id="task-tags" type="text" class="task-time-input" placeholder="#дом #работа"></div>
     </div>
-    <div class="task-sheet-footer"><button id="task-submit" class="submit-btn" style="margin: 0;" onclick="submitTask()" disabled>Создать задачу</button></div>
+    <div class="task-sheet-footer"><button id="task-submit" class="submit-btn" style="margin:0;" onclick="submitTask()" disabled>Создать</button></div>
   </div>
 
-  <!-- BODY FORM SHEET -->
+  <!-- NOTE SHEET -->
+  <div id="note-sheet-overlay" class="task-sheet-overlay" onclick="closeNoteForm()"></div>
+  <div id="note-sheet" class="task-sheet" style="top: 15vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header"><button class="trx-close" onclick="closeNoteForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая заметка</h2><div class="w-9"></div></div>
+    <div class="task-sheet-body">
+      <textarea id="note-text" class="task-input" rows="6" placeholder="Текст заметки..." maxlength="2000"></textarea>
+    </div>
+    <div class="task-sheet-footer"><button id="note-submit" class="submit-btn" style="margin:0;" onclick="submitNote()" disabled>Сохранить</button></div>
+  </div>
+
+  <!-- HABIT SHEET -->
+  <div id="habit-sheet-overlay" class="task-sheet-overlay" onclick="closeHabitForm()"></div>
+  <div id="habit-sheet" class="task-sheet" style="top: 30vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header"><button class="trx-close" onclick="closeHabitForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая привычка</h2><div class="w-9"></div></div>
+    <div class="task-sheet-body">
+      <div class="task-section"><div class="task-section-label">Название</div><input id="habit-name" type="text" class="task-time-input" placeholder="Например, читать 20 минут"></div>
+    </div>
+    <div class="task-sheet-footer"><button id="habit-submit" class="submit-btn" style="margin:0; background: var(--green);" onclick="submitHabit()" disabled>Добавить</button></div>
+  </div>
+
+  <!-- BODY SHEET -->
   <div id="body-sheet-overlay" class="task-sheet-overlay" onclick="closeBodyForm()"></div>
   <div id="body-sheet" class="task-sheet" style="top: 20vh;">
     <div class="task-drag-handle"></div>
-    <div class="task-sheet-header">
-      <button class="trx-close" onclick="closeBodyForm()"><i data-lucide="x" class="w-5 h-5"></i></button>
-      <h2 class="text-base font-semibold text-primary">Новый замер</h2>
-      <div class="w-9"></div>
-    </div>
+    <div class="task-sheet-header"><button class="trx-close" onclick="closeBodyForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новый замер</h2><div class="w-9"></div></div>
     <div class="task-sheet-body">
-      <div class="task-section">
-        <div class="task-section-label">Вес (кг)</div>
-        <input id="body-weight" type="number" step="0.1" class="task-time-input" placeholder="81.4" inputmode="decimal">
-      </div>
-      <div class="task-section">
-        <div class="task-section-label">% жира</div>
-        <input id="body-fat" type="number" step="0.1" class="task-time-input" placeholder="18" inputmode="decimal">
-      </div>
-      <div class="task-section">
-        <div class="task-section-label">Талия (см)</div>
-        <input id="body-waist" type="number" step="0.1" class="task-time-input" placeholder="82" inputmode="decimal">
-      </div>
-      <div class="task-section">
-        <div class="task-section-label">Грудь (см)</div>
-        <input id="body-chest" type="number" step="0.1" class="task-time-input" placeholder="100" inputmode="decimal">
-      </div>
-      <div class="task-section">
-        <div class="task-section-label">Бёдра (см)</div>
-        <input id="body-hips" type="number" step="0.1" class="task-time-input" placeholder="95" inputmode="decimal">
-      </div>
+      <div class="task-section"><div class="task-section-label">Вес (кг)</div><input id="body-weight" type="number" step="0.1" class="task-time-input" placeholder="81.4" inputmode="decimal"></div>
+      <div class="task-section"><div class="task-section-label">% жира</div><input id="body-fat" type="number" step="0.1" class="task-time-input" placeholder="18" inputmode="decimal"></div>
+      <div class="task-section"><div class="task-section-label">Талия (см)</div><input id="body-waist" type="number" step="0.1" class="task-time-input" placeholder="82" inputmode="decimal"></div>
+      <div class="task-section"><div class="task-section-label">Грудь (см)</div><input id="body-chest" type="number" step="0.1" class="task-time-input" placeholder="100" inputmode="decimal"></div>
+      <div class="task-section"><div class="task-section-label">Бёдра (см)</div><input id="body-hips" type="number" step="0.1" class="task-time-input" placeholder="95" inputmode="decimal"></div>
     </div>
-    <div class="task-sheet-footer"><button class="submit-btn" style="margin: 0; background: var(--purple);" onclick="submitBodyMeasurement()">Сохранить</button></div>
+    <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--purple);" onclick="submitBodyMeasurement()">Сохранить</button></div>
   </div>
 
   <!-- CARDIO SHEET -->
   <div id="cardio-sheet-overlay" class="task-sheet-overlay" onclick="closeCardioForm()"></div>
   <div id="cardio-sheet" class="task-sheet" style="top: 30vh;">
     <div class="task-drag-handle"></div>
-    <div class="task-sheet-header">
-      <button class="trx-close" onclick="closeCardioForm()"><i data-lucide="x" class="w-5 h-5"></i></button>
-      <h2 class="text-base font-semibold text-primary" id="cardio-sheet-title">Кардио</h2>
-      <div class="w-9"></div>
-    </div>
+    <div class="task-sheet-header"><button class="trx-close" onclick="closeCardioForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary" id="cardio-sheet-title">Кардио</h2><div class="w-9"></div></div>
     <div class="task-sheet-body">
-      <div class="task-section">
-        <div class="task-section-label">Длительность (минут)</div>
-        <input id="cardio-minutes" type="number" class="task-time-input" placeholder="30" inputmode="numeric">
-      </div>
+      <div class="task-section"><div class="task-section-label">Минут</div><input id="cardio-minutes" type="number" class="task-time-input" placeholder="30" inputmode="numeric"></div>
       <div class="task-chip-row mt-3">
         <button class="task-chip" onclick="setCardioMinutes(15)">15</button>
         <button class="task-chip" onclick="setCardioMinutes(30)">30</button>
@@ -767,13 +587,13 @@
         <button class="task-chip" onclick="setCardioMinutes(60)">60</button>
       </div>
     </div>
-    <div class="task-sheet-footer"><button class="submit-btn" style="margin: 0; background: var(--orange);" onclick="submitCardio()">Записать</button></div>
+    <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--orange);" onclick="submitCardio()">Записать</button></div>
   </div>
 
-  <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
+  <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
 
   <script>
-    // =============== TELEGRAM INIT ===============
+    // =========== TELEGRAM INIT ===========
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
     function applyTheme() {
@@ -781,8 +601,7 @@
       if (scheme === 'light') { document.body.classList.add('light'); if (tg) { tg.setHeaderColor('#F2F2F7'); tg.setBackgroundColor('#F2F2F7'); } }
       else { document.body.classList.remove('light'); if (tg) { tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000'); } }
     }
-    applyTheme();
-    if (tg) tg.onEvent('themeChanged', applyTheme);
+    applyTheme(); if (tg) tg.onEvent('themeChanged', applyTheme);
     function haptic(s='light') { try { tg?.HapticFeedback?.impactOccurred(s); } catch(e) {} }
     function hapticNotify(t='success') { try { tg?.HapticFeedback?.notificationOccurred(t); } catch(e) {} }
     let toastTimeout;
@@ -794,7 +613,7 @@
       toastTimeout = setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(20px)'; }, 2200);
     }
 
-    // =============== NAVIGATION ===============
+    // =========== NAVIGATION ===============
     let history = ['home']; let currentScreen = 'home';
     function showScreen(name) {
       currentScreen = name;
@@ -807,7 +626,8 @@
       else {
         const parent = {
           'fin-budget':'finance','fin-capital':'finance','fin-goals':'finance','fin-history':'finance','fin-analytics':'finance',
-          'food-dish':'more','food-shop':'more',
+          'food-dish':'more','food-shop':'more','notes':'more','habits':'more','reports':'more','settings':'more',
+          'task-detail':'tasks',
           'workout-today':'more','workout-plan':'more','workout-progress':'more','workout-body':'more','workout-cardio':'more'
         }[name];
         if (parent) { const el = document.querySelector(`[data-nav="${parent}"]`); if (el) el.classList.add('active'); }
@@ -824,6 +644,10 @@
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
+      if (name === 'notes') renderNotes();
+      if (name === 'habits') renderHabits();
+      if (name === 'reports') renderReports();
+      if (name === 'settings') renderSettings();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function navigate(name, opts = {}) {
@@ -841,36 +665,40 @@
     window.addEventListener('popstate', goBack);
     function updateFabForScreen(name) {
       const fab = document.getElementById('fab'); if (!fab) return;
-      fab.style.display = (name === 'home' || name === 'finance' || name === 'tasks') ? 'flex' : 'none';
+      fab.style.display = (name === 'home' || name === 'finance' || name === 'tasks' || name === 'notes') ? 'flex' : 'none';
     }
-    function onFabTap() { if (currentScreen === 'tasks') openTask(); else openTrx('expense'); }
+    function onFabTap() {
+      if (currentScreen === 'tasks') openTask();
+      else if (currentScreen === 'notes') openNoteForm();
+      else openTrx('expense');
+    }
 
-    // =============== PERIOD ===============
+    // =========== PERIOD ===========
     const periodData = { 'M': '₽ 1 842 500', 'W': '₽ 1 798 200', 'Y': '₽ 1 542 000' };
     function setPeriod(btn) {
       haptic('light');
       btn.parentElement.querySelectorAll('.segmented-btn').forEach(el => el.classList.remove('active'));
       btn.classList.add('active');
       const d = periodData[btn.textContent.trim()];
-      if (d) { const b = document.getElementById('balance'); b.style.transition = 'opacity 0.15s ease'; b.style.opacity = '0'; setTimeout(() => { b.textContent = d; b.style.opacity = '1'; }, 150); }
+      if (d) { const b = document.getElementById('balance'); b.style.transition = 'opacity .15s ease'; b.style.opacity = '0'; setTimeout(() => { b.textContent = d; b.style.opacity = '1'; }, 150); }
     }
 
-    // =============== TRANSACTIONS ===============
+    // =========== TRANSACTIONS ===============
     const CATEGORIES = [
-      { id:'food',label:'Еда',icon:'shopping-cart',color:'orange' },{ id:'transport',label:'Транспорт',icon:'car',color:'blue' },
-      { id:'bars',label:'Бары',icon:'wine',color:'purple' },{ id:'sport',label:'Спорт',icon:'dumbbell',color:'red' },
-      { id:'subs',label:'Подписки',icon:'smartphone',color:'indigo' },{ id:'home',label:'Дом',icon:'home',color:'green' },
-      { id:'shopping',label:'Шопинг',icon:'shopping-bag',color:'pink' },{ id:'health',label:'Здоровье',icon:'heart-pulse',color:'red' },
-      { id:'edu',label:'Учёба',icon:'book-open',color:'teal' },{ id:'other',label:'Прочее',icon:'package',color:'gray' }
+      {id:'food',label:'Еда',icon:'shopping-cart',color:'orange'},{id:'transport',label:'Транспорт',icon:'car',color:'blue'},
+      {id:'bars',label:'Бары',icon:'wine',color:'purple'},{id:'sport',label:'Спорт',icon:'dumbbell',color:'red'},
+      {id:'subs',label:'Подписки',icon:'smartphone',color:'indigo'},{id:'home',label:'Дом',icon:'home',color:'green'},
+      {id:'shopping',label:'Шопинг',icon:'shopping-bag',color:'pink'},{id:'health',label:'Здоровье',icon:'heart-pulse',color:'red'},
+      {id:'edu',label:'Учёба',icon:'book-open',color:'teal'},{id:'other',label:'Прочее',icon:'package',color:'gray'}
     ];
     const CATEGORIES_INCOME = [
-      { id:'salary',label:'Зарплата',icon:'wallet',color:'green' },{ id:'freelance',label:'Фриланс',icon:'briefcase',color:'blue' },
-      { id:'passive',label:'Пассив',icon:'trending-up',color:'purple' },{ id:'gift',label:'Подарок',icon:'gift',color:'pink' },
-      { id:'other_in',label:'Прочее',icon:'package',color:'gray' }
+      {id:'salary',label:'Зарплата',icon:'wallet',color:'green'},{id:'freelance',label:'Фриланс',icon:'briefcase',color:'blue'},
+      {id:'passive',label:'Пассив',icon:'trending-up',color:'purple'},{id:'gift',label:'Подарок',icon:'gift',color:'pink'},
+      {id:'other_in',label:'Прочее',icon:'package',color:'gray'}
     ];
     const ACCOUNTS = [{id:'card',label:'Основная'},{id:'credit',label:'Кредитка'},{id:'cash',label:'Наличные'},{id:'invest',label:'Инвест'}];
-    const COLOR_MAP = { blue:'var(--blue)',green:'var(--green)',orange:'var(--orange)',purple:'var(--purple)',red:'var(--red)',indigo:'var(--indigo)',teal:'var(--teal)',pink:'var(--pink)',gray:'var(--gray)',yellow:'var(--yellow)' };
-    const BG_MAP = { blue:'rgba(0,122,255,0.15)',green:'rgba(52,199,89,0.15)',orange:'rgba(255,149,0,0.15)',purple:'rgba(175,82,222,0.15)',red:'rgba(255,45,85,0.15)',indigo:'rgba(88,86,214,0.15)',teal:'rgba(90,200,250,0.15)',pink:'rgba(255,45,85,0.15)',gray:'rgba(142,142,147,0.15)',yellow:'rgba(255,204,0,0.15)' };
+    const COLOR_MAP = {blue:'var(--blue)',green:'var(--green)',orange:'var(--orange)',purple:'var(--purple)',red:'var(--red)',indigo:'var(--indigo)',teal:'var(--teal)',pink:'var(--pink)',gray:'var(--gray)',yellow:'var(--yellow)'};
+    const BG_MAP = {blue:'rgba(0,122,255,.15)',green:'rgba(52,199,89,.15)',orange:'rgba(255,149,0,.15)',purple:'rgba(175,82,222,.15)',red:'rgba(255,45,85,.15)',indigo:'rgba(88,86,214,.15)',teal:'rgba(90,200,250,.15)',pink:'rgba(255,45,85,.15)',gray:'rgba(142,142,147,.15)',yellow:'rgba(255,204,0,.15)'};
 
     let trxState = { type:'expense', amountStr:'0', categoryId:null, accountId:'card' };
     function resetTrxState(t='expense') { trxState = { type:t, amountStr:'0', categoryId:null, accountId:'card' }; }
@@ -891,9 +719,8 @@
       renderCategories(); updateSubmitBtn();
     }
     function renderCategories() {
-      const grid = document.getElementById('category-grid');
       const list = trxState.type === 'expense' ? CATEGORIES : CATEGORIES_INCOME;
-      grid.innerHTML = list.map(c => `<button class="category-btn ${trxState.categoryId===c.id?'active':''}" onclick="selectCategory('${c.id}')">
+      document.getElementById('category-grid').innerHTML = list.map(c => `<button class="category-btn ${trxState.categoryId===c.id?'active':''}" onclick="selectCategory('${c.id}')">
         <div class="category-icon" style="background: ${BG_MAP[c.color]}; color: ${COLOR_MAP[c.color]};"><i data-lucide="${c.icon}" class="w-4 h-4"></i></div>
         <span class="category-label">${c.label}</span></button>`).join('');
       lucide.createIcons();
@@ -945,7 +772,7 @@
         </div><span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span></div>`;
     }
 
-    // =============== TASKS ===============
+    // =========== TASKS ===============
     let taskState = { dateOption:'today', customDate:'', priority:'' }; let currentTaskTab = 'today';
     function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function addDays(s,n) { const d = new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -987,12 +814,12 @@
       else if (taskState.dateOption==='custom') date = document.getElementById('task-custom-date').value;
       const tagsRaw = document.getElementById('task-tags').value.trim();
       const tags = tagsRaw ? tagsRaw.split(/[\s,]+/).filter(Boolean).map(t => t.startsWith('#')?t:'#'+t).join(' ') : '';
-      const task = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, done:false, date, time: document.getElementById('task-time').value, priority: taskState.priority, tags, createdAt: new Date().toISOString(), doneAt: null };
+      const task = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, done:false, date, time: document.getElementById('task-time').value, priority: taskState.priority, tags, createdAt: new Date().toISOString(), doneAt: null, subtasks: [] };
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_task', payload: task})); } catch(e) {}
       const all = loadTasks(); all.unshift(task); saveTasks(all);
       closeTask(); renderTasksScreen(); renderHomeTasks(); toast('Задача создана');
     }
-    function toggleTaskDone(id) { haptic('medium'); const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return; t.done = !t.done; t.doneAt = t.done?new Date().toISOString():null; saveTasks(all); if (t.done) hapticNotify('success'); renderTasksScreen(); renderHomeTasks(); }
+    function toggleTaskDone(id) { haptic('medium'); const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return; t.done = !t.done; t.doneAt = t.done?new Date().toISOString():null; saveTasks(all); if (t.done) hapticNotify('success'); renderTasksScreen(); renderHomeTasks(); if (currentScreen==='task-detail') renderTaskDetail(t); }
     function deleteTask(id) { haptic('medium'); saveTasks(loadTasks().filter(t=>t.id!==id)); renderTasksScreen(); renderHomeTasks(); toast('Удалено'); }
     function setTaskTab(tab) { haptic('light'); currentTaskTab = tab; document.querySelectorAll('[data-task-tab]').forEach(b => b.classList.toggle('active', b.dataset.taskTab===tab)); renderTasksScreen(); }
     function renderTasksScreen() {
@@ -1004,9 +831,9 @@
         const noDate = all.filter(t=>!t.done && !t.date).slice(0,5);
         if (!overdue.length && !todayTasks.length && !noDate.length) html = emptyTasksHTML('Задач на сегодня нет 🎉','Нажми + чтобы добавить');
         else {
-          if (overdue.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase tracking-wide mb-2" style="color:var(--red);">Просрочено (${overdue.length})</h3><div>${overdue.map(t=>taskItemHTML(t)).join('')}</div></div>`;
-          if (todayTasks.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">На сегодня (${todayTasks.length})</h3><div>${todayTasks.map(t=>taskItemHTML(t)).join('')}</div></div>`;
-          if (noDate.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">Без даты</h3><div>${noDate.map(t=>taskItemHTML(t)).join('')}</div></div>`;
+          if (overdue.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase mb-2" style="color:var(--red);">Просрочено (${overdue.length})</h3><div>${overdue.map(t=>taskItemHTML(t)).join('')}</div></div>`;
+          if (todayTasks.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-2">На сегодня (${todayTasks.length})</h3><div>${todayTasks.map(t=>taskItemHTML(t)).join('')}</div></div>`;
+          if (noDate.length) html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-2">Без даты</h3><div>${noDate.map(t=>taskItemHTML(t)).join('')}</div></div>`;
         }
       } else if (currentTaskTab === 'week') {
         const filtered = all.filter(t=>t.date && t.date>=today && t.date<=weekEnd).sort((a,b)=>a.date.localeCompare(b.date));
@@ -1016,7 +843,7 @@
           Object.keys(byDate).sort().forEach(date => {
             const d = new Date(date+'T00:00:00');
             const label = date===today?'Сегодня':date===addDays(today,1)?'Завтра':d.toLocaleDateString('ru-RU',{weekday:'short',day:'2-digit',month:'short'});
-            html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">${label}</h3><div>${byDate[date].map(t=>taskItemHTML(t)).join('')}</div></div>`;
+            html += `<div class="apple-card p-5 rounded-[24px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-2">${label}</h3><div>${byDate[date].map(t=>taskItemHTML(t)).join('')}</div></div>`;
           });
         }
       } else {
@@ -1038,10 +865,12 @@
       if (dl) meta.push(`<span class="task-meta-item">${escapeHtml(dl)}</span>`);
       if (t.time) meta.push(`<span class="task-meta-item">${escapeHtml(t.time)}</span>`);
       if (t.tags) meta.push(`<span class="task-meta-item">${escapeHtml(t.tags)}</span>`);
+      const subs = t.subtasks || [];
+      if (subs.length) { const done = subs.filter(s=>s.done).length; meta.push(`<span class="task-meta-item">📦 ${done}/${subs.length}</span>`); }
       return `<div class="task-item ${t.done?'done':''}">${flagColor?`<div class="task-flag" style="background:${flagColor};"></div>`:''}
-        <button class="task-check ${t.done?'active':''}" onclick="toggleTaskDone('${t.id}')">${t.done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button>
-        <div style="flex:1;min-width:0;"><div class="task-text">${escapeHtml(t.text)}</div>${meta.length?`<div class="task-meta">${meta.join('')}</div>`:''}</div>
-        <button class="back-btn p-2" onclick="event.stopPropagation(); deleteTask('${t.id}')" style="opacity:0.5;"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <button class="task-check ${t.done?'active':''}" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">${t.done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button>
+        <div style="flex:1;min-width:0;" onclick="openTaskDetail('${t.id}')"><div class="task-text">${escapeHtml(t.text)}</div>${meta.length?`<div class="task-meta">${meta.join('')}</div>`:''}</div>
+        <button class="back-btn p-2" onclick="event.stopPropagation(); deleteTask('${t.id}')" style="opacity:.5;"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
       </div>`;
     }
     function renderHomeTasks() {
@@ -1051,27 +880,192 @@
       if (!tasks.length) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-3">Задач на сегодня нет</p>'; return; }
       el.innerHTML = `<div class="mt-3">${tasks.map(t => {
         const fc = t.priority==='!!!'?'var(--red)':t.priority==='!!'?'var(--yellow)':'';
-        return `<div class="flex items-center space-x-3 py-2">${fc?`<span class="w-1 self-stretch rounded-full" style="background:${fc};"></span>`:''}<button class="task-check" style="width:18px;height:18px;" onclick="toggleTaskDone('${t.id}')"></button><span class="text-sm text-primary flex-1">${escapeHtml(t.text)}</span></div>`;
+        return `<div class="flex items-center space-x-3 py-2" onclick="openTaskDetail('${t.id}')">${fc?`<span class="w-1 self-stretch rounded-full" style="background:${fc};"></span>`:''}<button class="task-check" style="width:18px;height:18px;" onclick="event.stopPropagation();toggleTaskDone('${t.id}')"></button><span class="text-sm text-primary flex-1">${escapeHtml(t.text)}</span></div>`;
       }).join('')}</div>`;
       lucide.createIcons();
     }
 
-    // =============== FOOD ===============
+    // =========== TASK DETAIL ===============
+    let currentTaskId = null;
+    function openTaskDetail(id) {
+      haptic('light'); currentTaskId = id;
+      const task = loadTasks().find(t=>t.id===id); if (!task) return;
+      renderTaskDetail(task);
+      navigate('task-detail');
+    }
+    function renderTaskDetail(task) {
+      const el = document.getElementById('task-detail-content'); if (!el) return;
+      const today = todayStr();
+      const flagColor = task.priority==='!!!'?'var(--red)':task.priority==='!!'?'var(--yellow)':'';
+      const subs = task.subtasks || [];
+
+      let html = `
+        <div class="apple-card p-6 rounded-[24px] mb-4">
+          <div class="flex items-start gap-3 mb-4">
+            <button class="task-check ${task.done?'active':''}" style="width:28px;height:28px;" onclick="toggleTaskDone('${task.id}')">${task.done?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button>
+            <textarea class="detail-textarea" onblur="updateTaskField('${task.id}','text',this.value)" rows="2" placeholder="Текст задачи">${escapeHtml(task.text)}</textarea>
+          </div>
+          ${flagColor?`<div class="h-1 rounded-full mb-4" style="background:${flagColor};"></div>`:''}
+
+          <div class="task-section" style="margin-top:0;">
+            <div class="task-section-label">Приоритет</div>
+            <div class="task-chip-row">
+              <button class="task-chip ${task.priority===''?'active':''}" onclick="setDetailPrio('${task.id}','')">Обычная</button>
+              <button class="task-chip ${task.priority==='!!'?'active-yellow':''}" onclick="setDetailPrio('${task.id}','!!')">Важная</button>
+              <button class="task-chip ${task.priority==='!!!'?'active-red':''}" onclick="setDetailPrio('${task.id}','!!!')">Срочная</button>
+            </div>
+          </div>
+
+          <div class="task-section">
+            <div class="task-section-label">Дата</div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-sm text-primary">${task.date ? new Date(task.date+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'2-digit',month:'short'}) : 'Без даты'}</span>
+              <div class="task-chip-row" style="margin:0;">
+                <button class="task-chip" onclick="shiftTaskDate('${task.id}',1)">+1д</button>
+                <button class="task-chip" onclick="shiftTaskDate('${task.id}',3)">+3д</button>
+                <button class="task-chip" onclick="shiftTaskDate('${task.id}',7)">+7д</button>
+                ${task.date?`<button class="task-chip" onclick="updateTaskField('${task.id}','date','')">×</button>`:''}
+              </div>
+            </div>
+          </div>
+
+          <div class="task-section">
+            <div class="task-section-label">Время</div>
+            <input type="time" class="task-time-input" value="${task.time||''}" onblur="updateTaskField('${task.id}','time',this.value)">
+          </div>
+
+          <div class="task-section">
+            <div class="task-section-label">Теги</div>
+            <input type="text" class="task-time-input" value="${escapeHtml(task.tags||'')}" placeholder="#дом #работа" onblur="updateTaskField('${task.id}','tags',this.value)">
+          </div>
+        </div>
+
+        <div class="apple-card p-6 rounded-[24px] mb-4">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-sm font-semibold text-primary">Подзадачи</h3>
+            <span class="text-xs text-tertiary">${subs.filter(s=>s.done).length} / ${subs.length}</span>
+          </div>
+          <div id="subtask-list">
+            ${subs.map(s => `
+              <div class="subtask-row">
+                <button class="subtask-check ${s.done?'active':''}" onclick="toggleSubtask('${task.id}','${s.id}')">${s.done?'<i data-lucide="check" class="w-3 h-3"></i>':''}</button>
+                <span class="subtask-text ${s.done?'done':''}">${escapeHtml(s.text)}</span>
+                <button class="back-btn p-1" onclick="deleteSubtask('${task.id}','${s.id}')" style="opacity:.5;"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+              </div>
+            `).join('')}
+          </div>
+          <div class="flex gap-2 mt-3">
+            <input id="subtask-input" class="subtask-input" placeholder="Новая подзадача" onkeypress="if(event.key==='Enter')addSubtask('${task.id}')">
+            <button onclick="addSubtask('${task.id}')" class="apple-glass px-3 rounded-xl text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary flex items-center justify-center gap-2" onclick="postponeTaskDetail('${task.id}')">
+            <i data-lucide="clock" class="w-4 h-4 text-secondary"></i>Отложить
+          </button>
+          <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium" style="color:var(--red);" onclick="deleteTaskFromDetail()">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>Удалить
+          </button>
+        </div>
+        <div class="h-4"></div>
+      `;
+      el.innerHTML = html;
+      lucide.createIcons();
+    }
+    function updateTaskField(id, field, value) {
+      const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
+      t[field] = value; saveTasks(all);
+      if (field === 'text' && value.trim()) toast('Сохранено');
+    }
+    function setDetailPrio(id, p) {
+      haptic('light');
+      const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
+      t.priority = p; saveTasks(all);
+      const updated = loadTasks().find(x=>x.id===id); renderTaskDetail(updated);
+    }
+    function shiftTaskDate(id, days) {
+      haptic('light');
+      const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
+      const base = t.date || todayStr();
+      t.date = addDays(base, days); saveTasks(all);
+      const updated = loadTasks().find(x=>x.id===id); renderTaskDetail(updated);
+    }
+    function toggleSubtask(taskId, subId) {
+      haptic('light');
+      const all = loadTasks(); const t = all.find(x=>x.id===taskId); if (!t) return;
+      if (!t.subtasks) t.subtasks = [];
+      const s = t.subtasks.find(x=>x.id===subId); if (!s) return;
+      s.done = !s.done; saveTasks(all);
+      const updated = loadTasks().find(x=>x.id===taskId); renderTaskDetail(updated);
+    }
+    function addSubtask(taskId) {
+      const input = document.getElementById('subtask-input');
+      const text = input.value.trim(); if (!text) return;
+      haptic('light');
+      const all = loadTasks(); const t = all.find(x=>x.id===taskId); if (!t) return;
+      if (!t.subtasks) t.subtasks = [];
+      t.subtasks.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, done: false });
+      saveTasks(all);
+      const updated = loadTasks().find(x=>x.id===taskId); renderTaskDetail(updated);
+      setTimeout(()=>document.getElementById('subtask-input').focus(), 50);
+    }
+    function deleteSubtask(taskId, subId) {
+      haptic('light');
+      const all = loadTasks(); const t = all.find(x=>x.id===taskId); if (!t) return;
+      t.subtasks = (t.subtasks||[]).filter(s=>s.id!==subId);
+      saveTasks(all);
+      const updated = loadTasks().find(x=>x.id===taskId); renderTaskDetail(updated);
+    }
+    function postponeTaskDetail(id) {
+      haptic('light');
+      const options = [1, 3, 7, 30];
+      const el = document.getElementById('task-detail-content');
+      const task = loadTasks().find(t=>t.id===id);
+      const flagColor = task.priority==='!!!'?'var(--red)':task.priority==='!!'?'var(--yellow)':'';
+      const subs = task.subtasks || [];
+      const html = `
+        <div class="apple-card p-6 rounded-[24px] mb-4">
+          <h3 class="text-sm font-semibold text-primary mb-4">Отложить на сколько?</h3>
+          <div class="grid grid-cols-2 gap-3">
+            ${options.map(d => `<button onclick="doPostpone('${id}', ${d})" class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary">${d} ${d===1?'день':d<5?'дня':'дней'}</button>`).join('')}
+          </div>
+          <button onclick="openTaskDetail('${id}')" class="mt-3 w-full apple-glass p-3 rounded-2xl text-sm font-medium text-primary">Отмена</button>
+        </div>`;
+      el.innerHTML = html;
+      lucide.createIcons();
+    }
+    function doPostpone(id, days) {
+      hapticNotify('success');
+      const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return;
+      t.date = addDays(todayStr(), days); saveTasks(all);
+      toast(`Отложено на ${days} дн.`);
+      navigate('tasks', {tab:true});
+    }
+    function deleteTaskFromDetail() {
+      if (!currentTaskId) return;
+      haptic('medium');
+      saveTasks(loadTasks().filter(t=>t.id!==currentTaskId));
+      renderTasksScreen(); renderHomeTasks();
+      toast('Удалено');
+      navigate('tasks', {tab:true});
+    }
+
+    // =========== FOOD ===============
     const MEAL_ICONS = { breakfast:{icon:'sunrise',color:'orange'}, lunch:{icon:'sun',color:'yellow'}, dinner:{icon:'moon',color:'purple'}, snack:{icon:'coffee',color:'teal'} };
     const MEAL_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Снек' };
     const MEAL_ORDER = ['breakfast','lunch','dinner','snack'];
     const DEFAULT_FOOD_MENU = {
-      breakfast: { name:'Шакшука', emoji:'🍳', kcal:420,p:22,f:28,c:18, ingredients:[{name:'Яйца',qty:'2 шт'},{name:'Помидоры',qty:'200 г'},{name:'Лук',qty:'50 г'},{name:'Масло',qty:'1 ст.л.'}], recipe:['Обжарь лук.','Добавь помидоры, туши 5 мин.','Вбей яйца.','Накрой крышкой, готовь 3-4 мин.'] },
-      lunch: { name:'Курица с рисом', emoji:'🍗', kcal:650,p:45,f:18,c:62, ingredients:[{name:'Куриная грудка',qty:'200 г'},{name:'Рис',qty:'80 г'},{name:'Брокколи',qty:'150 г'}], recipe:['Отвари рис.','Обжарь курицу 4-5 мин с каждой стороны.','Брокколи 3 мин.','Смешай, полей соусом.'] },
-      dinner: { name:'Стейк лосося', emoji:'🐟', kcal:520,p:38,f:32,c:0, ingredients:[{name:'Лосось',qty:'180 г'},{name:'Лимон',qty:'1/2'},{name:'Масло сливочное',qty:'10 г'}], recipe:['Обсуши стейк.','Разогрей сковороду.','Обжарь 3-4 мин с каждой стороны.','Сбрызни лимоном.'] },
-      snack: { name:'Творог с ягодами', emoji:'🥛', kcal:260,p:22,f:8,c:22, ingredients:[{name:'Творог 5%',qty:'200 г'},{name:'Ягоды',qty:'100 г'},{name:'Мёд',qty:'1 ч.л.'}], recipe:['Выложи творог.','Добавь ягоды.','Полей мёдом.'] }
+      breakfast:{name:'Шакшука',emoji:'🍳',kcal:420,p:22,f:28,c:18,ingredients:[{name:'Яйца',qty:'2 шт'},{name:'Помидоры',qty:'200 г'},{name:'Лук',qty:'50 г'}],recipe:['Обжарь лук.','Добавь помидоры, туши 5 мин.','Вбей яйца.','Накрой крышкой, готовь 3-4 мин.']},
+      lunch:{name:'Курица с рисом',emoji:'🍗',kcal:650,p:45,f:18,c:62,ingredients:[{name:'Курица',qty:'200 г'},{name:'Рис',qty:'80 г'},{name:'Брокколи',qty:'150 г'}],recipe:['Отвари рис.','Обжарь курицу.','Брокколи 3 мин.','Смешай.']},
+      dinner:{name:'Стейк лосося',emoji:'🐟',kcal:520,p:38,f:32,c:0,ingredients:[{name:'Лосось',qty:'180 г'},{name:'Лимон',qty:'1/2'}],recipe:['Обсуши стейк.','Обжарь 3-4 мин с каждой стороны.','Сбрызни лимоном.']},
+      snack:{name:'Творог с ягодами',emoji:'🥛',kcal:260,p:22,f:8,c:22,ingredients:[{name:'Творог',qty:'200 г'},{name:'Ягоды',qty:'100 г'}],recipe:['Смешай.']}
     };
     const DEFAULT_SHOPPING = [
-      {id:'s1',name:'Яйца',qty:'10 шт',category:'Белки',checked:false},{id:'s2',name:'Куриная грудка',qty:'500 г',category:'Белки',checked:false},
-      {id:'s3',name:'Лосось',qty:'400 г',category:'Белки',checked:false},{id:'s4',name:'Творог 5%',qty:'400 г',category:'Белки',checked:false},
+      {id:'s1',name:'Яйца',qty:'10 шт',category:'Белки',checked:false},{id:'s2',name:'Курица',qty:'500 г',category:'Белки',checked:false},
+      {id:'s3',name:'Лосось',qty:'400 г',category:'Белки',checked:false},{id:'s4',name:'Творог',qty:'400 г',category:'Белки',checked:false},
       {id:'s5',name:'Помидоры',qty:'500 г',category:'Овощи',checked:false},{id:'s6',name:'Лук',qty:'200 г',category:'Овощи',checked:false},
-      {id:'s7',name:'Брокколи',qty:'300 г',category:'Овощи',checked:false},{id:'s8',name:'Рис басмати',qty:'500 г',category:'Крупы',checked:false},
-      {id:'s9',name:'Оливковое масло',qty:'250 мл',category:'Прочее',checked:false},{id:'s10',name:'Ягоды',qty:'300 г',category:'Прочее',checked:false}
+      {id:'s7',name:'Рис',qty:'500 г',category:'Крупы',checked:false},{id:'s8',name:'Ягоды',qty:'300 г',category:'Прочее',checked:false}
     ];
     function loadFoodMenu() { try { const all = JSON.parse(localStorage.getItem('aura_food_menu')||'{}'); return all[todayStr()] || DEFAULT_FOOD_MENU; } catch(e) { return DEFAULT_FOOD_MENU; } }
     function loadEaten() { try { return JSON.parse(localStorage.getItem('aura_food_eaten_'+todayStr())||'{}'); } catch(e) { return {}; } }
@@ -1126,54 +1120,26 @@
       const el = document.getElementById('home-menu-preview'); if (!el) return;
       const menu = loadFoodMenu(); const eaten = loadEaten();
       let tK=0,eK=0; MEAL_ORDER.forEach(k => { if (menu[k]) { tK+=menu[k].kcal; if (eaten[k]) eK+=menu[k].kcal; } });
-      const lines = MEAL_ORDER.map(k => { if (!menu[k]) return ''; return `<div class="flex items-center gap-2 py-0.5"><span style="opacity:0.7;">${eaten[k]?'✓':'○'}</span><span class="flex-1 text-xs text-primary">${menu[k].emoji} ${escapeHtml(menu[k].name)}</span><span class="text-[10px]">${menu[k].kcal}</span></div>`; }).join('');
+      const lines = MEAL_ORDER.map(k => { if (!menu[k]) return ''; return `<div class="flex items-center gap-2 py-0.5"><span style="opacity:.7;">${eaten[k]?'✓':'○'}</span><span class="flex-1 text-xs text-primary">${menu[k].emoji} ${escapeHtml(menu[k].name)}</span><span class="text-[10px]">${menu[k].kcal}</span></div>`; }).join('');
       el.innerHTML = `<div>${lines}</div><div class="mt-2 pt-2 border-t divider flex justify-between text-[11px]"><span class="text-tertiary">Съедено:</span><span class="font-semibold text-primary">${eK} / ${tK} ккал</span></div>`;
     }
 
-    // =============== WORKOUT ===============
+    // =========== WORKOUT ===============
     const DEFAULT_WORKOUT_PLAN = {
-      1: { split:'Верх тела', exercises:[
-        { name:'Жим лёжа', weight:60, sets:3, reps:8 },
-        { name:'Тяга блока', weight:50, sets:3, reps:10 },
-        { name:'Жим гантелей', weight:20, sets:3, reps:10 },
-        { name:'Тяга штанги в наклоне', weight:50, sets:3, reps:8 },
-        { name:'Махи в стороны', weight:8, sets:3, reps:12 }
-      ]},
-      3: { split:'Низ тела', exercises:[
-        { name:'Присед', weight:80, sets:3, reps:8 },
-        { name:'Румынская тяга', weight:70, sets:3, reps:8 },
-        { name:'Выпады', weight:20, sets:3, reps:10 },
-        { name:'Жим ногами', weight:120, sets:3, reps:10 },
-        { name:'Икры', weight:40, sets:3, reps:15 }
-      ]},
-      5: { split:'Кардио / Пресс', exercises:[
-        { name:'Бег 30 мин', weight:0, sets:1, reps:1 },
-        { name:'Планка', weight:0, sets:3, reps:60 },
-        { name:'Скручивания', weight:0, sets:3, reps:20 }
-      ]}
+      1:{split:'Верх тела',exercises:[{name:'Жим лёжа',weight:60,sets:3,reps:8},{name:'Тяга блока',weight:50,sets:3,reps:10},{name:'Жим гантелей',weight:20,sets:3,reps:10},{name:'Махи в стороны',weight:8,sets:3,reps:12}]},
+      3:{split:'Низ тела',exercises:[{name:'Присед',weight:80,sets:3,reps:8},{name:'Румынская тяга',weight:70,sets:3,reps:8},{name:'Выпады',weight:20,sets:3,reps:10},{name:'Икры',weight:40,sets:3,reps:15}]},
+      5:{split:'Кардио / Пресс',exercises:[{name:'Бег 30 мин',weight:0,sets:1,reps:1},{name:'Планка',weight:0,sets:3,reps:60}]}
     };
-
-    const CARDIO_OPTIONS = [
-      { id:'run', name:'Бег', emoji:'🏃' },
-      { id:'bike', name:'Велосипед', emoji:'🚴' },
-      { id:'row', name:'Гребля', emoji:'🚣' },
-      { id:'walk', name:'Ходьба', emoji:'🚶' },
-      { id:'jump', name:'Скакалка', emoji:'🪢' },
-      { id:'swim', name:'Плавание', emoji:'🏊' }
-    ];
-
+    const CARDIO_OPTIONS = [{id:'run',name:'Бег',emoji:'🏃'},{id:'bike',name:'Велосипед',emoji:'🚴'},{id:'row',name:'Гребля',emoji:'🚣'},{id:'walk',name:'Ходьба',emoji:'🚶'},{id:'jump',name:'Скакалка',emoji:'🪢'},{id:'swim',name:'Плавание',emoji:'🏊'}];
     function loadWorkoutPlan() { try { const p = localStorage.getItem('aura_workout_plan'); return p ? JSON.parse(p) : JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN)); } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN)); } }
-    function saveWorkoutPlan(p) { try { localStorage.setItem('aura_workout_plan', JSON.stringify(p)); } catch(e) {} }
     function loadWorkoutLog() { try { return JSON.parse(localStorage.getItem('aura_workout_log')||'[]'); } catch(e) { return []; } }
     function saveWorkoutLog(arr) { try { localStorage.setItem('aura_workout_log', JSON.stringify(arr.slice(0,500))); } catch(e) {} }
     function loadBody() { try { return JSON.parse(localStorage.getItem('aura_body')||'[]'); } catch(e) { return []; } }
     function saveBody(arr) { try { localStorage.setItem('aura_body', JSON.stringify(arr)); } catch(e) {} }
     function loadCardio() { try { return JSON.parse(localStorage.getItem('aura_cardio')||'[]'); } catch(e) { return []; } }
     function saveCardio(arr) { try { localStorage.setItem('aura_cardio', JSON.stringify(arr)); } catch(e) {} }
-
     function getTodayDow() { const d = new Date().getDay(); return d === 0 ? 7 : d; }
-    function getTodayWorkoutPlan() { const plan = loadWorkoutPlan(); return plan[getTodayDow()] || null; }
-
+    function getTodayWorkoutPlan() { return loadWorkoutPlan()[getTodayDow()] || null; }
     function renderWorkoutHub() {
       const today = getTodayWorkoutPlan();
       document.getElementById('hub-today-label').textContent = today ? today.split.split(' ')[0] : 'Отдых';
@@ -1181,215 +1147,87 @@
       document.getElementById('hub-body-label').textContent = body.length ? `${body[body.length-1].weight} кг` : '—';
       const todayStr_ = todayStr();
       const todayCardio = loadCardio().filter(c => c.date.slice(0,10)===todayStr_).reduce((s,c) => s+c.minutes, 0);
-      document.getElementById('hub-cardio-label').textContent = todayCardio ? `${todayCardio} мин сегодня` : 'Нет за сегодня';
+      document.getElementById('hub-cardio-label').textContent = todayCardio ? `${todayCardio} мин` : 'Нет за сегодня';
     }
-
-    let workoutDoneState = {};
-    function getWorkoutDone() {
-      try { const d = localStorage.getItem('aura_workout_done_'+todayStr()); return d?JSON.parse(d):{}; } catch(e) { return {}; }
-    }
+    function getWorkoutDone() { try { const d = localStorage.getItem('aura_workout_done_'+todayStr()); return d?JSON.parse(d):{}; } catch(e) { return {}; } }
     function saveWorkoutDone(o) { try { localStorage.setItem('aura_workout_done_'+todayStr(), JSON.stringify(o)); } catch(e) {} }
-
     function renderWorkoutToday() {
       const plan = getTodayWorkoutPlan();
       document.getElementById('workout-today-label').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
       const el = document.getElementById('workout-today-content');
-      if (!plan || !plan.exercises || plan.exercises.length===0) {
+      if (!plan || !plan.exercises || !plan.exercises.length) {
         el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="moon" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">День отдыха</p><p class="text-xs text-tertiary">Восстановление — тоже тренировка</p></div>`;
-        lucide.createIcons();
-        return;
+        lucide.createIcons(); return;
       }
       const done = getWorkoutDone();
       const doneCount = plan.exercises.filter((_,i) => done[i]).length;
       const total = plan.exercises.length;
-
-      let html = `<div class="apple-card p-5 rounded-[24px] mb-4">
-        <div class="flex justify-between items-start mb-2">
-          <div><p class="text-xs text-secondary">Сегодня</p><p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p></div>
-          <div class="text-right"><p class="text-xs text-tertiary uppercase tracking-wide">Выполнено</p><p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p></div>
-        </div>
-        <div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div></div>
-      </div>`;
-
+      let html = `<div class="apple-card p-5 rounded-[24px] mb-4"><div class="flex justify-between items-start mb-2"><div><p class="text-xs text-secondary">Сегодня</p><p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p></div><div class="text-right"><p class="text-xs text-tertiary uppercase">Выполнено</p><p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p></div></div><div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div></div></div>`;
       plan.exercises.forEach((ex, i) => {
         const isDone = !!done[i];
-        html += `<div class="ex-item ${isDone?'done':''}">
-          <button class="ex-check ${isDone?'active':''}" onclick="toggleExerciseDone(${i})">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button>
-          <div class="ex-body">
-            <div class="ex-name">${escapeHtml(ex.name)}</div>
-            <div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div>
-          </div>
-          <button class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium" style="color:var(--blue);" onclick="logWorkoutSet(${i})">Записать</button>
-        </div>`;
+        html += `<div class="ex-item ${isDone?'done':''}"><button class="ex-check ${isDone?'active':''}" onclick="toggleExerciseDone(${i})">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button><div class="ex-body"><div class="ex-name">${escapeHtml(ex.name)}</div><div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div></div><button class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium" style="color:var(--blue);" onclick="logWorkoutSet(${i})">Записать</button></div>`;
       });
-
-      html += `<div class="grid grid-cols-2 gap-3 mt-4">
-        <button onclick="navigate('workout-cardio')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
-          <i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span>
-        </button>
-        <button onclick="toast('Скоро: диалог с AI-тренером')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
-          <i data-lucide="sparkles" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Тренер</span>
-        </button>
-      </div>`;
-
-      el.innerHTML = html;
-      lucide.createIcons();
+      html += `<div class="grid grid-cols-2 gap-3 mt-4"><button onclick="navigate('workout-cardio')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button><button onclick="toast('Скоро: AI-тренер')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="sparkles" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Тренер</span></button></div>`;
+      el.innerHTML = html; lucide.createIcons();
     }
-    function toggleExerciseDone(i) {
-      haptic('medium');
-      const done = getWorkoutDone();
-      done[i] = !done[i];
-      saveWorkoutDone(done);
-      if (done[i]) hapticNotify('success');
-      renderWorkoutToday();
-    }
-    function logWorkoutSet(i) {
-      haptic('medium');
-      const plan = getTodayWorkoutPlan();
-      if (!plan) return;
-      const ex = plan.exercises[i];
-      const logs = loadWorkoutLog();
-      logs.unshift({
-        id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-        date: new Date().toISOString(),
-        exercise: ex.name, weight: ex.weight, sets: ex.sets, reps: ex.reps,
-        tonnage: ex.weight*ex.sets*ex.reps
-      });
-      saveWorkoutLog(logs);
-      const done = getWorkoutDone();
-      done[i] = true;
-      saveWorkoutDone(done);
-      hapticNotify('success');
-      renderWorkoutToday();
-      toast(`${ex.name} записано`);
-    }
-
+    function toggleExerciseDone(i) { haptic('medium'); const done = getWorkoutDone(); done[i] = !done[i]; saveWorkoutDone(done); if (done[i]) hapticNotify('success'); renderWorkoutToday(); }
+    function logWorkoutSet(i) { haptic('medium'); const plan = getTodayWorkoutPlan(); if (!plan) return; const ex = plan.exercises[i]; const logs = loadWorkoutLog(); logs.unshift({id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),date: new Date().toISOString(),exercise: ex.name,weight: ex.weight,sets: ex.sets,reps: ex.reps,tonnage: ex.weight*ex.sets*ex.reps}); saveWorkoutLog(logs); const done = getWorkoutDone(); done[i] = true; saveWorkoutDone(done); hapticNotify('success'); renderWorkoutToday(); toast(`${ex.name} записано`); }
     function renderWorkoutPlan() {
-      const plan = loadWorkoutPlan();
-      const today = getTodayDow();
-      const dayNames = { 1:'Пн', 2:'Вт', 3:'Ср', 4:'Чт', 5:'Пт', 6:'Сб', 7:'Вс' };
+      const plan = loadWorkoutPlan(); const today = getTodayDow();
+      const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
       let html = '';
       for (let d = 1; d <= 7; d++) {
-        const day = plan[d];
-        const isToday = d === today;
-        html += `<div class="day-row ${isToday?'today':''}">
-          <div>
-            <div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div>
-            <div class="day-split">${day ? escapeHtml(day.split) : 'День отдыха'}</div>
-          </div>
-          <div class="day-count">${day ? day.exercises.length + ' упр.' : '—'}</div>
-        </div>`;
+        const day = plan[d]; const isToday = d === today;
+        html += `<div class="day-row ${isToday?'today':''}"><div><div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div><div class="day-split">${day ? escapeHtml(day.split) : 'День отдыха'}</div></div><div class="day-count">${day ? day.exercises.length + ' упр.' : '—'}</div></div>`;
       }
-      html += `<button onclick="toast('Скоро: редактирование плана')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2 mt-3">
-        <i data-lucide="pencil" class="w-4 h-4" style="color:var(--blue);"></i><span class="text-sm font-medium" style="color:var(--blue);">Редактировать план</span>
-      </button>`;
+      html += `<button onclick="toast('Скоро: редактирование плана')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2 mt-3"><i data-lucide="pencil" class="w-4 h-4" style="color:var(--blue);"></i><span class="text-sm font-medium" style="color:var(--blue);">Редактировать</span></button>`;
       document.getElementById('workout-plan-content').innerHTML = html;
       lucide.createIcons();
     }
-
     function renderWorkoutProgress() {
-      const logs = loadWorkoutLog();
-      const prs = {};
+      const logs = loadWorkoutLog(); const prs = {};
       logs.forEach(l => { if (l.weight > 0) { if (!prs[l.exercise] || l.weight > prs[l.exercise].weight) prs[l.exercise] = l; } });
       const prList = Object.values(prs).sort((a,b) => b.weight - a.weight).slice(0,8);
-      const total = logs.length;
       let html = '';
-      if (total === 0) {
-        html = `<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-tertiary">Начни записывать подходы, и здесь появятся рекорды</p></div>`;
-      } else {
-        html += `<div class="apple-card p-6 rounded-[28px] mb-4">
-          <div class="flex justify-between items-center">
-            <div><p class="text-xs text-secondary">Всего подходов</p><p class="text-3xl font-semibold numbers text-primary mt-1">${total}</p></div>
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(52,199,89,0.15);color:var(--green);"><i data-lucide="trending-up" class="w-6 h-6"></i></div>
-          </div>
-        </div>`;
-        if (prList.length) {
-          html += `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-sm font-semibold text-primary mb-2">Личные рекорды</h3>`;
-          prList.forEach(p => { html += `<div class="pr-item"><span class="pr-name">${escapeHtml(p.exercise)}</span><span class="pr-value">${p.weight} кг</span></div>`; });
-          html += `</div>`;
-        }
+      if (!logs.length) html = `<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-tertiary">Запиши первый подход</p></div>`;
+      else {
+        html += `<div class="apple-card p-6 rounded-[28px] mb-4"><div class="flex justify-between items-center"><div><p class="text-xs text-secondary">Всего подходов</p><p class="text-3xl font-semibold numbers text-primary mt-1">${logs.length}</p></div><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(52,199,89,.15);color:var(--green);"><i data-lucide="trending-up" class="w-6 h-6"></i></div></div></div>`;
+        if (prList.length) { html += `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-sm font-semibold text-primary mb-2">Личные рекорды</h3>`; prList.forEach(p => { html += `<div class="pr-item"><span class="pr-name">${escapeHtml(p.exercise)}</span><span class="pr-value">${p.weight} кг</span></div>`; }); html += `</div>`; }
       }
       document.getElementById('workout-progress-content').innerHTML = html;
       lucide.createIcons();
     }
-
     function renderWorkoutBody() {
-      const body = loadBody();
-      const el = document.getElementById('workout-body-content');
-      if (!body.length) {
-        el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет замеров</p><p class="text-xs text-tertiary">Нажми + чтобы добавить первый</p></div>`;
-        lucide.createIcons();
-        return;
-      }
-      const last = body[body.length-1];
-      const prev = body.length > 1 ? body[body.length-2] : null;
-      const fields = [
-        { key:'weight', label:'Вес', unit:'кг', icon:'scale' },
-        { key:'fat', label:'% жира', unit:'%', icon:'percent' },
-        { key:'waist', label:'Талия', unit:'см', icon:'ruler' },
-        { key:'chest', label:'Грудь', unit:'см', icon:'ruler' },
-        { key:'hips', label:'Бёдра', unit:'см', icon:'ruler' }
-      ];
+      const body = loadBody(); const el = document.getElementById('workout-body-content');
+      if (!body.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет замеров</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+      const last = body[body.length-1]; const prev = body.length > 1 ? body[body.length-2] : null;
+      const fields = [{key:'weight',label:'Вес',unit:'кг',icon:'scale'},{key:'fat',label:'% жира',unit:'%',icon:'percent'},{key:'waist',label:'Талия',unit:'см',icon:'ruler'},{key:'chest',label:'Грудь',unit:'см',icon:'ruler'},{key:'hips',label:'Бёдра',unit:'см',icon:'ruler'}];
       let html = '';
       fields.forEach(f => {
         if (last[f.key] == null) return;
         let diff = '';
-        if (prev && prev[f.key] != null) {
-          const d = last[f.key] - prev[f.key];
-          if (Math.abs(d) > 0.01) {
-            const down = d < 0;
-            const cls = (f.key==='weight'||f.key==='fat'||f.key==='waist'||f.key==='hips') ? (down?'down':'up') : (down?'up':'down');
-            diff = `<span class="body-field-diff ${cls}">${d>0?'+':''}${d.toFixed(1)}</span>`;
-          }
-        }
+        if (prev && prev[f.key] != null) { const d = last[f.key] - prev[f.key]; if (Math.abs(d) > .01) { const cls = (f.key==='weight'||f.key==='fat'||f.key==='waist'||f.key==='hips')?(d<0?'down':'up'):(d<0?'up':'down'); diff = `<span class="body-field-diff ${cls}">${d>0?'+':''}${d.toFixed(1)}</span>`; } }
         html += `<div class="body-field"><div class="body-field-label"><i data-lucide="${f.icon}" class="w-4 h-4 text-secondary"></i>${f.label}</div><div><span class="body-field-value">${last[f.key]} ${f.unit}</span>${diff}</div></div>`;
       });
       if (body.length > 1) {
-        html += `<div class="apple-card p-5 rounded-[24px] mt-4"><h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-3">История</h3>`;
-        body.slice().reverse().slice(0,10).forEach(b => {
-          const d = new Date(b.date);
-          const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'});
-          html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0"><span class="text-xs text-tertiary">${ds}</span><span class="text-sm font-semibold text-primary numbers">${b.weight||'—'} кг${b.fat?' · '+b.fat+'%':''}</span></div>`;
-        });
+        html += `<div class="apple-card p-5 rounded-[24px] mt-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-3">История</h3>`;
+        body.slice().reverse().slice(0,10).forEach(b => { const d = new Date(b.date); const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0"><span class="text-xs text-tertiary">${ds}</span><span class="text-sm font-semibold text-primary numbers">${b.weight||'—'} кг${b.fat?' · '+b.fat+'%':''}</span></div>`; });
         html += `</div>`;
       }
-      el.innerHTML = html;
-      lucide.createIcons();
+      el.innerHTML = html; lucide.createIcons();
     }
-
-    function openBodyForm() {
-      haptic('medium');
-      ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('body-sheet').classList.add('show');
-      document.getElementById('body-sheet-overlay').classList.add('show');
-      setTimeout(()=>document.getElementById('body-weight').focus(), 350);
-    }
-    function closeBodyForm() {
-      haptic('light');
-      document.getElementById('body-sheet').classList.remove('show');
-      document.getElementById('body-sheet-overlay').classList.remove('show');
-      ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).blur());
-    }
+    function openBodyForm() { haptic('medium'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value=''); document.getElementById('body-sheet').classList.add('show'); document.getElementById('body-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('body-weight').focus(),350); }
+    function closeBodyForm() { haptic('light'); document.getElementById('body-sheet').classList.remove('show'); document.getElementById('body-sheet-overlay').classList.remove('show'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).blur()); }
     function submitBodyMeasurement() {
       const w = parseFloat(document.getElementById('body-weight').value);
       if (isNaN(w) || w <= 0) { toast('Введи вес'); return; }
       hapticNotify('success');
       const body = loadBody();
-      body.push({
-        date: new Date().toISOString(),
-        weight: w,
-        fat: parseFloat(document.getElementById('body-fat').value) || null,
-        waist: parseFloat(document.getElementById('body-waist').value) || null,
-        chest: parseFloat(document.getElementById('body-chest').value) || null,
-        hips: parseFloat(document.getElementById('body-hips').value) || null
-      });
+      body.push({date: new Date().toISOString(),weight: w,fat: parseFloat(document.getElementById('body-fat').value)||null,waist: parseFloat(document.getElementById('body-waist').value)||null,chest: parseFloat(document.getElementById('body-chest').value)||null,hips: parseFloat(document.getElementById('body-hips').value)||null});
       saveBody(body);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_body', payload: body[body.length-1]})); } catch(e) {}
-      closeBodyForm();
-      renderWorkoutBody(); renderWorkoutHub();
-      toast('Замер сохранён');
+      closeBodyForm(); renderWorkoutBody(); renderWorkoutHub(); toast('Замер сохранён');
     }
-
     let currentCardioType = null;
     function renderWorkoutCardio() {
       const today = todayStr();
@@ -1397,79 +1235,234 @@
       const totalMin = todayEntries.reduce((s,c) => s+c.minutes, 0);
       let html = '';
       if (todayEntries.length) {
-        html += `<div class="apple-card p-5 rounded-[24px] mb-4">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-secondary">Сегодня</h3>
-            <span class="text-sm font-semibold numbers" style="color:var(--orange);">${totalMin} мин</span>
-          </div>`;
-        todayEntries.forEach(e => {
-          const opt = CARDIO_OPTIONS.find(o => o.id===e.type) || { emoji:'🏃', name: e.type };
-          html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0"><span class="text-sm text-primary">${opt.emoji} ${escapeHtml(opt.name)}</span><span class="text-sm font-semibold text-primary numbers">${e.minutes} мин</span></div>`;
-        });
+        html += `<div class="apple-card p-5 rounded-[24px] mb-4"><div class="flex justify-between items-center mb-3"><h3 class="text-xs font-semibold uppercase text-secondary">Сегодня</h3><span class="text-sm font-semibold numbers" style="color:var(--orange);">${totalMin} мин</span></div>`;
+        todayEntries.forEach(e => { const opt = CARDIO_OPTIONS.find(o => o.id===e.type) || {emoji:'🏃',name:e.type}; html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0"><span class="text-sm text-primary">${opt.emoji} ${escapeHtml(opt.name)}</span><span class="text-sm font-semibold text-primary numbers">${e.minutes} мин</span></div>`; });
         html += `</div>`;
       }
-      html += `<div class="section-title">Выбери активность</div>
-        <div class="grid grid-cols-3 gap-3">`;
-      CARDIO_OPTIONS.forEach(o => {
-        html += `<button class="cardio-btn" onclick="openCardioForm('${o.id}')"><div class="cardio-emoji">${o.emoji}</div><div class="cardio-name">${o.name}</div></button>`;
-      });
+      html += `<div class="section-title">Выбери активность</div><div class="grid grid-cols-3 gap-3">`;
+      CARDIO_OPTIONS.forEach(o => { html += `<button class="cardio-btn" onclick="openCardioForm('${o.id}')"><div class="cardio-emoji">${o.emoji}</div><div class="cardio-name">${o.name}</div></button>`; });
       html += `</div>`;
       document.getElementById('workout-cardio-content').innerHTML = html;
       lucide.createIcons();
     }
-    function openCardioForm(type) {
-      haptic('medium');
-      currentCardioType = type;
-      const opt = CARDIO_OPTIONS.find(o => o.id===type);
-      document.getElementById('cardio-sheet-title').textContent = opt ? opt.name : 'Кардио';
-      document.getElementById('cardio-minutes').value = '';
-      document.getElementById('cardio-sheet').classList.add('show');
-      document.getElementById('cardio-sheet-overlay').classList.add('show');
-      setTimeout(()=>document.getElementById('cardio-minutes').focus(), 350);
-    }
-    function closeCardioForm() {
-      haptic('light');
-      document.getElementById('cardio-sheet').classList.remove('show');
-      document.getElementById('cardio-sheet-overlay').classList.remove('show');
-      document.getElementById('cardio-minutes').blur();
-    }
+    function openCardioForm(type) { haptic('medium'); currentCardioType = type; const opt = CARDIO_OPTIONS.find(o => o.id===type); document.getElementById('cardio-sheet-title').textContent = opt ? opt.name : 'Кардио'; document.getElementById('cardio-minutes').value = ''; document.getElementById('cardio-sheet').classList.add('show'); document.getElementById('cardio-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('cardio-minutes').focus(),350); }
+    function closeCardioForm() { haptic('light'); document.getElementById('cardio-sheet').classList.remove('show'); document.getElementById('cardio-sheet-overlay').classList.remove('show'); document.getElementById('cardio-minutes').blur(); }
     function setCardioMinutes(n) { haptic('light'); document.getElementById('cardio-minutes').value = n; }
     function submitCardio() {
       const m = parseInt(document.getElementById('cardio-minutes').value, 10);
       if (isNaN(m) || m <= 0) { toast('Введи минуты'); return; }
       hapticNotify('success');
       const logs = loadCardio();
-      const entry = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), date: new Date().toISOString(), type: currentCardioType, minutes: m };
-      logs.unshift(entry);
-      saveCardio(logs);
+      const entry = {id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),date: new Date().toISOString(),type: currentCardioType,minutes: m};
+      logs.unshift(entry); saveCardio(logs);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_cardio', payload: entry})); } catch(e) {}
-      closeCardioForm();
-      renderWorkoutCardio(); renderWorkoutHub();
-      toast(`${m} мин кардио записано`);
+      closeCardioForm(); renderWorkoutCardio(); renderWorkoutHub(); toast(`${m} мин записано`);
     }
-
     function renderHomeWorkoutPreview() {
-      const el = document.getElementById('home-workout-preview');
-      if (!el) return;
+      const el = document.getElementById('home-workout-preview'); if (!el) return;
       const plan = getTodayWorkoutPlan();
       if (!plan) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Сегодня день отдыха</p>'; return; }
       const done = getWorkoutDone();
       const doneCount = plan.exercises.filter((_,i) => done[i]).length;
       const total = plan.exercises.length;
-      el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers ${doneCount===total?'':'text-tertiary'}" style="color:${doneCount===total?'var(--green)':''}">${doneCount} / ${total}</span></div>`;
+      el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
     }
 
-    // =============== HELPERS ===============
+    // =========== NOTES ===============
+    function loadNotes() { try { return JSON.parse(localStorage.getItem('aura_notes')||'[]'); } catch(e) { return []; } }
+    function saveNotes(arr) { try { localStorage.setItem('aura_notes', JSON.stringify(arr)); } catch(e) {} }
+    function openNoteForm() { haptic('medium'); document.getElementById('note-text').value = ''; document.getElementById('note-submit').disabled = true; document.getElementById('note-sheet').classList.add('show'); document.getElementById('note-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('note-text').focus(),350); }
+    function closeNoteForm() { haptic('light'); document.getElementById('note-sheet').classList.remove('show'); document.getElementById('note-sheet-overlay').classList.remove('show'); document.getElementById('note-text').blur(); }
+    document.getElementById('note-text').addEventListener('input', () => { document.getElementById('note-submit').disabled = !document.getElementById('note-text').value.trim(); });
+    function submitNote() {
+      const text = document.getElementById('note-text').value.trim(); if (!text) return;
+      hapticNotify('success');
+      const notes = loadNotes();
+      const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
+      notes.unshift(note); saveNotes(notes);
+      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
+      closeNoteForm(); renderNotes(); toast('Заметка добавлена');
+    }
+    function deleteNote(id) { haptic('light'); saveNotes(loadNotes().filter(n=>n.id!==id)); renderNotes(); toast('Удалено'); }
+    function renderNotes() {
+      const notes = loadNotes(); const el = document.getElementById('notes-content'); if (!el) return;
+      if (!notes.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+      el.innerHTML = notes.map(n => {
+        const d = new Date(n.createdAt);
+        const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="note-item" onclick="if(confirm('Удалить заметку?'))deleteNote('${n.id}')">
+          <div class="note-date">${ds}</div>
+          <div class="note-text">${escapeHtml(n.text)}</div>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // =========== HABITS ===============
+    function loadHabits() { try { return JSON.parse(localStorage.getItem('aura_habits')||'[]'); } catch(e) { return []; } }
+    function saveHabits(arr) { try { localStorage.setItem('aura_habits', JSON.stringify(arr)); } catch(e) {} }
+    function loadHabitLog() { try { return JSON.parse(localStorage.getItem('aura_habit_log')||'{}'); } catch(e) { return {}; } }
+    function saveHabitLog(obj) { try { localStorage.setItem('aura_habit_log', JSON.stringify(obj)); } catch(e) {} }
+    function openHabitForm() { haptic('medium'); document.getElementById('habit-name').value = ''; document.getElementById('habit-submit').disabled = true; document.getElementById('habit-sheet').classList.add('show'); document.getElementById('habit-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('habit-name').focus(),350); }
+    function closeHabitForm() { haptic('light'); document.getElementById('habit-sheet').classList.remove('show'); document.getElementById('habit-sheet-overlay').classList.remove('show'); document.getElementById('habit-name').blur(); }
+    document.getElementById('habit-name').addEventListener('input', () => { document.getElementById('habit-submit').disabled = !document.getElementById('habit-name').value.trim(); });
+    function submitHabit() {
+      const name = document.getElementById('habit-name').value.trim(); if (!name) return;
+      hapticNotify('success');
+      const habits = loadHabits();
+      habits.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name });
+      saveHabits(habits); closeHabitForm(); renderHabits(); toast('Привычка добавлена');
+    }
+    function deleteHabit(id) { haptic('light'); saveHabits(loadHabits().filter(h=>h.id!==id)); renderHabits(); toast('Удалено'); }
+    function toggleHabitToday(id) {
+      haptic('medium');
+      const log = loadHabitLog(); const today = todayStr();
+      if (!log[today]) log[today] = {};
+      log[today][id] = !log[today][id];
+      saveHabitLog(log);
+      if (log[today][id]) hapticNotify('success');
+      renderHabits();
+    }
+    function renderHabits() {
+      const habits = loadHabits(); const log = loadHabitLog(); const today = todayStr();
+      const el = document.getElementById('habits-content'); if (!el) return;
+      if (!habits.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="check-circle" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Привычек нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+
+      // Прогресс за 7 дней
+      const weekDays = [];
+      for (let i = 6; i >= 0; i--) weekDays.push(addDays(today, -i));
+      const totalPossible = habits.length * 7;
+      let totalDone = 0;
+      weekDays.forEach(d => { const day = log[d] || {}; habits.forEach(h => { if (day[h.id]) totalDone++; }); });
+      const pct = totalPossible > 0 ? Math.round(totalDone/totalPossible*100) : 0;
+
+      let html = `<div class="apple-card p-6 rounded-[28px] mb-4">
+        <div class="flex justify-between items-center mb-2"><div><p class="text-xs text-secondary">За неделю</p><p class="text-3xl font-semibold numbers text-primary mt-1">${pct}%</p></div><div class="text-right text-xs text-tertiary">${totalDone} / ${totalPossible}</div></div>
+        <div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,var(--green),var(--teal));"></div></div>
+      </div>`;
+
+      html += `<div class="section-title" style="margin-top:0;">Сегодня</div>`;
+      habits.forEach(h => {
+        const done = (log[today] || {})[h.id];
+        html += `<div class="habit-row">
+          <button class="habit-check ${done?'active':''}" onclick="toggleHabitToday('${h.id}')">${done?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button>
+          <span class="habit-name">${escapeHtml(h.name)}</span>
+          <button class="back-btn p-1" onclick="deleteHabit('${h.id}')" style="opacity:.5;"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>`;
+      });
+
+      // Мини-график за 7 дней
+      html += `<div class="apple-card p-5 rounded-[24px] mt-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-3">Последние 7 дней</h3><div class="flex gap-1 justify-between items-end" style="height:60px;">`;
+      weekDays.forEach(d => {
+        const day = log[d] || {};
+        const done = habits.filter(h => day[h.id]).length;
+        const p = habits.length > 0 ? (done / habits.length) * 100 : 0;
+        const isToday = d === today;
+        html += `<div class="flex-1 flex flex-col items-center gap-1">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;"><div style="width:100%;height:${Math.max(4,p)}%;background:${isToday?'var(--green)':'rgba(52,199,89,.5)'};border-radius:3px;"></div></div>
+          <span class="text-[9px] ${isToday?'text-primary font-semibold':'text-tertiary'}">${new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'narrow'})}</span>
+        </div>`;
+      });
+      html += `</div></div>`;
+
+      el.innerHTML = html; lucide.createIcons();
+    }
+
+    // =========== REPORTS ===============
+    function renderReports() {
+      const el = document.getElementById('reports-content');
+      const trx = loadTrx(); const tasks = loadTasks(); const notes = loadNotes();
+      const today = todayStr(); const weekAgo = addDays(today, -7); const monthStart = today.slice(0,7) + '-01';
+
+      const monthTrx = trx.filter(t => t.date.slice(0,10) >= monthStart);
+      const monthSpent = monthTrx.filter(t => t.type==='expense').reduce((s,t)=>s+t.amount, 0);
+      const monthIncome = monthTrx.filter(t => t.type==='income').reduce((s,t)=>s+t.amount, 0);
+      const weekDoneTasks = tasks.filter(t => t.done && t.doneAt && t.doneAt.slice(0,10) >= weekAgo).length;
+      const weekCardio = loadCardio().filter(c => c.date.slice(0,10) >= weekAgo).reduce((s,c)=>s+c.minutes, 0);
+      const weekWorkouts = loadWorkoutLog().filter(l => l.date.slice(0,10) >= weekAgo).length;
+      const body = loadBody();
+      const weight = body.length ? body[body.length-1].weight : null;
+
+      let html = `
+        <div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Финансы · месяц</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-xl" style="background:var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">Расход</p><p class="text-lg font-semibold numbers mt-1" style="color:var(--red);">${monthSpent.toLocaleString('ru-RU')} ₽</p></div>
+            <div class="p-3 rounded-xl" style="background:var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">Доход</p><p class="text-lg font-semibold numbers mt-1" style="color:var(--green);">${monthIncome.toLocaleString('ru-RU')} ₽</p></div>
+          </div>
+          <div class="flex justify-between items-center mt-3 pt-3 border-t divider"><span class="text-xs text-tertiary">Сальдо</span><span class="text-sm font-semibold numbers" style="color:${monthIncome-monthSpent>=0?'var(--green)':'var(--red)'};">${(monthIncome-monthSpent).toLocaleString('ru-RU')} ₽</span></div>
+        </div>
+
+        <div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">За неделю</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center"><span class="text-sm text-primary">Задач выполнено</span><span class="text-sm font-semibold numbers text-primary">${weekDoneTasks}</span></div>
+            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Тренировок</span><span class="text-sm font-semibold numbers text-primary">${weekWorkouts}</span></div>
+            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Кардио</span><span class="text-sm font-semibold numbers text-primary">${weekCardio} мин</span></div>
+            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Заметок</span><span class="text-sm font-semibold numbers text-primary">${notes.length}</span></div>
+          </div>
+        </div>
+
+        ${weight ? `<div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Вес</h3>
+          <div class="text-center"><p class="text-4xl font-semibold numbers text-primary">${weight}<span class="text-base text-tertiary font-medium ml-1">кг</span></p></div>
+        </div>` : ''}
+
+        <div class="apple-card p-6 rounded-[28px] text-center">
+          <p class="text-xs text-tertiary">Детальная аналитика появится после подключения бэкенда</p>
+        </div>
+      `;
+      el.innerHTML = html; lucide.createIcons();
+    }
+
+    // =========== SETTINGS ===============
+    function loadProfile() { try { return JSON.parse(localStorage.getItem('aura_profile')||'{"targetWeight":77,"dailyKcal":1850,"dailyProtein":135,"startWeight":84}'); } catch(e) { return {targetWeight:77,dailyKcal:1850,dailyProtein:135,startWeight:84}; } }
+    function saveProfile(p) { try { localStorage.setItem('aura_profile', JSON.stringify(p)); } catch(e) {} }
+    function renderSettings() {
+      const p = loadProfile(); const el = document.getElementById('settings-content');
+      let html = `
+        <div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Профиль</h3>
+          <div class="settings-row"><span class="settings-label">Целевой вес</span><input class="settings-input" type="number" step="0.1" value="${p.targetWeight}" onblur="updateProfile('targetWeight', this.value)"></div>
+          <div class="settings-row"><span class="settings-label">Калории/день</span><input class="settings-input" type="number" value="${p.dailyKcal}" onblur="updateProfile('dailyKcal', this.value)"></div>
+          <div class="settings-row"><span class="settings-label">Белок/день</span><input class="settings-input" type="number" value="${p.dailyProtein}" onblur="updateProfile('dailyProtein', this.value)"></div>
+        </div>
+
+        <div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Счета</h3>
+          <div class="settings-row"><span class="settings-label">💳 Основная</span><span class="text-xs text-tertiary numbers">82 300 ₽</span></div>
+          <div class="settings-row"><span class="settings-label">💳 Кредитка</span><span class="text-xs numbers" style="color:var(--red);">−12 500 ₽</span></div>
+          <div class="settings-row"><span class="settings-label">💵 Наличные</span><span class="text-xs text-tertiary numbers">5 000 ₽</span></div>
+          <div class="settings-row"><span class="settings-label">📈 Инвест</span><span class="text-xs text-tertiary numbers">1 767 700 ₽</span></div>
+        </div>
+
+        <div class="apple-card p-6 rounded-[28px] mb-4">
+          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">О приложении</h3>
+          <div class="settings-row"><span class="settings-label">Версия</span><span class="text-xs text-tertiary">0.6.0 · Mini App</span></div>
+          <div class="settings-row"><span class="settings-label">Данные</span><span class="text-xs text-tertiary">LocalStorage</span></div>
+        </div>
+
+        <button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255,45,85,.2);">
+          <div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
+          <div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Удалит всё локально</p></div>
+        </button>
+      `;
+      el.innerHTML = html; lucide.createIcons();
+    }
+    function updateProfile(key, value) {
+      const p = loadProfile(); p[key] = parseFloat(value) || 0; saveProfile(p); toast('Сохранено');
+    }
+
+    // =========== HELPERS ===============
     function escapeHtml(t) { if (t===null||t===undefined) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function clearAllLocalData() {
       if (!confirm('Удалить все локальные данные?')) return;
       try {
-        const keys = ['aura_tasks','aura_trx_buffer','aura_food_menu','aura_food_eaten_'+todayStr(),'aura_shopping','aura_workout_plan','aura_workout_log','aura_workout_done_'+todayStr(),'aura_body','aura_cardio'];
-        keys.forEach(k => localStorage.removeItem(k));
+        ['aura_tasks','aura_trx_buffer','aura_food_menu','aura_food_eaten_'+todayStr(),'aura_shopping','aura_workout_plan','aura_workout_log','aura_workout_done_'+todayStr(),'aura_body','aura_cardio','aura_notes','aura_habits','aura_habit_log','aura_profile'].forEach(k => localStorage.removeItem(k));
       } catch(e) {}
-      renderTasksScreen(); renderHomeTasks(); renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderFoodScreen(); renderHomeMenuPreview();
-      renderWorkoutHub(); renderHomeWorkoutPreview();
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
       toast('Данные очищены');
+      setTimeout(()=>{ navigate('home', {tab:true}); }, 500);
     }
 
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
