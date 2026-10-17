@@ -27,13 +27,17 @@
       --divider: rgba(255, 255, 255, 0.05);
       --neutral-fill: rgba(255, 255, 255, 0.06);
       --neutral-fill-hover: rgba(255, 255, 255, 0.1);
-      --chart-stroke: #007AFF;
+
       --blue: #007AFF;
       --green: #34C759;
       --orange: #FF9500;
       --purple: #AF52DE;
       --red: #FF2D55;
       --yellow: #FFCC00;
+      --teal: #5AC8FA;
+      --pink: #FF2D55;
+      --indigo: #5856D6;
+      --gray: #8E8E93;
     }
 
     body.light {
@@ -62,11 +66,14 @@
       min-height: 100vh;
       padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
       transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
     }
 
     .text-primary { color: var(--text-primary); }
     .text-secondary { color: var(--text-secondary); }
     .text-tertiary { color: var(--text-tertiary); }
+    .numbers { font-variant-numeric: tabular-nums; }
+    .divider { border-color: var(--divider); }
 
     .apple-glass {
       background: var(--glass-bg);
@@ -83,9 +90,7 @@
       transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease, background-color 0.3s ease;
     }
     .apple-card:hover { border-color: var(--card-border-hover); }
-
-    .numbers { font-variant-numeric: tabular-nums; }
-    .divider { border-color: var(--divider); }
+    .apple-card.tappable:active { transform: scale(0.98); }
 
     .chart-line {
       stroke-dasharray: 1000; stroke-dashoffset: 1000;
@@ -102,41 +107,67 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .nav-btn { transition: color 0.2s ease, transform 0.15s ease; }
+    .nav-btn { transition: color 0.2s ease, transform 0.15s ease; color: var(--text-secondary); }
     .nav-btn.active { color: var(--blue); }
     .nav-btn:active { transform: scale(0.94); }
 
-    .segmented-btn { transition: all 0.2s ease; }
-    .segmented-btn.active {
-      background: var(--neutral-fill-hover);
-      color: var(--text-primary);
-    }
+    .segmented-btn { transition: all 0.2s ease; color: var(--text-secondary); }
+    .segmented-btn.active { background: var(--neutral-fill-hover); color: var(--text-primary); }
 
     .spotlight-1 { background: rgba(0, 122, 255, 0.1); }
     .spotlight-2 { background: rgba(175, 82, 222, 0.1); }
     body.light .spotlight-1 { background: rgba(0, 122, 255, 0.08); }
     body.light .spotlight-2 { background: rgba(175, 82, 222, 0.08); }
 
-    #toast {
-      position: fixed;
-      left: 50%;
-      bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%) translateY(20px);
-      background: var(--glass-bg);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 0.5px solid var(--glass-border);
-      padding: 10px 20px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s ease;
-      z-index: 100;
-      white-space: nowrap;
+    .chip {
+      background: var(--neutral-fill);
+      color: var(--text-primary);
+      border: 0.5px solid var(--card-border);
+      transition: all 0.2s ease;
     }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Bottom sheet (для будущих форм) */
+    .sheet-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 90;
+    }
+    .sheet-overlay.show { opacity: 1; pointer-events: auto; }
+    .sheet {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      border-top-left-radius: 24px; border-top-right-radius: 24px;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      z-index: 95;
+    }
+    .sheet.show { transform: translateY(0); }
+
+    /* Progress bar */
+    .progress-track { background: var(--neutral-fill); overflow: hidden; }
+    .progress-fill { transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+
+    .back-btn { color: var(--text-secondary); transition: color 0.2s ease; }
+    .back-btn:active { color: var(--text-primary); }
+
+    /* Меню в хаб */
+    .hub-tile {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px; border-radius: 18px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .hub-tile:active { transform: scale(0.98); border-color: var(--card-border-hover); }
+    .hub-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -146,7 +177,7 @@
 
   <div class="max-w-5xl mx-auto px-4 sm:px-8 pt-6 relative z-10">
 
-    <!-- HOME -->
+    <!-- ============================= HOME ============================= -->
     <section id="screen-home" class="screen active">
       <header class="flex justify-between items-center mb-8">
         <div class="flex items-center space-x-3">
@@ -157,9 +188,9 @@
           </div>
         </div>
         <div class="apple-glass p-1 rounded-full flex space-x-1" id="period-selector">
-          <button onclick="setPeriod(this)" class="segmented-btn active px-3 py-1 text-xs font-medium rounded-full text-secondary">M</button>
-          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full text-secondary">W</button>
-          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full text-secondary">Y</button>
+          <button onclick="setPeriod(this)" class="segmented-btn active px-3 py-1 text-xs font-medium rounded-full">M</button>
+          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">W</button>
+          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">Y</button>
         </div>
       </header>
 
@@ -180,12 +211,12 @@
               <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="appleGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="var(--chart-stroke)" stop-opacity="0.35" />
-                    <stop offset="100%" stop-color="var(--chart-stroke)" stop-opacity="0" />
+                    <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.35" />
+                    <stop offset="100%" stop-color="var(--blue)" stop-opacity="0" />
                   </linearGradient>
                 </defs>
                 <path class="chart-area" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20 L 500 150 L 0 150 Z" fill="url(#appleGradient)" />
-                <path class="chart-line" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20" fill="none" stroke="var(--chart-stroke)" stroke-width="3" stroke-linecap="round" />
+                <path class="chart-line" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" />
               </svg>
             </div>
           </div>
@@ -201,14 +232,38 @@
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <button onclick="toast('Экран добавления траты — в разработке')" class="apple-card p-4 rounded-2xl flex items-center justify-center space-x-2 active:scale-[0.98] transition">
+            <button onclick="toast('Скоро: добавление траты')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
               <i data-lucide="plus" class="w-4 h-4 text-secondary"></i>
-              <span class="text-sm font-medium text-primary">Добавить</span>
+              <span class="text-sm font-medium text-primary">Трата</span>
             </button>
-            <button onclick="toast('Экран перевода — в разработке')" class="apple-card p-4 rounded-2xl flex items-center justify-center space-x-2 active:scale-[0.98] transition">
+            <button onclick="toast('Скоро: добавление дохода')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
               <i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i>
-              <span class="text-sm font-medium text-primary">Пополнить</span>
+              <span class="text-sm font-medium text-primary">Доход</span>
             </button>
+          </div>
+
+          <div class="apple-card p-6 rounded-[28px]">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-sm font-semibold tracking-wide text-primary">Задачи на сегодня</h3>
+              <button onclick="navigate('tasks')" class="text-xs text-blue-500 font-medium" style="color: var(--blue);">Все →</button>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center space-x-3">
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--red);"></div>
+                <span class="text-sm text-primary flex-1">Позвонить в клинику</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background: rgba(255, 45, 85, 0.15); color: var(--red);">!!!</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--text-tertiary);"></div>
+                <span class="text-sm text-primary flex-1">Купить продукты</span>
+                <span class="text-[10px] text-tertiary">#дом</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--text-tertiary);"></div>
+                <span class="text-sm text-primary flex-1">Тренировка в зале</span>
+                <span class="text-[10px] text-tertiary">18:00</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -216,7 +271,7 @@
           <div class="apple-card p-6 rounded-[28px]">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-sm font-semibold tracking-wide text-primary">Категории</h3>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+              <button onclick="navigate('fin-analytics')" class="back-btn"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
             </div>
             <div class="h-2 w-full rounded-full flex overflow-hidden mb-6 gap-0.5" style="background: var(--neutral-fill);">
               <div style="width: 40%; background: var(--orange);" class="h-full rounded-sm"></div>
@@ -282,86 +337,195 @@
       </div>
     </section>
 
-    <!-- ANALYTICS -->
-    <section id="screen-analytics" class="screen">
-      <header class="mb-8">
+    <!-- ========================== FINANCE HUB ========================== -->
+    <section id="screen-finance" class="screen">
+      <header class="mb-6">
         <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Октябрь 2026</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">Аналитика</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-primary">Финансы</h1>
       </header>
 
-      <div class="apple-card p-6 rounded-[28px] mb-6">
-        <div class="flex justify-between items-start mb-6">
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <div class="flex justify-between items-start mb-5">
           <div>
-            <p class="text-xs font-medium text-secondary">Потрачено за месяц</p>
-            <div class="text-3xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 78 400</div>
-            <p class="text-xs text-tertiary mt-1">из <span class="text-secondary numbers">150 000 ₽</span> плана</p>
+            <p class="text-xs text-secondary">Всего на счетах</p>
+            <div class="text-3xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 1 842 500</div>
           </div>
           <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52, 199, 89, 0.1); border: 0.5px solid rgba(52, 199, 89, 0.25); color: var(--green);">
-            <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
-            <span>−8%</span>
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+            <span>+6.2%</span>
           </div>
         </div>
-        <div class="mb-2 flex justify-between text-xs">
-          <span class="text-secondary">52% бюджета</span>
-          <span class="text-tertiary numbers">осталось 71 600 ₽</span>
-        </div>
-        <div class="h-2.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-          <div class="h-full rounded-full" style="width: 52%; background: linear-gradient(90deg, var(--blue), #5AC8FA);"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="toast('Скоро')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2">
+            <i data-lucide="plus" class="w-4 h-4 text-secondary"></i>
+            <span class="text-xs font-medium text-primary">Трата</span>
+          </button>
+          <button onclick="toast('Скоро')" class="apple-card tappable p-3 rounded-xl flex items-center justify-center space-x-2">
+            <i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i>
+            <span class="text-xs font-medium text-primary">Доход</span>
+          </button>
         </div>
       </div>
 
-      <div class="apple-card p-6 rounded-[28px] mb-6">
-        <h3 class="text-sm font-semibold tracking-wide text-primary mb-4">Топ категорий</h3>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button onclick="navigate('fin-budget')" class="hub-tile">
+          <div class="hub-icon" style="background: rgba(0, 122, 255, 0.15); color: var(--blue);">
+            <i data-lucide="wallet" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-xs text-secondary">Бюджет</p>
+            <p class="text-sm font-semibold text-primary">33 100 ₽</p>
+          </div>
+        </button>
+        <button onclick="navigate('fin-capital')" class="hub-tile">
+          <div class="hub-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--green);">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-xs text-secondary">Капитал</p>
+            <p class="text-sm font-semibold text-primary">1.84М ₽</p>
+          </div>
+        </button>
+        <button onclick="navigate('fin-goals')" class="hub-tile">
+          <div class="hub-icon" style="background: rgba(255, 149, 0, 0.15); color: var(--orange);">
+            <i data-lucide="target" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-xs text-secondary">Копилки</p>
+            <p class="text-sm font-semibold text-primary">57 000 ₽</p>
+          </div>
+        </button>
+        <button onclick="navigate('fin-analytics')" class="hub-tile">
+          <div class="hub-icon" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);">
+            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-xs text-secondary">Аналитика</p>
+            <p class="text-sm font-semibold text-primary">Топы</p>
+          </div>
+        </button>
+      </div>
+
+      <div class="apple-card p-6 rounded-[28px]">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-semibold tracking-wide text-primary">История</h3>
+          <button onclick="navigate('fin-history')" class="back-btn text-xs font-medium" style="color: var(--blue);">Все →</button>
+        </div>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: rgba(175, 82, 222, 0.15);">
+                <i data-lucide="smartphone" class="w-4 h-4" style="color: var(--purple);"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-primary">Apple Services</p>
+                <p class="text-[11px] text-tertiary">Сегодня, 11:20</p>
+              </div>
+            </div>
+            <span class="text-sm font-semibold numbers text-primary">−990 ₽</span>
+          </div>
+          <div class="pt-3 border-t divider flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: rgba(255, 149, 0, 0.15);">
+                <i data-lucide="shopping-cart" class="w-4 h-4" style="color: var(--orange);"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-primary">Вкусвилл</p>
+                <p class="text-[11px] text-tertiary">Сегодня, 09:15</p>
+              </div>
+            </div>
+            <span class="text-sm font-semibold numbers text-primary">−900 ₽</span>
+          </div>
+          <div class="pt-3 border-t divider flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: rgba(52, 199, 89, 0.15);">
+                <i data-lucide="arrow-down-left" class="w-4 h-4" style="color: var(--green);"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-primary">Зарплата</p>
+                <p class="text-[11px] text-tertiary">Вчера, 10:00</p>
+              </div>
+            </div>
+            <span class="text-sm font-semibold numbers" style="color: var(--green);">+85 000 ₽</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== BUDGET ========================== -->
+    <section id="screen-fin-budget" class="screen">
+      <header class="flex items-center mb-6">
+        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <div>
+          <p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Октябрь</p>
+          <h1 class="text-xl font-semibold tracking-tight text-primary">Бюджет</h1>
+        </div>
+      </header>
+
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <div class="flex justify-between mb-2 text-xs">
+          <span class="text-secondary">Израсходовано</span>
+          <span class="text-tertiary numbers">78 400 / 150 000 ₽</span>
+        </div>
+        <div class="progress-track h-3 rounded-full mb-4">
+          <div class="progress-fill h-full rounded-full" style="width: 52%; background: linear-gradient(90deg, var(--blue), var(--teal));"></div>
+        </div>
+        <div class="text-center mb-4">
+          <p class="text-xs text-secondary mb-1">Осталось на месяц</p>
+          <p class="text-4xl font-semibold tracking-tight numbers text-primary">₽ 71 600</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);">
+            <p class="text-[10px] text-tertiary uppercase tracking-wide">На сегодня</p>
+            <p class="text-lg font-semibold numbers text-primary mt-1">₽ 2 300</p>
+          </div>
+          <div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);">
+            <p class="text-[10px] text-tertiary uppercase tracking-wide">Потрачено</p>
+            <p class="text-lg font-semibold numbers mt-1" style="color: var(--red);">₽ 1 890</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-4">Структура</h3>
         <div class="space-y-4">
           <div>
             <div class="flex justify-between mb-1.5 text-xs">
-              <span class="text-primary">🛒 Супермаркеты</span>
-              <span class="font-semibold numbers text-secondary">42 800 ₽</span>
-            </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 78%; background: var(--orange);" class="h-full rounded-full"></div>
+              <span class="text-primary">План</span>
+              <span class="font-semibold numbers text-secondary">150 000 ₽</span>
             </div>
           </div>
           <div>
             <div class="flex justify-between mb-1.5 text-xs">
-              <span class="text-primary">🚕 Транспорт</span>
-              <span class="font-semibold numbers text-secondary">18 400 ₽</span>
-            </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 42%; background: var(--blue);" class="h-full rounded-full"></div>
+              <span class="text-primary">Отложить</span>
+              <span class="font-semibold numbers text-secondary">30 000 ₽</span>
             </div>
           </div>
           <div>
             <div class="flex justify-between mb-1.5 text-xs">
-              <span class="text-primary">🍷 Бары и отдых</span>
-              <span class="font-semibold numbers text-secondary">9 200 ₽</span>
-            </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 22%; background: var(--purple);" class="h-full rounded-full"></div>
+              <span class="text-primary">Подписки</span>
+              <span class="font-semibold numbers text-secondary">8 500 ₽</span>
             </div>
           </div>
-          <div>
+          <div class="pt-3 border-t divider">
             <div class="flex justify-between mb-1.5 text-xs">
-              <span class="text-primary">📱 Подписки</span>
-              <span class="font-semibold numbers text-secondary">6 200 ₽</span>
-            </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 15%; background: var(--red);" class="h-full rounded-full"></div>
+              <span class="text-primary font-semibold">Свободно</span>
+              <span class="font-semibold numbers" style="color: var(--green);">33 100 ₽</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="apple-card p-6 rounded-[28px]">
-        <h3 class="text-sm font-semibold tracking-wide text-primary mb-4">Лимиты</h3>
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-4">Лимиты категорий</h3>
         <div class="space-y-4">
           <div>
             <div class="flex justify-between mb-1.5 text-xs">
               <span class="text-primary">🛒 Еда</span>
               <span class="text-secondary numbers">42 800 / 50 000 ₽</span>
             </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 86%; background: var(--yellow);" class="h-full rounded-full"></div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 86%; background: var(--yellow);"></div>
             </div>
           </div>
           <div>
@@ -369,25 +533,157 @@
               <span class="text-primary">🍷 Отдых</span>
               <span class="text-secondary numbers">9 200 / 15 000 ₽</span>
             </div>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--neutral-fill);">
-              <div style="width: 61%; background: var(--green);" class="h-full rounded-full"></div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 61%; background: var(--green);"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1.5 text-xs">
+              <span class="text-primary">🚕 Транспорт</span>
+              <span class="text-secondary numbers">18 400 / 20 000 ₽</span>
+            </div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 92%; background: var(--red);"></div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- HISTORY -->
-    <section id="screen-history" class="screen">
-      <header class="mb-6">
-        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Все операции</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-primary">История</h1>
+    <!-- ========================== CAPITAL ========================== -->
+    <section id="screen-fin-capital" class="screen">
+      <header class="flex items-center mb-6">
+        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <div>
+          <p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Итого</p>
+          <h1 class="text-xl font-semibold tracking-tight text-primary">Капитал</h1>
+        </div>
+      </header>
+
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <p class="text-xs text-secondary mb-1">Всего на счетах</p>
+        <div class="text-4xl font-semibold tracking-tight numbers text-primary mb-1">₽ 1 842 500</div>
+        <p class="text-xs text-tertiary">обновлено только что</p>
+      </div>
+
+      <div class="space-y-3">
+        <div class="apple-card p-5 rounded-[20px] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 122, 255, 0.15); color: var(--blue);">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-primary">Основная карта</p>
+              <p class="text-[11px] text-tertiary">Card</p>
+            </div>
+          </div>
+          <span class="text-sm font-semibold numbers text-primary">₽ 82 300</span>
+        </div>
+        <div class="apple-card p-5 rounded-[20px] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(255, 45, 85, 0.15); color: var(--red);">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-primary">Кредитка</p>
+              <p class="text-[11px] text-tertiary">Credit</p>
+            </div>
+          </div>
+          <span class="text-sm font-semibold numbers" style="color: var(--red);">−₽ 12 500</span>
+        </div>
+        <div class="apple-card p-5 rounded-[20px] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(52, 199, 89, 0.15); color: var(--green);">
+              <i data-lucide="banknote" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-primary">Наличные</p>
+              <p class="text-[11px] text-tertiary">Cash</p>
+            </div>
+          </div>
+          <span class="text-sm font-semibold numbers text-primary">₽ 5 000</span>
+        </div>
+        <div class="apple-card p-5 rounded-[20px] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(175, 82, 222, 0.15); color: var(--purple);">
+              <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-primary">Инвестиции</p>
+              <p class="text-[11px] text-tertiary">Investment</p>
+            </div>
+          </div>
+          <span class="text-sm font-semibold numbers text-primary">₽ 1 767 700</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== GOALS ========================== -->
+    <section id="screen-fin-goals" class="screen">
+      <header class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+          <div>
+            <p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Финансы</p>
+            <h1 class="text-xl font-semibold tracking-tight text-primary">Копилки</h1>
+          </div>
+        </div>
+        <button onclick="toast('Скоро: создание копилки')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+      </header>
+
+      <div class="space-y-4">
+        <div class="apple-card p-5 rounded-[24px]">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <p class="text-sm font-semibold text-primary">🎧 Наушники</p>
+              <p class="text-[11px] text-tertiary">до 1 января</p>
+            </div>
+            <p class="text-xs text-tertiary numbers">40%</p>
+          </div>
+          <div class="progress-track h-2 rounded-full mb-2">
+            <div class="progress-fill h-full rounded-full" style="width: 40%; background: var(--orange);"></div>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-secondary numbers">12 000 ₽</span>
+            <span class="text-tertiary numbers">из 30 000 ₽</span>
+          </div>
+        </div>
+
+        <div class="apple-card p-5 rounded-[24px]">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <p class="text-sm font-semibold text-primary">✈️ Отпуск</p>
+              <p class="text-[11px] text-tertiary">до 1 июня</p>
+            </div>
+            <p class="text-xs text-tertiary numbers">30%</p>
+          </div>
+          <div class="progress-track h-2 rounded-full mb-2">
+            <div class="progress-fill h-full rounded-full" style="width: 30%; background: var(--blue);"></div>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-secondary numbers">45 000 ₽</span>
+            <span class="text-tertiary numbers">из 150 000 ₽</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== HISTORY ========================== -->
+    <section id="screen-fin-history" class="screen">
+      <header class="flex items-center mb-6">
+        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <div>
+          <p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Все операции</p>
+          <h1 class="text-xl font-semibold tracking-tight text-primary">История</h1>
+        </div>
       </header>
 
       <div class="apple-glass p-1 rounded-full flex space-x-1 mb-6">
-        <button onclick="setHistoryPeriod(this, 'today')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full text-secondary">Сегодня</button>
-        <button onclick="setHistoryPeriod(this, 'week')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full text-secondary">7 дней</button>
-        <button onclick="setHistoryPeriod(this, 'month')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full text-secondary">Месяц</button>
+        <button onclick="setHistoryPeriod(this, 'today')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Сегодня</button>
+        <button onclick="setHistoryPeriod(this, 'week')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">7 дней</button>
+        <button onclick="setHistoryPeriod(this, 'month')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Месяц</button>
       </div>
 
       <div class="apple-card p-5 rounded-[24px] mb-4">
@@ -457,35 +753,265 @@
       </div>
     </section>
 
+    <!-- ========================== ANALYTICS ========================== -->
+    <section id="screen-fin-analytics" class="screen">
+      <header class="flex items-center mb-6">
+        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <div>
+          <p class="text-[11px] text-secondary font-medium tracking-wide uppercase">Октябрь</p>
+          <h1 class="text-xl font-semibold tracking-tight text-primary">Аналитика</h1>
+        </div>
+      </header>
+
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <div class="flex justify-between items-start mb-6">
+          <div>
+            <p class="text-xs text-secondary">Потрачено за месяц</p>
+            <div class="text-3xl font-semibold tracking-tight mt-1 numbers text-primary">₽ 78 400</div>
+            <p class="text-xs text-tertiary mt-1">из <span class="text-secondary numbers">150 000 ₽</span> плана</p>
+          </div>
+          <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52, 199, 89, 0.1); border: 0.5px solid rgba(52, 199, 89, 0.25); color: var(--green);">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
+            <span>−8%</span>
+          </div>
+        </div>
+        <div class="h-40 w-full flex items-end mb-4">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="anGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--orange)" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="var(--orange)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path class="chart-area" d="M 0 90 Q 100 40, 200 70 T 400 55 T 500 95 L 500 150 L 0 150 Z" fill="url(#anGrad)" />
+            <path class="chart-line" d="M 0 90 Q 100 40, 200 70 T 400 55 T 500 95" fill="none" stroke="var(--orange)" stroke-width="3" stroke-linecap="round" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="apple-card p-6 rounded-[28px] mb-4">
+        <h3 class="text-sm font-semibold tracking-wide text-primary mb-4">Топ категорий</h3>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between mb-1.5 text-xs">
+              <span class="text-primary">🛒 Супермаркеты</span>
+              <span class="font-semibold numbers text-secondary">42 800 ₽</span>
+            </div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 78%; background: var(--orange);"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1.5 text-xs">
+              <span class="text-primary">🚕 Транспорт</span>
+              <span class="font-semibold numbers text-secondary">18 400 ₽</span>
+            </div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 42%; background: var(--blue);"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1.5 text-xs">
+              <span class="text-primary">🍷 Бары и отдых</span>
+              <span class="font-semibold numbers text-secondary">9 200 ₽</span>
+            </div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 22%; background: var(--purple);"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1.5 text-xs">
+              <span class="text-primary">📱 Подписки</span>
+              <span class="font-semibold numbers text-secondary">6 200 ₽</span>
+            </div>
+            <div class="progress-track h-1.5 rounded-full">
+              <div class="progress-fill h-full rounded-full" style="width: 15%; background: var(--red);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-card p-6 rounded-[28px]">
+        <h3 class="text-sm font-semibold tracking-wide text-primary mb-4">Прогноз</h3>
+        <div class="flex justify-between items-center py-2">
+          <span class="text-sm text-secondary">Средний чек/день</span>
+          <span class="text-sm font-semibold numbers text-primary">₽ 2 610</span>
+        </div>
+        <div class="border-t divider flex justify-between items-center py-2">
+          <span class="text-sm text-secondary">Прогноз месяца</span>
+          <span class="text-sm font-semibold numbers" style="color: var(--green);">₽ 81 200 ✅</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== TASKS ========================== -->
+    <section id="screen-tasks" class="screen">
+      <header class="mb-6">
+        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Октябрь</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-primary">Задачи</h1>
+      </header>
+
+      <div class="apple-glass p-1 rounded-full flex space-x-1 mb-6">
+        <button onclick="toast('Скоро')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Сегодня</button>
+        <button onclick="toast('Скоро')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Неделя</button>
+        <button onclick="toast('Скоро')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Все</button>
+      </div>
+
+      <div class="apple-card p-5 rounded-[24px] mb-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wide mb-4" style="color: var(--red);">Просрочено</h3>
+        <div class="space-y-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--red);"></div>
+            <span class="text-sm text-primary flex-1">Позвонить в клинику</span>
+            <span class="text-[10px] text-tertiary numbers">3 дн.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-card p-5 rounded-[24px] mb-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-secondary mb-4">На сегодня</h3>
+        <div class="space-y-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--text-tertiary);"></div>
+            <span class="text-sm text-primary flex-1">Купить продукты</span>
+            <span class="text-[10px] text-tertiary">#дом</span>
+          </div>
+          <div class="border-t divider pt-3 flex items-center space-x-3">
+            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center" style="border-color: var(--text-tertiary);"></div>
+            <span class="text-sm text-primary flex-1">Тренировка в зале</span>
+            <span class="text-[10px] text-tertiary">18:00</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="toast('Скоро: добавление задачи')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
+        <i data-lucide="plus" class="w-4 h-4" style="color: var(--blue);"></i>
+        <span class="text-sm font-medium" style="color: var(--blue);">Новая задача</span>
+      </button>
+    </section>
+
+    <!-- ========================== MORE ========================== -->
+    <section id="screen-more" class="screen">
+      <header class="mb-6">
+        <p class="text-[11px] text-secondary font-medium tracking-wide uppercase mb-1">Разделы</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-primary">Ещё</h1>
+      </header>
+
+      <div class="space-y-3">
+        <button onclick="navigate('placeholder', {title: 'Питание'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: rgba(255, 149, 0, 0.15); color: var(--orange);">
+            <i data-lucide="utensils" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Питание</p>
+            <p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+
+        <button onclick="navigate('placeholder', {title: 'Тренировки'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: rgba(255, 45, 85, 0.15); color: var(--red);">
+            <i data-lucide="dumbbell" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Тренировки</p>
+            <p class="text-[11px] text-tertiary">План, прогресс, замеры</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+
+        <button onclick="navigate('placeholder', {title: 'Заметки'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: rgba(90, 200, 250, 0.15); color: var(--teal);">
+            <i data-lucide="notebook" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Заметки</p>
+            <p class="text-[11px] text-tertiary">Быстрые записи</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+
+        <button onclick="navigate('placeholder', {title: 'Отчёты'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: rgba(88, 86, 214, 0.15); color: var(--indigo);">
+            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Отчёты</p>
+            <p class="text-[11px] text-tertiary">Неделя, месяц, поиск</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+
+        <button onclick="navigate('placeholder', {title: 'Привычки'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--green);">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Привычки</p>
+            <p class="text-[11px] text-tertiary">Трекер</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+
+        <button onclick="navigate('placeholder', {title: 'Настройки'})" class="hub-tile w-full">
+          <div class="hub-icon" style="background: var(--neutral-fill); color: var(--text-secondary);">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-primary">Настройки</p>
+            <p class="text-[11px] text-tertiary">Профиль, счета, категории</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================== PLACEHOLDER ========================== -->
+    <section id="screen-placeholder" class="screen">
+      <header class="flex items-center mb-6">
+        <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+        <h1 id="placeholder-title" class="text-xl font-semibold tracking-tight text-primary">Раздел</h1>
+      </header>
+      <div class="apple-card p-10 rounded-[28px] text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--neutral-fill);">
+          <i data-lucide="construction" class="w-8 h-8 text-tertiary"></i>
+        </div>
+        <p class="text-sm font-medium text-primary mb-1">В разработке</p>
+        <p class="text-xs text-tertiary">Этот раздел появится в следующей итерации</p>
+      </div>
+    </section>
+
   </div>
 
   <nav class="fixed inset-x-0 flex justify-center z-50 px-4" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));">
-    <div class="apple-glass px-8 py-3 rounded-full flex items-center space-x-10 shadow-2xl">
-      <button data-nav="home" onclick="showScreen('home')" class="nav-btn active flex flex-col items-center">
+    <div class="apple-glass px-6 py-3 rounded-full flex items-center space-x-8 shadow-2xl">
+      <button data-nav="home" onclick="navigate('home', {tab: true})" class="nav-btn active flex flex-col items-center">
         <i data-lucide="wallet" class="w-5 h-5"></i>
         <span class="text-[10px] mt-1 font-medium">Обзор</span>
       </button>
-      <button data-nav="analytics" onclick="showScreen('analytics')" class="nav-btn flex flex-col items-center text-secondary">
-        <i data-lucide="pie-chart" class="w-5 h-5"></i>
-        <span class="text-[10px] mt-1 font-medium">Анализ</span>
+      <button data-nav="finance" onclick="navigate('finance', {tab: true})" class="nav-btn flex flex-col items-center">
+        <i data-lucide="coins" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1 font-medium">Финансы</span>
       </button>
-      <button data-nav="history" onclick="showScreen('history')" class="nav-btn flex flex-col items-center text-secondary">
-        <i data-lucide="clock" class="w-5 h-5"></i>
-        <span class="text-[10px] mt-1 font-medium">История</span>
+      <button data-nav="tasks" onclick="navigate('tasks', {tab: true})" class="nav-btn flex flex-col items-center">
+        <i data-lucide="list-check" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1 font-medium">Задачи</span>
+      </button>
+      <button data-nav="more" onclick="navigate('more', {tab: true})" class="nav-btn flex flex-col items-center">
+        <i data-lucide="grid-2x2" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1 font-medium">Ещё</span>
       </button>
     </div>
   </nav>
 
-  <div id="toast"></div>
+  <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 100; white-space: nowrap; color: var(--text-primary);"></div>
 
   <script>
+    // ============================================================
+    // Telegram init
+    // ============================================================
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.setHeaderColor('#000000');
-      tg.setBackgroundColor('#000000');
-    }
+    if (tg) { tg.ready(); tg.expand(); }
 
     function applyTheme() {
       const scheme = tg?.colorScheme ||
@@ -505,35 +1031,52 @@
       try { tg?.HapticFeedback?.impactOccurred(style); } catch (e) {}
     }
 
+    // ============================================================
+    // Toast
+    // ============================================================
     let toastTimeout;
     function toast(text) {
       haptic('light');
       const el = document.getElementById('toast');
       el.textContent = text;
-      el.classList.add('show');
+      el.style.opacity = '1';
+      el.style.transform = 'translateX(-50%) translateY(0)';
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => el.classList.remove('show'), 2000);
+      toastTimeout = setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-50%) translateY(20px)';
+      }, 2000);
     }
 
-    function showScreen(name) {
-      haptic('soft');
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen-' + name).classList.add('active');
+    // ============================================================
+    // Navigation (с историей для BackButton)
+    // ============================================================
+    const TAB_SCREENS = ['home', 'finance', 'tasks', 'more'];
+    let history = ['home'];
 
-      document.querySelectorAll('.nav-btn').forEach(b => {
-        b.classList.remove('active');
-        b.classList.add('text-secondary');
-      });
-      const active = document.querySelector(`[data-nav="${name}"]`);
-      if (active) {
-        active.classList.add('active');
-        active.classList.remove('text-secondary');
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('screen-' + name);
+      if (target) target.classList.add('active');
+
+      // Подсветка таба
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const tabMatch = document.querySelector(`[data-nav="${name}"]`);
+      if (tabMatch) tabMatch.classList.add('active');
+      // Если это подэкран — подсвечиваем его корневой таб
+      else {
+        const parent = { 'fin-budget': 'finance', 'fin-capital': 'finance', 'fin-goals': 'finance',
+                         'fin-history': 'finance', 'fin-analytics': 'finance' }[name];
+        if (parent) {
+          const el = document.querySelector(`[data-nav="${parent}"]`);
+          if (el) el.classList.add('active');
+        }
       }
 
+      // BackButton в Telegram
       if (tg?.BackButton) {
-        if (name !== 'home') {
+        if (history.length > 1) {
           tg.BackButton.show();
-          tg.BackButton.onClick(() => showScreen('home'));
         } else {
           tg.BackButton.hide();
         }
@@ -541,22 +1084,57 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function navigate(name, opts = {}) {
+      haptic('soft');
+      if (opts.title) {
+        const t = document.getElementById('placeholder-title');
+        if (t) t.textContent = opts.title;
+      }
+      if (opts.tab) {
+        // Переключение таба — сбрасываем историю
+        history = [name];
+      } else {
+        history.push(name);
+      }
+      showScreen(name);
+    }
+
+    function goBack() {
+      haptic('light');
+      if (history.length > 1) {
+        history.pop();
+        showScreen(history[history.length - 1]);
+      } else {
+        showScreen('home');
+      }
+    }
+
+    if (tg?.BackButton) {
+      tg.BackButton.onClick(goBack);
+    }
+
+    // Аппаратная кнопка "назад" браузера
+    window.addEventListener('popstate', goBack);
+
+    // ============================================================
+    // Period selector на Home
+    // ============================================================
     const periodData = {
-      'M': { value: '₽ 1 842 500' },
-      'W': { value: '₽ 1 798 200' },
-      'Y': { value: '₽ 1 542 000' }
+      'M': '₽ 1 842 500',
+      'W': '₽ 1 798 200',
+      'Y': '₽ 1 542 000'
     };
     function setPeriod(btn) {
       haptic('light');
       const parent = btn.parentElement;
       parent.querySelectorAll('.segmented-btn').forEach(el => el.classList.remove('active'));
       btn.classList.add('active');
-      const label = btn.textContent.trim();
-      const data = periodData[label];
+      const data = periodData[btn.textContent.trim()];
       if (data) {
         const bal = document.getElementById('balance');
+        bal.style.transition = 'opacity 0.15s ease';
         bal.style.opacity = '0';
-        setTimeout(() => { bal.textContent = data.value; bal.style.opacity = '1'; }, 150);
+        setTimeout(() => { bal.textContent = data; bal.style.opacity = '1'; }, 150);
       }
     }
 
@@ -565,11 +1143,13 @@
       const parent = btn.parentElement;
       parent.querySelectorAll('.segmented-btn').forEach(el => el.classList.remove('active'));
       btn.classList.add('active');
-      toast('Период: ' + ({today: 'сегодня', week: '7 дней', month: 'месяц'}[period]));
     }
 
+    // ============================================================
+    // Init
+    // ============================================================
     lucide.createIcons();
-    document.getElementById('balance').style.transition = 'opacity 0.15s ease';
+    showScreen('home');
   </script>
 </body>
 </html>
