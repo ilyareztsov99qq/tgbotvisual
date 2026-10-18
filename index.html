@@ -228,7 +228,63 @@
     .habit-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
-    .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+    .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; } 
+    /* === Skeleton loading === */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--neutral-fill) 0%,
+    var(--neutral-fill-hover) 50%,
+    var(--neutral-fill) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.skeleton-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.skeleton-line-lg { height: 12px; width: 70%; }
+.skeleton-line-sm { height: 9px; width: 45%; }
+
+/* === Swipe to delete === */
+.swipeable {
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  background: var(--bg);
+  will-change: transform;
+}
+.swipeable.swiping { transition: none; }
+.swipeable-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+.swipe-delete-bg {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 90px;
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+}
   </style>
 </head>
 <body>
@@ -679,6 +735,218 @@
   }
 }
 
+    // ============================================================
+// SKELETON LOADING
+// ============================================================
+function skeletonRow() {
+  return `<div class="skeleton-row">
+    <div class="skeleton skeleton-circle"></div>
+    <div class="skeleton-lines">
+      <div class="skeleton skeleton-line-lg"></div>
+      <div class="skeleton skeleton-line-sm"></div>
+    </div>
+  </div>`;
+}
+
+function renderSkeletons() {
+  // Home recent (транзакции)
+  const recent = document.getElementById('home-recent');
+  if (recent) recent.innerHTML = skeletonRow() + skeletonRow();
+  // Home tasks
+  const homeTasks = document.getElementById('home-tasks-list');
+  if (homeTasks) homeTasks.innerHTML = `<div class="mt-3">${skeletonRow()}${skeletonRow()}</div>`;
+  // Finance recent
+  const financeRecent = document.getElementById('finance-recent');
+  if (financeRecent) financeRecent.innerHTML = skeletonRow() + skeletonRow() + skeletonRow();
+  // Today transactions
+  const todayTrx = document.getElementById('today-transactions');
+  if (todayTrx) todayTrx.innerHTML = skeletonRow() + skeletonRow();
+  // Tasks screen (если сейчас открыт)
+  if (currentScreen === 'tasks') {
+    const tasksContent = document.getElementById('tasks-content');
+    if (tasksContent) tasksContent.innerHTML = `<div class="apple-card p-5 rounded-[24px] mb-4">${skeletonRow()}${skeletonRow()}${skeletonRow()}</div>`;
+  }
+  // ============================================================
+// SWIPE TO DELETE (для задач и заметок)
+// ============================================================
+(function setupSwipeToDelete() {
+  const SWIPE_THRESHOLD = 70;
+  let startX = 0, startY = 0, currentEl = null, currentWrapper = null;
+  let isSwiping = false, isHorizontalSwipe = false;
+  let deleteCallback = null;
+
+  function onTouchStart(e) {
+    const target = e.target.closest('.swipeable');
+    if (!target) return;
+    const wrapper = target.parentElement;
+    if (!wrapper || !wrapper.classList.contains('swipeable-wrapper')) return;
+
+    // Не свайпим, если тап пришёлся на кнопки внутри
+    if (e.target.closest('button.task-check') || e.target.closest('button.habit-check') ||
+        e.target.closest('button.shop-check') || e.target.closest('button.back-btn')) return;
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    currentEl = target;
+    currentWrapper = wrapper;
+    isSwiping = true;
+    isHorizontalSwipe = false;
+    deleteCallback = null;
+  }
+
+  function onTouchMove(e) {
+    if (!isSwiping || !currentEl) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+
+    // Определяем направление на первых 10px
+    if (!isHorizontalSwipe && Math.abs(dx) > 10) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        isHorizontalSwipe = true;
+        currentEl.classList.add('swiping');
+        // Создаём фон для кнопки удаления, если её ещё нет
+        if (!currentWrapper.querySelector('.swipe-delete-bg')) {
+          const bg = document.createElement('div');
+          bg.className = 'swipe-delete-bg';
+          bg.innerHTML = '<span>Удалить</span>';
+          currentWrapper.insertBefore(bg, currentEl);
+        }
+      } else {
+        isSwiping = false;
+        return;
+      }
+    }
+
+    if (!isHorizontalSwipe) return;
+
+    // Только свайп влево
+    if (dx > 0) dx = 0;
+    if (dx < -130) dx = -130;
+    currentEl.style.transform = `translateX(${dx}px)`;
+
+    // Если свайп превысил порог — фиксируем
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      currentEl.dataset.swipeReady = '1';
+    } else {
+      delete currentEl.dataset.swipeReady;
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (!isSwiping || !currentEl) {
+      isSwiping = false;
+      return;
+    }
+    isSwiping = false;
+
+    if (!isHorizontalSwipe) {
+      currentEl = null;
+      currentWrapper = null;
+      return;
+    }
+
+    const wasReady = currentEl.dataset.swipeReady === '1';
+    const el = currentEl;
+    const wrapper = currentWrapper;
+    el.classList.remove('swiping');
+
+    if (wasReady) {
+      // Оставляем выдвинутым, пока пользователь не нажмёт "Удалить"
+      // Или — если свайп очень сильный (>120px), удаляем сразу
+      const currentTransform = el.style.transform;
+      const match = currentTransform.match(/translateX\((-?\d+)/);
+      const currentDx = match ? parseInt(match[1], 10) : 0;
+
+      if (currentDx <= -120) {
+        // Сильный свайп — удаляем с confirm
+        haptic('medium');
+        if (confirm('Удалить?')) {
+          if (typeof handleSwipeDelete === 'function') handleSwipeDelete(el);
+        } else {
+          el.style.transform = 'translateX(0)';
+          const bg = wrapper.querySelector('.swipe-delete-bg');
+          if (bg) bg.remove();
+        }
+      } else {
+        // Держим выдвинутым
+        el.style.transform = `translateX(${-SWIPE_THRESHOLD}px)`;
+      }
+    } else {
+      // Возврат на место
+      el.style.transform = 'translateX(0)';
+      setTimeout(() => {
+        const bg = wrapper.querySelector('.swipe-delete-bg');
+        if (bg) bg.remove();
+      }, 250);
+    }
+
+    currentEl = null;
+    currentWrapper = null;
+    isHorizontalSwipe = false;
+  }
+
+  // Клик вне свайпнутого — закрываем
+  document.addEventListener('touchstart', (e) => {
+    const openEl = document.querySelector('.swipeable[data-swipe-ready="1"]');
+    if (openEl && !openEl.contains(e.target)) {
+      openEl.style.transform = 'translateX(0)';
+      delete openEl.dataset.swipeReady;
+      const bg = openEl.parentElement.querySelector('.swipe-delete-bg');
+      if (bg) setTimeout(() => bg.remove(), 250);
+    }
+  }, { passive: true });
+
+  // Клик на кнопку "Удалить" (фон) — удаляем
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.swipe-delete-bg')) return;
+    const bg = e.target.closest('.swipe-delete-bg');
+    const wrapper = bg.parentElement;
+    const el = wrapper.querySelector('.swipeable');
+    if (el && typeof handleSwipeDelete === 'function') {
+      haptic('medium');
+      if (confirm('Удалить?')) handleSwipeDelete(el);
+      else {
+        el.style.transform = 'translateX(0)';
+        delete el.dataset.swipeReady;
+        setTimeout(() => bg.remove(), 250);
+      }
+    }
+  });
+
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove', onTouchMove, { passive: true });
+  document.addEventListener('touchend', onTouchEnd, { passive: true });
+})();
+
+// Универсальный обработчик: определяет тип и удаляет
+function handleSwipeDelete(el) {
+  const id = el.dataset.swipeId;
+  const type = el.dataset.swipeType;
+  if (!id || !type) return;
+  if (type === 'task') {
+    saveTasks(loadTasks().filter(t => t.id !== id));
+    renderTasksScreen(); renderHomeTasks();
+    apiPost('deleteTask', { id });
+    toast('Задача удалена');
+  } else if (type === 'note') {
+    saveNotes(loadNotes().filter(n => n.id !== id));
+    renderNotes();
+    apiPost('deleteNote', { id });
+    toast('Заметка удалена');
+  }
+}
+  // Notes
+  if (currentScreen === 'notes') {
+    const notesContent = document.getElementById('notes-content');
+    if (notesContent) notesContent.innerHTML = `<div class="apple-card p-5 rounded-[24px]">${skeletonRow()}${skeletonRow()}</div>`;
+  }
+  // Menu preview
+  const menuPreview = document.getElementById('home-menu-preview');
+  if (menuPreview) menuPreview.innerHTML = `<div class="skeleton skeleton-line-lg" style="height:12px;margin-bottom:6px;"></div><div class="skeleton skeleton-line-sm" style="height:10px;"></div>`;
+  // Workout preview
+  const workoutPreview = document.getElementById('home-workout-preview');
+  if (workoutPreview) workoutPreview.innerHTML = `<div class="skeleton skeleton-line-lg" style="height:12px;"></div>`;
+}
    // ============================================================
 // SYNC UI — индикатор + pull-to-refresh + автосинк
 // ============================================================
@@ -1108,22 +1376,25 @@ document.addEventListener('visibilitychange', () => {
       return `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="list-check" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">${title}</p><p class="text-xs text-tertiary">${sub}</p></div>`;
     }
     function taskItemHTML(t) {
-      const today = todayStr(); const overdue = !t.done && t.date && t.date < today;
-      const flagColor = t.priority==='!!!'?'var(--red)':t.priority==='!!'?'var(--yellow)':'';
-      let dl = '';
-      if (t.date) { if (t.date===today) dl='сегодня'; else if (t.date===addDays(today,1)) dl='завтра'; else dl = new Date(t.date+'T00:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); }
-      const meta = []; if (overdue) meta.push(`<span class="task-meta-item" style="color:var(--red);">просрочено</span>`);
-      if (dl) meta.push(`<span class="task-meta-item">${escapeHtml(dl)}</span>`);
-      if (t.time) meta.push(`<span class="task-meta-item">${escapeHtml(t.time)}</span>`);
-      if (t.tags) meta.push(`<span class="task-meta-item">${escapeHtml(t.tags)}</span>`);
-      const subs = t.subtasks || [];
-      if (subs.length) { const done = subs.filter(s=>s.done).length; meta.push(`<span class="task-meta-item">📦 ${done}/${subs.length}</span>`); }
-      return `<div class="task-item ${t.done?'done':''}">${flagColor?`<div class="task-flag" style="background:${flagColor};"></div>`:''}
-        <button class="task-check ${t.done?'active':''}" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">${t.done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button>
-        <div style="flex:1;min-width:0;" onclick="openTaskDetail('${t.id}')"><div class="task-text">${escapeHtml(t.text)}</div>${meta.length?`<div class="task-meta">${meta.join('')}</div>`:''}</div>
-        <button class="back-btn p-2" onclick="event.stopPropagation(); deleteTask('${t.id}')" style="opacity:.5;"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-      </div>`;
-    }
+  const today = todayStr(); const overdue = !t.done && t.date && t.date < today;
+  const flagColor = t.priority==='!!!'?'var(--red)':t.priority==='!!'?'var(--yellow)':'';
+  let dl = '';
+  if (t.date) { if (t.date===today) dl='сегодня'; else if (t.date===addDays(today,1)) dl='завтра'; else dl = new Date(t.date+'T00:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); }
+  const meta = []; if (overdue) meta.push(`<span class="task-meta-item" style="color:var(--red);">просрочено</span>`);
+  if (dl) meta.push(`<span class="task-meta-item">${escapeHtml(dl)}</span>`);
+  if (t.time) meta.push(`<span class="task-meta-item">${escapeHtml(t.time)}</span>`);
+  if (t.tags) meta.push(`<span class="task-meta-item">${escapeHtml(t.tags)}</span>`);
+  const subs = t.subtasks || [];
+  if (subs.length) { const done = subs.filter(s=>s.done).length; meta.push(`<span class="task-meta-item">📦 ${done}/${subs.length}</span>`); }
+  return `<div class="swipeable-wrapper">
+    <div class="swipeable task-item ${t.done?'done':''}" data-swipe-id="${t.id}" data-swipe-type="task">
+      ${flagColor?`<div class="task-flag" style="background:${flagColor};"></div>`:''}
+      <button class="task-check ${t.done?'active':''}" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">${t.done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button>
+      <div style="flex:1;min-width:0;" onclick="openTaskDetail('${t.id}')"><div class="task-text">${escapeHtml(t.text)}</div>${meta.length?`<div class="task-meta">${meta.join('')}</div>`:''}</div>
+      <button class="back-btn p-2" onclick="event.stopPropagation(); deleteTask('${t.id}')" style="opacity:.5;"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+    </div>
+  </div>`;
+}
     function renderHomeTasks() {
       const el = document.getElementById('home-tasks-list'); if (!el) return;
       const today = todayStr();
@@ -1511,15 +1782,20 @@ document.addEventListener('visibilitychange', () => {
       apiPost('deleteNote', { id });
     }
     function renderNotes() {
-      const notes = loadNotes(); const el = document.getElementById('notes-content'); if (!el) return;
-      if (!notes.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
-      el.innerHTML = notes.map(n => {
-        const d = new Date(n.createdAt);
-        const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-        return `<div class="note-item" onclick="if(confirm('Удалить заметку?'))deleteNote('${n.id}')"><div class="note-date">${ds}</div><div class="note-text">${escapeHtml(n.text)}</div></div>`;
-      }).join('');
-      lucide.createIcons();
-    }
+  const notes = loadNotes(); const el = document.getElementById('notes-content'); if (!el) return;
+  if (!notes.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+  el.innerHTML = notes.map(n => {
+    const d = new Date(n.createdAt);
+    const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="swipeable-wrapper">
+      <div class="swipeable note-item" data-swipe-id="${n.id}" data-swipe-type="note">
+        <div class="note-date">${ds}</div>
+        <div class="note-text">${escapeHtml(n.text)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
 
     // =========== HABITS ===========
     function loadHabits() { try { return JSON.parse(localStorage.getItem('aura_habits')||'[]'); } catch(e) { return []; } }
@@ -1671,13 +1947,18 @@ document.addEventListener('visibilitychange', () => {
     // Сначала локальные данные, потом синк с сервером
     renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
 
-    // Первичная загрузка с индикатором
+    // 1. Показать скелетоны сразу
+renderSkeletons();
 setSyncStatus('syncing');
+
+// 2. Загрузить данные
 bootstrapFromBackend().then(ok => {
   setSyncStatus(ok ? 'online' : 'offline');
-  if (ok) {
-    renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
-  }
+  // Перерисовать всё — скелетоны заменятся данными
+  renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
+  renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
+  if (currentScreen === 'tasks') renderTasksScreen();
+  if (currentScreen === 'notes') renderNotes();
 });
   </script>
 </body>
