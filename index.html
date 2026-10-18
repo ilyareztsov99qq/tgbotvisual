@@ -228,7 +228,7 @@
     .habit-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
-    .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; } 
+    .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     /* === Notes: поиск, подсветка, счётчик === */
 .notes-search-wrap {
   display: flex;
@@ -1936,16 +1936,17 @@ document.getElementById('note-text').addEventListener('input', updateNoteCounter
   hapticNotify('success');
 
   if (editingNoteId) {
+    // ===== РЕЖИМ РЕДАКТИРОВАНИЯ =====
     const id = editingNoteId;
     const notes = loadNotes();
     const idx = notes.findIndex(n => n.id === id);
-    if (idx < 0) { toast('Заметка не найдена'); closeNoteForm(true); return; }
+    if (idx < 0) { toast('Заметка не найдена'); closeNoteForm(); return; }
 
     notes[idx].text = text;
     notes[idx].updatedAt = new Date().toISOString();
     saveNotes(notes);
 
-    closeNoteForm(true);
+    closeNoteForm();
     renderNotes();
     toast('Изменения сохранены');
 
@@ -1954,21 +1955,6 @@ document.getElementById('note-text').addEventListener('input', updateNoteCounter
     return;
   }
 
-  const notes = loadNotes();
-  const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
-  notes.unshift(note);
-  saveNotes(notes);
-  try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
-  closeNoteForm(true);
-  renderNotes();
-  toast('Заметка добавлена');
-  const res = await apiPost('addNote', { text: note.text });
-  if (res && res.id) {
-    const fresh = loadNotes();
-    const idx = fresh.findIndex(n => n.id === note.id);
-    if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); }
-  }
-}
   // ===== РЕЖИМ СОЗДАНИЯ =====
   const notes = loadNotes();
   const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
@@ -2014,7 +2000,7 @@ document.getElementById('note-text').addEventListener('input', updateNoteCounter
     toast('Не удалось скопировать');
   }
 }
-   function deleteCurrentNote() {
+    function deleteCurrentNote() {
   if (!editingNoteId) return;
   if (!confirm('Удалить заметку?')) return;
   const id = editingNoteId;
