@@ -44,6 +44,41 @@
     .nav-btn.active { color: var(--blue); } .nav-btn:active { transform: scale(.94); }
     .segmented-btn { transition: all .2s ease; color: var(--text-secondary); }
     .segmented-btn.active { background: var(--neutral-fill-hover); color: var(--text-primary); }
+    /* === Sync UI === */
+.sync-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+  background: var(--text-tertiary);
+}
+.sync-dot.syncing { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
+.sync-dot.online { background: var(--green); }
+.sync-dot.offline { background: var(--red); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Pull-to-refresh */
+.ptr-indicator {
+  position: fixed;
+  top: env(safe-area-inset-top, 0);
+  left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid var(--card-border);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+  opacity: 0;
+  color: var(--text-secondary);
+}
+.ptr-indicator.visible { opacity: 1; }
+.ptr-indicator.pulling svg { transform: rotate(calc(var(--pull-rotate, 0deg))); }
+.ptr-indicator.refreshing svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
     .spotlight-1 { background: rgba(0,122,255,.1); } .spotlight-2 { background: rgba(175,82,222,.1); }
     body.light .spotlight-1 { background: rgba(0,122,255,.08); } body.light .spotlight-2 { background: rgba(175,82,222,.08); }
     .back-btn { color: var(--text-secondary); transition: color .2s ease; } .back-btn:active { color: var(--text-primary); }
@@ -197,6 +232,9 @@
   </style>
 </head>
 <body>
+  <div id="ptr-indicator" class="ptr-indicator">
+  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+</div>
   <div class="fixed top-[-100px] left-1/4 w-[500px] h-[500px] spotlight-1 rounded-full blur-[140px] pointer-events-none"></div>
   <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -206,8 +244,13 @@
       <header class="flex justify-between items-center mb-8">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-full apple-glass flex items-center justify-center font-bold text-xs text-primary">AF</div>
-          <div><span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Общий капитал</span><h1 class="text-sm font-semibold tracking-tight text-primary">Aura Portfolio</h1></div>
-        </div>
+          <div>
+  <div class="flex items-center gap-1.5">
+    <span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Общий капитал</span>
+    <span id="sync-dot" class="sync-dot" title="Синхронизация"></span>
+  </div>
+  <h1 class="text-sm font-semibold tracking-tight text-primary">Aura Portfolio</h1>
+</div>
         <div class="apple-glass p-1 rounded-full flex space-x-1">
           <button onclick="setPeriod(this)" class="segmented-btn active px-3 py-1 text-xs font-medium rounded-full">M</button>
           <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">W</button>
@@ -617,22 +660,113 @@
     }
 
     async function apiPost(action, payload) {
-      if (!INIT_DATA) return null;
-      try {
-        const res = await fetch(WEBAPP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action, initData: INIT_DATA, payload })
-        });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.error || 'API error');
-        return json.data;
-      } catch (e) {
-        console.warn('apiPost failed:', action, e);
-        return null;
-      }
-    }
+  if (!INIT_DATA) { setSyncStatus('offline'); return null; }
+  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, initData: INIT_DATA, payload })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'API error');
+    setSyncStatus('online');
+    return json.data;
+  } catch (e) {
+    console.warn('apiPost failed:', action, e);
+    setSyncStatus('offline');
+    toast('⚠️ Не синхронизировано');
+    return null;
+  }
+}
 
+   // ============================================================
+// SYNC UI — индикатор + pull-to-refresh + автосинк
+// ============================================================
+function setSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  if (!dot) return;
+  dot.classList.remove('syncing', 'online', 'offline');
+  dot.classList.add(status);
+}
+
+async function refreshFromBackend(silent = false) {
+  if (!INIT_DATA) { setSyncStatus('offline'); return false; }
+  setSyncStatus('syncing');
+  const ok = await bootstrapFromBackend();
+  setSyncStatus(ok ? 'online' : 'offline');
+  if (ok) {
+    // Перерисовать текущий экран
+    if (currentScreen === 'home') { renderHomeRecent(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
+    else if (currentScreen === 'tasks') renderTasksScreen();
+    else if (currentScreen === 'food') renderFoodScreen();
+    else if (currentScreen === 'food-shop') renderShoppingScreen();
+    else if (currentScreen === 'notes') renderNotes();
+    else if (currentScreen === 'habits') renderHabits();
+    else if (currentScreen === 'workout-body') renderWorkoutBody();
+    else if (currentScreen === 'workout-cardio') renderWorkoutCardio();
+    else if (currentScreen === 'workout-progress') renderWorkoutProgress();
+    else if (currentScreen === 'reports') renderReports();
+    if (!silent) toast('Обновлено');
+  } else if (!silent) {
+    toast('⚠️ Нет связи');
+  }
+  return ok;
+}
+
+// Автосинк при возврате в приложение
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    refreshFromBackend(true);
+  }
+});
+
+// Pull-to-refresh
+(function setupPullToRefresh() {
+  let startY = 0;
+  let pullDistance = 0;
+  let tracking = false;
+  const threshold = 70;
+  const indicator = () => document.getElementById('ptr-indicator');
+
+  document.addEventListener('touchstart', (e) => {
+    if (window.scrollY <= 0) {
+      startY = e.touches[0].clientY;
+      tracking = true;
+      pullDistance = 0;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const y = e.touches[0].clientY;
+    const delta = y - startY;
+    if (delta > 0 && window.scrollY <= 0) {
+      pullDistance = Math.min(delta, 100);
+      const el = indicator();
+      el.classList.add('visible', 'pulling');
+      el.style.transform = `translateX(-50%) translateY(${Math.min(pullDistance, 60)}px)`;
+      el.style.setProperty('--pull-rotate', `${pullDistance * 3}deg`);
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!tracking) return;
+    tracking = false;
+    const el = indicator();
+    if (pullDistance >= threshold) {
+      el.classList.remove('pulling');
+      el.classList.add('refreshing');
+      el.style.transform = 'translateX(-50%) translateY(20px)';
+      await refreshFromBackend();
+      el.classList.remove('refreshing', 'visible');
+      el.style.transform = 'translateX(-50%) translateY(-60px)';
+    } else {
+      el.classList.remove('pulling', 'visible');
+      el.style.transform = 'translateX(-50%) translateY(-60px)';
+    }
+    pullDistance = 0;
+  }, { passive: true });
+})();
     async function bootstrapFromBackend() {
       if (!INIT_DATA) return false;
       try {
@@ -1537,11 +1671,14 @@
     // Сначала локальные данные, потом синк с сервером
     renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
 
-    bootstrapFromBackend().then(ok => {
-      if (ok) {
-        renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
-      }
-    });
+    // Первичная загрузка с индикатором
+setSyncStatus('syncing');
+bootstrapFromBackend().then(ok => {
+  setSyncStatus(ok ? 'online' : 'offline');
+  if (ok) {
+    renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
+  }
+});
   </script>
 </body>
 </html>
