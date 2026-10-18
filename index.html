@@ -229,6 +229,67 @@
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; } 
+    /* === Notes: поиск, подсветка, счётчик === */
+.notes-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease;
+}
+.notes-search-wrap:focus-within { border-color: var(--blue); }
+.notes-search-wrap svg { color: var(--text-tertiary); flex-shrink: 0; }
+.notes-search-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  min-width: 0;
+}
+.notes-search-wrap input::placeholder { color: var(--text-tertiary); }
+.notes-search-clear {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  padding: 2px;
+  flex-shrink: 0;
+}
+.notes-search-clear.visible { display: flex; }
+.note-text mark {
+  background: rgba(255, 204, 0, 0.35);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
+.notes-empty-search {
+  text-align: center;
+  padding: 40px 20px;
+}
+.notes-empty-search-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 18px;
+  background: var(--neutral-fill);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-tertiary);
+}
+.note-char-counter {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: right;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.note-char-counter.warn { color: var(--orange); }
+.note-char-counter.danger { color: var(--red); }
     /* === Skeleton loading === */
 .skeleton {
   background: linear-gradient(90deg,
@@ -517,12 +578,27 @@
 
     <!-- NOTES -->
     <section id="screen-notes" class="screen">
-      <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Заметки</h1></div></div>
-        <button onclick="openNoteForm()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
-      </header>
-      <div id="notes-content"></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium">Ещё</p>
+        <h1 class="text-xl font-semibold text-primary" id="notes-title">Заметки</h1>
+      </div>
+    </div>
+    <button onclick="openNoteForm()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary"><i data-lucide="plus" class="w-4 h-4"></i></button>
+  </header>
+
+  <div class="notes-search-wrap" id="notes-search-wrap" style="display:none;">
+    <i data-lucide="search" class="w-4 h-4"></i>
+    <input id="notes-search" type="text" placeholder="Поиск по заметкам..." oninput="filterNotes(this.value)">
+    <button class="notes-search-clear" id="notes-search-clear" onclick="clearNotesSearch()">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <div id="notes-content"></div>
+</section>
 
     <!-- HABITS -->
     <section id="screen-habits" class="screen">
@@ -631,15 +707,25 @@
   <div id="note-sheet-overlay" class="task-sheet-overlay" onclick="closeNoteForm()"></div>
   <div id="note-sheet" class="task-sheet" style="top: 15vh;">
   <div class="task-drag-handle"></div>
-  <div class="task-sheet-header"><button class="trx-close" onclick="closeNoteForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая заметка</h2><div class="w-9"></div></div>
+  <div class="task-sheet-header">
+    <button class="trx-close" onclick="closeNoteForm()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 class="text-base font-semibold text-primary" id="note-sheet-title">Новая заметка</h2>
+    <div class="w-9"></div>
+  </div>
   <div class="task-sheet-body">
     <textarea id="note-text" class="task-input" rows="6" placeholder="Текст заметки..." maxlength="2000"></textarea>
+    <div class="note-char-counter" id="note-char-counter">0 / 2000</div>
   </div>
   <div class="task-sheet-footer">
     <button id="note-submit" class="submit-btn" style="margin:0;" onclick="submitNote()" disabled>Сохранить</button>
-    <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;width:100%;margin-top:10px;padding:12px;background:transparent;border:none;color:var(--red);font-size:14px;font-weight:500;">
-      Удалить заметку
-    </button>
+    <div class="flex justify-between items-center mt-3" style="padding: 0 4px;">
+      <button onclick="copyNoteText()" style="background:transparent;border:none;color:var(--blue);font-size:13px;font-weight:500;padding:8px 0;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="copy" class="w-4 h-4"></i><span>Копировать</span>
+      </button>
+      <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;background:transparent;border:none;color:var(--red);font-size:13px;font-weight:500;padding:8px 0;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="trash-2" class="w-4 h-4"></i><span>Удалить</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1767,39 +1853,58 @@ document.addEventListener('visibilitychange', () => {
     function loadNotes() { try { return JSON.parse(localStorage.getItem('aura_notes')||'[]'); } catch(e) { return []; } }
     function saveNotes(arr) { try { localStorage.setItem('aura_notes', JSON.stringify(arr)); } catch(e) {} }
     function openNoteForm(noteId = null) {
-  // Защита от ложного срабатывания после свайпа
   if (window._swipeJustHappened) return;
   haptic('medium');
 
   editingNoteId = noteId;
   const sheet = document.getElementById('note-sheet');
-  const title = sheet.querySelector('.task-sheet-header h2');
+  const title = document.getElementById('note-sheet-title');
   const submitBtn = document.getElementById('note-submit');
   const deleteBtn = document.getElementById('note-delete-btn');
+  const ta = document.getElementById('note-text');
+  const counter = document.getElementById('note-char-counter');
 
   if (noteId) {
     const note = loadNotes().find(n => n.id === noteId);
     if (!note) { toast('Заметка не найдена'); editingNoteId = null; return; }
-    document.getElementById('note-text').value = note.text;
+    ta.value = note.text;
     title.textContent = 'Редактировать';
     submitBtn.textContent = 'Сохранить изменения';
     submitBtn.disabled = false;
-    if (deleteBtn) deleteBtn.style.display = 'block';
+    if (deleteBtn) deleteBtn.style.display = 'flex';
   } else {
-    document.getElementById('note-text').value = '';
+    ta.value = '';
     title.textContent = 'Новая заметка';
     submitBtn.textContent = 'Сохранить';
     submitBtn.disabled = true;
     if (deleteBtn) deleteBtn.style.display = 'none';
   }
 
+  updateNoteCounter();
+
   sheet.classList.add('show');
   document.getElementById('note-sheet-overlay').classList.add('show');
-  setTimeout(() => document.getElementById('note-text').focus(), 350);
+  setTimeout(() => {
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }, 350);
 }
 
-function closeNoteForm() {
+function closeNoteForm(force = false) {
   haptic('light');
+
+  if (!force) {
+    const text = document.getElementById('note-text').value.trim();
+    if (editingNoteId) {
+      const original = loadNotes().find(n => n.id === editingNoteId);
+      if (original && text !== original.text && text) {
+        if (!confirm('Выйти без сохранения изменений?')) return;
+      }
+    } else if (text) {
+      if (!confirm('Выйти без сохранения заметки?')) return;
+    }
+  }
+
   editingNoteId = null;
   document.getElementById('note-sheet').classList.remove('show');
   document.getElementById('note-sheet-overlay').classList.remove('show');
@@ -1810,6 +1915,20 @@ function closeNoteForm() {
   const deleteBtn = document.getElementById('note-delete-btn');
   if (deleteBtn) deleteBtn.style.display = 'none';
 }
+
+function updateNoteCounter() {
+  const ta = document.getElementById('note-text');
+  const counter = document.getElementById('note-char-counter');
+  if (!ta || !counter) return;
+  const len = ta.value.length;
+  counter.textContent = `${len} / 2000`;
+  counter.classList.remove('warn', 'danger');
+  if (len > 1900) counter.classList.add('danger');
+  else if (len > 1700) counter.classList.add('warn');
+  document.getElementById('note-submit').disabled = !ta.value.trim();
+}
+
+document.getElementById('note-text').addEventListener('input', updateNoteCounter);
     document.getElementById('note-text').addEventListener('input', () => { document.getElementById('note-submit').disabled = !document.getElementById('note-text').value.trim(); });
     async function submitNote() {
   const text = document.getElementById('note-text').value.trim();
@@ -1817,17 +1936,16 @@ function closeNoteForm() {
   hapticNotify('success');
 
   if (editingNoteId) {
-    // ===== РЕЖИМ РЕДАКТИРОВАНИЯ =====
     const id = editingNoteId;
     const notes = loadNotes();
     const idx = notes.findIndex(n => n.id === id);
-    if (idx < 0) { toast('Заметка не найдена'); closeNoteForm(); return; }
+    if (idx < 0) { toast('Заметка не найдена'); closeNoteForm(true); return; }
 
     notes[idx].text = text;
     notes[idx].updatedAt = new Date().toISOString();
     saveNotes(notes);
 
-    closeNoteForm();
+    closeNoteForm(true);
     renderNotes();
     toast('Изменения сохранены');
 
@@ -1836,6 +1954,21 @@ function closeNoteForm() {
     return;
   }
 
+  const notes = loadNotes();
+  const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
+  notes.unshift(note);
+  saveNotes(notes);
+  try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
+  closeNoteForm(true);
+  renderNotes();
+  toast('Заметка добавлена');
+  const res = await apiPost('addNote', { text: note.text });
+  if (res && res.id) {
+    const fresh = loadNotes();
+    const idx = fresh.findIndex(n => n.id === note.id);
+    if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); }
+  }
+}
   // ===== РЕЖИМ СОЗДАНИЯ =====
   const notes = loadNotes();
   const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
@@ -1858,36 +1991,126 @@ function closeNoteForm() {
       renderNotes(); toast('Удалено');
       apiPost('deleteNote', { id });
     }
-    function deleteCurrentNote() {
+    async function copyNoteText() {
+  const text = document.getElementById('note-text').value;
+  if (!text) { toast('Пустая заметка'); return; }
+  haptic('light');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    hapticNotify('success');
+    toast('Скопировано');
+  } catch (e) {
+    toast('Не удалось скопировать');
+  }
+}
+   function deleteCurrentNote() {
   if (!editingNoteId) return;
   if (!confirm('Удалить заметку?')) return;
   const id = editingNoteId;
   haptic('medium');
-  closeNoteForm();
+  closeNoteForm(true);
   saveNotes(loadNotes().filter(n => n.id !== id));
   renderNotes();
   toast('Удалено');
   apiPost('deleteNote', { id });
 }
-    function renderNotes() {
-  const notes = loadNotes();
+    let notesSearchQuery = '';
+
+function filterNotes(q) {
+  notesSearchQuery = (q || '').toLowerCase().trim();
+  const clearBtn = document.getElementById('notes-search-clear');
+  if (clearBtn) clearBtn.classList.toggle('visible', q.length > 0);
+  renderNotes();
+}
+
+function clearNotesSearch() {
+  const input = document.getElementById('notes-search');
+  if (input) { input.value = ''; input.focus(); }
+  notesSearchQuery = '';
+  const clearBtn = document.getElementById('notes-search-clear');
+  if (clearBtn) clearBtn.classList.remove('visible');
+  renderNotes();
+}
+
+function highlightMatch(text, q) {
+  if (!q) return escapeHtml(text);
+  const lower = text.toLowerCase();
+  const parts = [];
+  let idx = 0;
+  while (true) {
+    const found = lower.indexOf(q, idx);
+    if (found < 0) {
+      parts.push(escapeHtml(text.slice(idx)));
+      break;
+    }
+    parts.push(escapeHtml(text.slice(idx, found)));
+    parts.push(`<mark>${escapeHtml(text.slice(found, found + q.length))}</mark>`);
+    idx = found + q.length;
+  }
+  return parts.join('');
+}
+
+function renderNotes() {
+  const all = loadNotes();
+  const q = notesSearchQuery;
+  const filtered = q ? all.filter(n => n.text.toLowerCase().includes(q)) : all;
+
+  // Заголовок со счётчиком
+  const titleEl = document.getElementById('notes-title');
+  if (titleEl) titleEl.textContent = all.length ? `Заметки · ${all.length}` : 'Заметки';
+
+  // Показ поля поиска только если есть заметки
+  const searchWrap = document.getElementById('notes-search-wrap');
+  if (searchWrap) searchWrap.style.display = all.length > 0 ? 'flex' : 'none';
+
   const el = document.getElementById('notes-content');
   if (!el) return;
-  if (!notes.length) {
-    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`;
+
+  if (!all.length) {
+    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+        <i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i>
+      </div>
+      <p class="text-sm font-medium text-primary mb-1">Заметок нет</p>
+      <p class="text-xs text-tertiary">Нажми + чтобы добавить</p>
+    </div>`;
     lucide.createIcons();
     return;
   }
-  el.innerHTML = notes.map(n => {
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] notes-empty-search">
+      <div class="notes-empty-search-icon">
+        <i data-lucide="search-x" class="w-7 h-7"></i>
+      </div>
+      <p class="text-sm font-medium text-primary mb-1">Ничего не найдено</p>
+      <p class="text-xs text-tertiary">По запросу «${escapeHtml(q)}»</p>
+    </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  el.innerHTML = filtered.map(n => {
     const d = new Date(n.createdAt);
-    const ds = d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) + ', ' + d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+    const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
     const edited = n.updatedAt
-      ? `<span class="text-[10px] text-tertiary ml-2">· изменено ${new Date(n.updatedAt).toLocaleDateString('ru-RU', { day:'2-digit', month:'short' })}</span>`
+      ? `<span class="text-[10px] text-tertiary ml-2">· изменено ${new Date(n.updatedAt).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'})}</span>`
       : '';
     return `<div class="swipeable-wrapper">
       <div class="swipeable note-item" data-swipe-id="${n.id}" data-swipe-type="note" onclick="openNoteForm('${n.id}')">
         <div class="note-date">${ds}${edited}</div>
-        <div class="note-text">${escapeHtml(n.text)}</div>
+        <div class="note-text">${highlightMatch(n.text, q)}</div>
       </div>
     </div>`;
   }).join('');
