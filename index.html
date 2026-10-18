@@ -483,9 +483,24 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       <div class="apple-card p-5 rounded-[24px]"><h3 class="text-xs font-semibold uppercase text-secondary mb-2">Сегодня</h3><div id="today-transactions" class="space-y-3"></div></div>
     </section>
     <section id="screen-fin-analytics" class="screen">
-      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Октябрь</p><h1 class="text-xl font-semibold text-primary">Аналитика</h1></div></header>
-      <div class="apple-card p-6 rounded-[28px] text-center py-10"><p class="text-sm text-tertiary">Аналитика — в следующей итерации</p></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium" id="analytics-period-label">Октябрь</p>
+        <h1 class="text-xl font-semibold text-primary">Аналитика</h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="apple-glass p-1 rounded-full flex space-x-1 mb-4">
+    <button data-an-period="month" onclick="setAnalyticsPeriod('month')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Этот месяц</button>
+    <button data-an-period="prev" onclick="setAnalyticsPeriod('prev')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Прошлый</button>
+    <button data-an-period="3m" onclick="setAnalyticsPeriod('3m')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">3 месяца</button>
+  </div>
+
+  <div id="analytics-content"></div>
+</section>
 
     <!-- TASKS -->
     <section id="screen-tasks" class="screen">
@@ -1233,6 +1248,7 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'habits') renderHabits();
       if (name === 'reports') renderReports();
       if (name === 'settings') renderSettings();
+      if (name === 'fin-analytics') renderAnalytics();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function navigate(name, opts = {}) {
@@ -1364,6 +1380,264 @@ document.addEventListener('visibilitychange', () => {
         <div><p class="text-sm font-medium text-primary">${escapeHtml(t.comment||cat?.label||'')}</p><p class="text-[11px] text-tertiary">${escapeHtml(cat?.label||'')} · ${time}</p></div>
         </div><span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span></div>`;
     }
+    // =========== ANALYTICS ===========
+let analyticsPeriod = 'month';
+
+function setAnalyticsPeriod(period) {
+  haptic('light');
+  analyticsPeriod = period;
+  document.querySelectorAll('[data-an-period]').forEach(b => {
+    b.classList.toggle('active', b.dataset.anPeriod === period);
+  });
+  renderAnalytics();
+}
+
+function getAnalyticsPeriodRange(period) {
+  const now = new Date();
+  const m = now.getMonth();
+  const y = now.getFullYear();
+
+  if (period === 'month') {
+    return {
+      from: new Date(y, m, 1, 0, 0, 0, 0),
+      to: new Date(y, m + 1, 0, 23, 59, 59, 999),
+      prevFrom: new Date(y, m - 1, 1, 0, 0, 0, 0),
+      prevTo: new Date(y, m, 0, 23, 59, 59, 999),
+      label: MONTHS_RU_FULL[m] || (now.toLocaleDateString('ru-RU', { month: 'long' })),
+      isCurrent: true,
+      daysInMonth: new Date(y, m + 1, 0).getDate(),
+      daysElapsed: now.getDate()
+    };
+  }
+  if (period === 'prev') {
+    const prevM = m === 0 ? 11 : m - 1;
+    const prevY = m === 0 ? y - 1 : y;
+    return {
+      from: new Date(prevY, prevM, 1, 0, 0, 0, 0),
+      to: new Date(prevY, prevM + 1, 0, 23, 59, 59, 999),
+      prevFrom: new Date(prevY, prevM - 1, 1, 0, 0, 0, 0),
+      prevTo: new Date(prevY, prevM, 0, 23, 59, 59, 999),
+      label: MONTHS_RU_FULL[prevM] || '',
+      isCurrent: false,
+      daysInMonth: new Date(prevY, prevM + 1, 0).getDate(),
+      daysElapsed: new Date(prevY, prevM + 1, 0).getDate()
+    };
+  }
+  // 3 месяца
+  return {
+    from: new Date(y, m - 2, 1, 0, 0, 0, 0),
+    to: new Date(y, m + 1, 0, 23, 59, 59, 999),
+    prevFrom: new Date(y, m - 5, 1, 0, 0, 0, 0),
+    prevTo: new Date(y, m - 2, 0, 23, 59, 59, 999),
+    label: '3 месяца',
+    isCurrent: false,
+    daysInMonth: 90,
+    daysElapsed: 90
+  };
+}
+
+const MONTHS_RU_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function getCatMeta(catId) {
+  const all = CATEGORIES.concat(CATEGORIES_INCOME);
+  const cat = all.find(c => c.id === catId);
+  return cat || { id: catId, label: 'Прочее', icon: 'package', color: 'gray' };
+}
+
+function formatMoneyRu(n) {
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+function formatDeltaPct(current, prev) {
+  if (prev === 0) {
+    if (current === 0) return '';
+    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background: rgba(52,199,89,.15); color: var(--green);">новое</span>`;
+  }
+  const pct = Math.round((current - prev) / prev * 100);
+  if (pct === 0) return `<span class="text-[10px] px-1.5 py-0.5 rounded-full text-tertiary" style="background: var(--neutral-fill);">= 0%</span>`;
+  const isUp = pct > 0;
+  const color = isUp ? 'var(--red)' : 'var(--green)';
+  const bg = isUp ? 'rgba(255,45,85,.15)' : 'rgba(52,199,89,.15)';
+  const arrow = isUp ? '▲' : '▼';
+  return `<span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${bg}; color:${color};">${arrow} ${Math.abs(pct)}%</span>`;
+}
+
+function renderAnalytics() {
+  const el = document.getElementById('analytics-content');
+  if (!el) return;
+
+  const range = getAnalyticsPeriodRange(analyticsPeriod);
+  const labelEl = document.getElementById('analytics-period-label');
+  if (labelEl) labelEl.textContent = range.label;
+
+  const all = loadTrx();
+  const inRange = all.filter(t => {
+    const d = new Date(t.date);
+    return d >= range.from && d <= range.to;
+  });
+  const inPrev = all.filter(t => {
+    const d = new Date(t.date);
+    return d >= range.prevFrom && d <= range.prevTo;
+  });
+
+  const expense = inRange.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const income = inRange.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const prevExpense = inPrev.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const prevIncome = inPrev.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+
+  // Пустое состояние
+  if (expense === 0 && income === 0) {
+    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+        <i data-lucide="pie-chart" class="w-7 h-7 text-tertiary"></i>
+      </div>
+      <p class="text-sm font-medium text-primary mb-1">Нет операций за период</p>
+      <p class="text-xs text-tertiary">Добавь транзакцию — здесь появится статистика</p>
+    </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  // Группировка по категориям (только расходы)
+  const byCat = {};
+  inRange.filter(t => t.type === 'expense').forEach(t => {
+    const catId = t.categoryId || SERVER_CAT_MAP[t.category] || 'other';
+    if (!byCat[catId]) byCat[catId] = { sum: 0, count: 0 };
+    byCat[catId].sum += t.amount;
+    byCat[catId].count += 1;
+  });
+  const sortedCats = Object.entries(byCat).sort((a, b) => b[1].sum - a[1].sum);
+  const topCats = sortedCats.slice(0, 8);
+  const totalExpenseForCats = sortedCats.reduce((s, [, v]) => s + v.sum, 0);
+
+  // Средний в день
+  const avgPerDay = range.daysElapsed > 0 ? expense / range.daysElapsed : 0;
+  const forecast = range.isCurrent ? avgPerDay * range.daysInMonth : expense;
+
+  // Сравнение с прошлым — сальдо и проценты
+  const expenseDelta = formatDeltaPct(expense, prevExpense);
+  const incomeDelta = formatDeltaPct(income, prevIncome);
+
+  let html = '';
+
+  // === Итоговая карточка ===
+  html += `<div class="apple-card p-6 rounded-[28px] mb-4">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <p class="text-xs text-secondary">Расходы за период</p>
+        <div class="text-3xl font-semibold tracking-tight mt-1 numbers text-primary">${formatMoneyRu(expense)} ₽</div>
+      </div>
+      ${expenseDelta}
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="p-3 rounded-xl" style="background: var(--neutral-fill);">
+        <p class="text-[10px] text-tertiary uppercase tracking-wide">Доходы</p>
+        <p class="text-base font-semibold numbers mt-1" style="color: var(--green);">${formatMoneyRu(income)} ₽</p>
+        <div class="mt-1">${incomeDelta}</div>
+      </div>
+      <div class="p-3 rounded-xl" style="background: var(--neutral-fill);">
+        <p class="text-[10px] text-tertiary uppercase tracking-wide">Сальдо</p>
+        <p class="text-base font-semibold numbers mt-1" style="color: ${income - expense >= 0 ? 'var(--green)' : 'var(--red)'};">${income - expense >= 0 ? '+' : ''}${formatMoneyRu(income - expense)} ₽</p>
+      </div>
+    </div>
+  </div>`;
+
+  // === Средний / Прогноз ===
+  if (expense > 0) {
+    html += `<div class="apple-card p-5 rounded-[24px] mb-4">
+      <div class="flex justify-between items-center py-1">
+        <span class="text-sm text-secondary">Средний расход в день</span>
+        <span class="text-sm font-semibold numbers text-primary">${formatMoneyRu(avgPerDay)} ₽</span>
+      </div>`;
+    if (range.isCurrent && range.daysElapsed < range.daysInMonth) {
+      const isOver = forecast > 0;
+      const daysLeft = range.daysInMonth - range.daysElapsed;
+      html += `<div class="flex justify-between items-center py-1 border-t divider pt-2 mt-1">
+        <span class="text-sm text-secondary">Прогноз на месяц</span>
+        <span class="text-sm font-semibold numbers text-primary">${formatMoneyRu(forecast)} ₽</span>
+      </div>
+      <div class="flex justify-between items-center py-1">
+        <span class="text-xs text-tertiary">Осталось дней</span>
+        <span class="text-xs text-tertiary numbers">${daysLeft}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // === Топ категорий ===
+  if (topCats.length > 0) {
+    html += `<div class="apple-card p-6 rounded-[28px] mb-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-primary">Топ категорий</h3>
+        <span class="text-xs text-tertiary">${sortedCats.length} всего</span>
+      </div>
+      <div class="space-y-4">`;
+
+    topCats.forEach(([catId, data], idx) => {
+      const cat = getCatMeta(catId);
+      const pct = totalExpenseForCats > 0 ? Math.round(data.sum / totalExpenseForCats * 100) : 0;
+      const color = COLOR_MAP[cat.color] || COLOR_MAP.gray;
+      html += `<div>
+        <div class="flex justify-between items-center mb-1.5">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="text-xs font-semibold text-tertiary" style="width:14px;flex-shrink:0;">${idx + 1}</span>
+            <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${BG_MAP[cat.color] || BG_MAP.gray}; color:${color};">
+              <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
+            </div>
+            <span class="text-xs text-primary truncate">${escapeHtml(cat.label)}</span>
+          </div>
+          <div class="flex items-baseline gap-2 flex-shrink-0 ml-2">
+            <span class="text-xs font-semibold numbers text-primary">${formatMoneyRu(data.sum)} ₽</span>
+            <span class="text-[10px] text-tertiary numbers" style="width:30px;text-align:right;">${pct}%</span>
+          </div>
+        </div>
+        <div class="progress-track h-1.5 rounded-full" style="margin-left:22px;">
+          <div class="progress-fill h-full rounded-full" style="width:${pct}%; background:${color};"></div>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  }
+
+  // === Разбивка по дням (мини-столбики) ===
+  if (range.isCurrent && expense > 0) {
+    const daysInMonth = range.daysInMonth;
+    const byDay = {};
+    inRange.filter(t => t.type === 'expense').forEach(t => {
+      const d = new Date(t.date).getDate();
+      byDay[d] = (byDay[d] || 0) + t.amount;
+    });
+    const maxDay = Math.max(...Object.values(byDay), 1);
+    const today = new Date().getDate();
+
+    html += `<div class="apple-card p-6 rounded-[28px] mb-4">
+      <h3 class="text-sm font-semibold text-primary mb-3">По дням</h3>
+      <div class="flex items-end gap-[3px]" style="height:60px;">`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const v = byDay[d] || 0;
+      const h = v > 0 ? Math.max(6, (v / maxDay) * 100) : 2;
+      const isToday = d === today;
+      const isFuture = d > today;
+      const bg = isFuture ? 'var(--neutral-fill)' : (isToday ? 'var(--blue)' : 'rgba(0,122,255,.5)');
+      html += `<div class="flex-1 flex flex-col items-center" style="height:100%;">
+        <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+          <div style="width:100%;height:${h}%;background:${bg};border-radius:2px;"></div>
+        </div>
+      </div>`;
+    }
+    html += `</div>
+      <div class="flex justify-between mt-2 text-[10px] text-tertiary">
+        <span>1</span>
+        <span>${Math.round(daysInMonth / 2)}</span>
+        <span>${daysInMonth}</span>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+  lucide.createIcons();
+}
 
     // =========== TASKS ===========
     let taskState = { dateOption:'today', customDate:'', priority:'' }; let currentTaskTab = 'today';
