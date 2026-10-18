@@ -630,13 +630,18 @@
   <!-- NOTE SHEET -->
   <div id="note-sheet-overlay" class="task-sheet-overlay" onclick="closeNoteForm()"></div>
   <div id="note-sheet" class="task-sheet" style="top: 15vh;">
-    <div class="task-drag-handle"></div>
-    <div class="task-sheet-header"><button class="trx-close" onclick="closeNoteForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая заметка</h2><div class="w-9"></div></div>
-    <div class="task-sheet-body">
-      <textarea id="note-text" class="task-input" rows="6" placeholder="Текст заметки..." maxlength="2000"></textarea>
-    </div>
-    <div class="task-sheet-footer"><button id="note-submit" class="submit-btn" style="margin:0;" onclick="submitNote()" disabled>Сохранить</button></div>
+  <div class="task-drag-handle"></div>
+  <div class="task-sheet-header"><button class="trx-close" onclick="closeNoteForm()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Новая заметка</h2><div class="w-9"></div></div>
+  <div class="task-sheet-body">
+    <textarea id="note-text" class="task-input" rows="6" placeholder="Текст заметки..." maxlength="2000"></textarea>
   </div>
+  <div class="task-sheet-footer">
+    <button id="note-submit" class="submit-btn" style="margin:0;" onclick="submitNote()" disabled>Сохранить</button>
+    <button id="note-delete-btn" onclick="deleteCurrentNote()" style="display:none;width:100%;margin-top:10px;padding:12px;background:transparent;border:none;color:var(--red);font-size:14px;font-weight:500;">
+      Удалить заметку
+    </button>
+  </div>
+</div>
 
   <!-- HABIT SHEET -->
   <div id="habit-sheet-overlay" class="task-sheet-overlay" onclick="closeHabitForm()"></div>
@@ -844,6 +849,9 @@ function renderSkeletons() {
       currentWrapper = null;
       return;
     }
+        // Защита от ложного клика после свайпа
+    window._swipeJustHappened = true;
+    setTimeout(() => { window._swipeJustHappened = false; }, 350);
 
     const wasReady = currentEl.dataset.swipeReady === '1';
     const el = currentEl;
@@ -1755,41 +1763,130 @@ document.addEventListener('visibilitychange', () => {
     }
 
     // =========== NOTES ===========
+    let editingNoteId = null;
     function loadNotes() { try { return JSON.parse(localStorage.getItem('aura_notes')||'[]'); } catch(e) { return []; } }
     function saveNotes(arr) { try { localStorage.setItem('aura_notes', JSON.stringify(arr)); } catch(e) {} }
-    function openNoteForm() { haptic('medium'); document.getElementById('note-text').value = ''; document.getElementById('note-submit').disabled = true; document.getElementById('note-sheet').classList.add('show'); document.getElementById('note-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('note-text').focus(),350); }
-    function closeNoteForm() { haptic('light'); document.getElementById('note-sheet').classList.remove('show'); document.getElementById('note-sheet-overlay').classList.remove('show'); document.getElementById('note-text').blur(); }
+    function openNoteForm(noteId = null) {
+  // Защита от ложного срабатывания после свайпа
+  if (window._swipeJustHappened) return;
+  haptic('medium');
+
+  editingNoteId = noteId;
+  const sheet = document.getElementById('note-sheet');
+  const title = sheet.querySelector('.task-sheet-header h2');
+  const submitBtn = document.getElementById('note-submit');
+  const deleteBtn = document.getElementById('note-delete-btn');
+
+  if (noteId) {
+    const note = loadNotes().find(n => n.id === noteId);
+    if (!note) { toast('Заметка не найдена'); editingNoteId = null; return; }
+    document.getElementById('note-text').value = note.text;
+    title.textContent = 'Редактировать';
+    submitBtn.textContent = 'Сохранить изменения';
+    submitBtn.disabled = false;
+    if (deleteBtn) deleteBtn.style.display = 'block';
+  } else {
+    document.getElementById('note-text').value = '';
+    title.textContent = 'Новая заметка';
+    submitBtn.textContent = 'Сохранить';
+    submitBtn.disabled = true;
+    if (deleteBtn) deleteBtn.style.display = 'none';
+  }
+
+  sheet.classList.add('show');
+  document.getElementById('note-sheet-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('note-text').focus(), 350);
+}
+
+function closeNoteForm() {
+  haptic('light');
+  editingNoteId = null;
+  document.getElementById('note-sheet').classList.remove('show');
+  document.getElementById('note-sheet-overlay').classList.remove('show');
+  document.getElementById('note-text').blur();
+  const submitBtn = document.getElementById('note-submit');
+  submitBtn.textContent = 'Сохранить';
+  submitBtn.disabled = true;
+  const deleteBtn = document.getElementById('note-delete-btn');
+  if (deleteBtn) deleteBtn.style.display = 'none';
+}
     document.getElementById('note-text').addEventListener('input', () => { document.getElementById('note-submit').disabled = !document.getElementById('note-text').value.trim(); });
     async function submitNote() {
-      const text = document.getElementById('note-text').value.trim(); if (!text) return;
-      hapticNotify('success');
-      const notes = loadNotes();
-      const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
-      notes.unshift(note); saveNotes(notes);
-      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
-      closeNoteForm(); renderNotes(); toast('Заметка добавлена');
-      const res = await apiPost('addNote', { text: note.text });
-      if (res && res.id) {
-        const fresh = loadNotes();
-        const idx = fresh.findIndex(n => n.id === note.id);
-        if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); }
-      }
-    }
+  const text = document.getElementById('note-text').value.trim();
+  if (!text) return;
+  hapticNotify('success');
+
+  if (editingNoteId) {
+    // ===== РЕЖИМ РЕДАКТИРОВАНИЯ =====
+    const id = editingNoteId;
+    const notes = loadNotes();
+    const idx = notes.findIndex(n => n.id === id);
+    if (idx < 0) { toast('Заметка не найдена'); closeNoteForm(); return; }
+
+    notes[idx].text = text;
+    notes[idx].updatedAt = new Date().toISOString();
+    saveNotes(notes);
+
+    closeNoteForm();
+    renderNotes();
+    toast('Изменения сохранены');
+
+    try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'update_note', payload: { id, text }})); } catch(e) {}
+    await apiPost('updateNote', { id, text });
+    return;
+  }
+
+  // ===== РЕЖИМ СОЗДАНИЯ =====
+  const notes = loadNotes();
+  const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() };
+  notes.unshift(note);
+  saveNotes(notes);
+  try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_note', payload: note})); } catch(e) {}
+  closeNoteForm();
+  renderNotes();
+  toast('Заметка добавлена');
+  const res = await apiPost('addNote', { text: note.text });
+  if (res && res.id) {
+    const fresh = loadNotes();
+    const idx = fresh.findIndex(n => n.id === note.id);
+    if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); }
+  }
+}
     function deleteNote(id) {
       haptic('light');
       saveNotes(loadNotes().filter(n=>n.id!==id));
       renderNotes(); toast('Удалено');
       apiPost('deleteNote', { id });
     }
+    function deleteCurrentNote() {
+  if (!editingNoteId) return;
+  if (!confirm('Удалить заметку?')) return;
+  const id = editingNoteId;
+  haptic('medium');
+  closeNoteForm();
+  saveNotes(loadNotes().filter(n => n.id !== id));
+  renderNotes();
+  toast('Удалено');
+  apiPost('deleteNote', { id });
+}
     function renderNotes() {
-  const notes = loadNotes(); const el = document.getElementById('notes-content'); if (!el) return;
-  if (!notes.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+  const notes = loadNotes();
+  const el = document.getElementById('notes-content');
+  if (!el) return;
+  if (!notes.length) {
+    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`;
+    lucide.createIcons();
+    return;
+  }
   el.innerHTML = notes.map(n => {
     const d = new Date(n.createdAt);
-    const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) + ', ' + d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+    const edited = n.updatedAt
+      ? `<span class="text-[10px] text-tertiary ml-2">· изменено ${new Date(n.updatedAt).toLocaleDateString('ru-RU', { day:'2-digit', month:'short' })}</span>`
+      : '';
     return `<div class="swipeable-wrapper">
-      <div class="swipeable note-item" data-swipe-id="${n.id}" data-swipe-type="note">
-        <div class="note-date">${ds}</div>
+      <div class="swipeable note-item" data-swipe-id="${n.id}" data-swipe-type="note" onclick="openNoteForm('${n.id}')">
+        <div class="note-date">${ds}${edited}</div>
         <div class="note-text">${escapeHtml(n.text)}</div>
       </div>
     </div>`;
