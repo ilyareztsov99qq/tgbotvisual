@@ -626,9 +626,24 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
 
     <!-- REPORTS -->
     <section id="screen-reports" class="screen">
-      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Ещё</p><h1 class="text-xl font-semibold text-primary">Отчёты</h1></div></header>
-      <div id="reports-content"></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium" id="reports-period-label">Неделя</p>
+        <h1 class="text-xl font-semibold text-primary">Отчёты</h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="apple-glass p-1 rounded-full flex space-x-1 mb-4">
+    <button data-rp-period="week" onclick="setReportsPeriod('week')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Неделя</button>
+    <button data-rp-period="month" onclick="setReportsPeriod('month')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Месяц</button>
+    <button data-rp-period="3m" onclick="setReportsPeriod('3m')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">3 месяца</button>
+  </div>
+
+  <div id="reports-content"></div>
+</section>
 
     <!-- SETTINGS -->
     <section id="screen-settings" class="screen">
@@ -1249,6 +1264,7 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'reports') renderReports();
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
+      if (name === 'reports') renderReports();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function navigate(name, opts = {}) {
@@ -2444,39 +2460,350 @@ function renderNotes() {
     }
 
     // =========== REPORTS ===========
-    function renderReports() {
-      const el = document.getElementById('reports-content');
-      const trx = loadTrx(); const tasks = loadTasks(); const notes = loadNotes();
-      const today = todayStr(); const weekAgo = addDays(today, -7); const monthStart = today.slice(0,7) + '-01';
-      const monthTrx = trx.filter(t => t.date.slice(0,10) >= monthStart);
-      const monthSpent = monthTrx.filter(t => t.type==='expense').reduce((s,t)=>s+t.amount, 0);
-      const monthIncome = monthTrx.filter(t => t.type==='income').reduce((s,t)=>s+t.amount, 0);
-      const weekDoneTasks = tasks.filter(t => t.done && t.doneAt && t.doneAt.slice(0,10) >= weekAgo).length;
-      const weekCardio = loadCardio().filter(c => c.date.slice(0,10) >= weekAgo).reduce((s,c)=>s+c.minutes, 0);
-      const weekWorkouts = loadWorkoutLog().filter(l => l.date.slice(0,10) >= weekAgo).length;
-      const body = loadBody(); const weight = body.length ? body[body.length-1].weight : null;
-      let html = `
-        <div class="apple-card p-6 rounded-[28px] mb-4">
-          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">Финансы · месяц</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="p-3 rounded-xl" style="background:var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">Расход</p><p class="text-lg font-semibold numbers mt-1" style="color:var(--red);">${monthSpent.toLocaleString('ru-RU')} ₽</p></div>
-            <div class="p-3 rounded-xl" style="background:var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase">Доход</p><p class="text-lg font-semibold numbers mt-1" style="color:var(--green);">${monthIncome.toLocaleString('ru-RU')} ₽</p></div>
-          </div>
-          <div class="flex justify-between items-center mt-3 pt-3 border-t divider"><span class="text-xs text-tertiary">Сальдо</span><span class="text-sm font-semibold numbers" style="color:${monthIncome-monthSpent>=0?'var(--green)':'var(--red)'};">${(monthIncome-monthSpent).toLocaleString('ru-RU')} ₽</span></div>
+let reportsPeriod = 'week';
+
+function setReportsPeriod(period) {
+  haptic('light');
+  reportsPeriod = period;
+  document.querySelectorAll('[data-rp-period]').forEach(b => {
+    b.classList.toggle('active', b.dataset.rpPeriod === period);
+  });
+  renderReports();
+}
+
+function getReportsRange(period) {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const today = new Date(now);
+
+  if (period === 'week') {
+    const from = new Date(today);
+    from.setDate(today.getDate() - 6);
+    const prevTo = new Date(from);
+    prevTo.setDate(prevTo.getDate() - 1);
+    prevTo.setHours(23, 59, 59, 999);
+    const prevFrom = new Date(prevTo);
+    prevFrom.setDate(prevFrom.getDate() - 6);
+    prevFrom.setHours(0, 0, 0, 0);
+    return { from, to: today, prevFrom, prevTo, days: 7, label: 'Неделя' };
+  }
+  if (period === 'month') {
+    const y = today.getFullYear();
+    const m = today.getMonth();
+    const from = new Date(y, m, 1);
+    const to = today;
+    const prevFrom = new Date(y, m - 1, 1);
+    const prevTo = new Date(y, m, 0, 23, 59, 59, 999);
+    const days = Math.max(1, Math.ceil((to - from) / 86400000) + 1);
+    return { from, to, prevFrom, prevTo, days, label: MONTHS_RU_FULL[m] };
+  }
+  // 3 месяца
+  const from = new Date(today);
+  from.setDate(today.getDate() - 89);
+  const prevTo = new Date(from);
+  prevTo.setDate(prevTo.getDate() - 1);
+  prevTo.setHours(23, 59, 59, 999);
+  const prevFrom = new Date(prevTo);
+  prevFrom.setDate(prevFrom.getDate() - 89);
+  prevFrom.setHours(0, 0, 0, 0);
+  return { from, to: today, prevFrom, prevTo, days: 90, label: '3 месяца' };
+}
+
+function inRange(isoDate, from, to) {
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return false;
+  return d >= from && d <= to;
+}
+
+function reportsCardHTML({ icon, color, title, onTap, mainValue, mainLabel, rows, emptyText }) {
+  const bg = BG_MAP[color] || BG_MAP.gray;
+  const fg = COLOR_MAP[color] || COLOR_MAP.gray;
+  const isEmpty = emptyText && !mainValue;
+  return `<div class="apple-card p-5 rounded-[24px] mb-3 ${onTap ? 'tappable' : ''}" ${onTap ? `onclick="${onTap}"` : ''}>
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${bg}; color:${fg};">
+        <i data-lucide="${icon}" class="w-4 h-4"></i>
+      </div>
+      <h3 class="text-sm font-semibold text-primary flex-1">${title}</h3>
+      ${onTap ? '<i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>' : ''}
+    </div>
+    ${isEmpty
+      ? `<p class="text-xs text-tertiary">${emptyText}</p>`
+      : `<div class="flex items-baseline gap-2 mb-2">
+          <span class="text-2xl font-semibold numbers text-primary">${mainValue}</span>
+          ${mainLabel ? `<span class="text-xs text-tertiary">${mainLabel}</span>` : ''}
         </div>
-        <div class="apple-card p-6 rounded-[28px] mb-4">
-          <h3 class="text-xs font-semibold uppercase text-secondary mb-4">За неделю</h3>
-          <div class="space-y-3">
-            <div class="flex justify-between items-center"><span class="text-sm text-primary">Задач выполнено</span><span class="text-sm font-semibold numbers text-primary">${weekDoneTasks}</span></div>
-            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Тренировок</span><span class="text-sm font-semibold numbers text-primary">${weekWorkouts}</span></div>
-            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Кардио</span><span class="text-sm font-semibold numbers text-primary">${weekCardio} мин</span></div>
-            <div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-primary">Заметок</span><span class="text-sm font-semibold numbers text-primary">${notes.length}</span></div>
+        ${rows && rows.length ? `<div class="space-y-1.5 mt-2">${rows.map(r => `
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-secondary">${r.label}</span>
+            <span class="font-semibold numbers ${r.emphasis ? '' : 'text-primary'}" ${r.emphasis ? `style="color:${r.emphasis};"` : ''}>${r.value}</span>
           </div>
-        </div>
-        ${weight ? `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">Вес</h3><div class="text-center"><p class="text-4xl font-semibold numbers text-primary">${weight}<span class="text-base text-tertiary font-medium ml-1">кг</span></p></div></div>` : ''}
-        <div class="apple-card p-6 rounded-[28px] text-center"><p class="text-xs text-tertiary">Детальная аналитика — после следующей итерации</p></div>`;
-      el.innerHTML = html; lucide.createIcons();
+        `).join('')}</div>` : ''}`
     }
+  </div>`;
+}
+
+function renderReports() {
+  const el = document.getElementById('reports-content');
+  if (!el) return;
+
+  const range = getReportsRange(reportsPeriod);
+  const labelEl = document.getElementById('reports-period-label');
+  if (labelEl) labelEl.textContent = range.label;
+
+  const { from, to, prevFrom, prevTo, days } = range;
+
+  // === ФИНАНСЫ ===
+  const trx = loadTrx();
+  const periodTrx = trx.filter(t => inRange(t.date, from, to));
+  const prevTrx = trx.filter(t => inRange(t.date, prevFrom, prevTo));
+  const expense = periodTrx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const income = periodTrx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const prevExpense = prevTrx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const balance = income - expense;
+
+  let financeRows = [];
+  if (expense > 0 || income > 0) {
+    if (income > 0) financeRows.push({ label: 'Доходы', value: `+${formatMoneyRu(income)} ₽`, emphasis: 'var(--green)' });
+    if (expense > 0) {
+      let expenseValue = `−${formatMoneyRu(expense)} ₽`;
+      if (prevExpense > 0) {
+        const diff = Math.round((expense - prevExpense) / prevExpense * 100);
+        if (diff !== 0) {
+          const arrow = diff > 0 ? '▲' : '▼';
+          const color = diff > 0 ? 'var(--red)' : 'var(--green)';
+          expenseValue += ` <span style="color:${color};font-weight:500;font-size:10px;">${arrow}${Math.abs(diff)}%</span>`;
+        }
+      }
+      financeRows.push({ label: 'Расходы', value: expenseValue, emphasis: 'var(--red)' });
+    }
+    financeRows.push({ label: 'Сальдо', value: `${balance >= 0 ? '+' : ''}${formatMoneyRu(balance)} ₽`, emphasis: balance >= 0 ? 'var(--green)' : 'var(--red)' });
+    if (days > 1) {
+      financeRows.push({ label: 'Средний в день', value: `${formatMoneyRu(expense / days)} ₽` });
+    }
+  }
+
+  // === ЗАДАЧИ ===
+  const tasks = loadTasks();
+  const doneTasks = tasks.filter(t => t.done && t.doneAt && inRange(t.doneAt, from, to)).length;
+  const createdTasks = tasks.filter(t => t.createdAt && inRange(t.createdAt, from, to)).length;
+  const activeTasks = tasks.filter(t => !t.done).length;
+
+  let tasksRows = [];
+  if (doneTasks > 0 || createdTasks > 0) {
+    if (createdTasks > 0) tasksRows.push({ label: 'Создано', value: String(createdTasks) });
+    if (doneTasks > 0) tasksRows.push({ label: 'Выполнено', value: String(doneTasks), emphasis: 'var(--green)' });
+    if (createdTasks > 0) {
+      const pct = Math.round(doneTasks / createdTasks * 100);
+      tasksRows.push({ label: 'Продуктивность', value: `${pct}%` });
+    }
+  }
+  if (activeTasks > 0) tasksRows.push({ label: 'Активных сейчас', value: String(activeTasks) });
+
+  // === ТРЕНИРОВКИ ===
+  const workoutLog = loadWorkoutLog();
+  const periodWorkouts = workoutLog.filter(w => inRange(w.date, from, to));
+  const totalSets = periodWorkouts.reduce((s, w) => s + (w.sets || 0), 0);
+  const totalTonnage = periodWorkouts.reduce((s, w) => s + (w.tonnage || (w.weight * w.sets * w.reps) || 0), 0);
+  const uniqueWorkoutDays = new Set(periodWorkouts.map(w => w.date.slice(0, 10))).size;
+
+  let workoutRows = [];
+  if (periodWorkouts.length > 0) {
+    workoutRows.push({ label: 'Подходов', value: String(periodWorkouts.length) });
+    workoutRows.push({ label: 'Дней тренировок', value: String(uniqueWorkoutDays) });
+    if (totalSets > 0) workoutRows.push({ label: 'Сетов', value: String(totalSets) });
+    if (totalTonnage > 0) workoutRows.push({ label: 'Тоннаж', value: `${formatMoneyRu(totalTonnage)} кг` });
+  }
+
+  // === КАРДИО ===
+  const cardio = loadCardio();
+  const periodCardio = cardio.filter(c => inRange(c.date, from, to));
+  const cardioMinutes = periodCardio.reduce((s, c) => s + c.minutes, 0);
+  const cardioSessions = periodCardio.length;
+
+  let cardioRows = [];
+  if (cardioSessions > 0) {
+    cardioRows.push({ label: 'Сессий', value: String(cardioSessions) });
+    cardioRows.push({ label: 'Общее время', value: `${cardioMinutes} мин` });
+    cardioRows.push({ label: 'Средняя сессия', value: `${Math.round(cardioMinutes / cardioSessions)} мин` });
+  }
+
+  // === ПРИВЫЧКИ ===
+  const habits = loadHabits();
+  const habitLog = loadHabitLog();
+  let habitDaysTracked = 0;
+  let habitChecksDone = 0;
+  let habitChecksPossible = 0;
+  if (habits.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < days; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      if (d > today) break;
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const dayLog = habitLog[key] || {};
+      let dayDone = 0;
+      habits.forEach(h => { if (dayLog[h.id]) dayDone++; });
+      if (dayDone > 0 || Object.keys(dayLog).length > 0) habitDaysTracked++;
+      habitChecksDone += dayDone;
+      habitChecksPossible += habits.length;
+    }
+  }
+  const habitPct = habitChecksPossible > 0 ? Math.round(habitChecksDone / habitChecksPossible * 100) : 0;
+
+  let habitsRows = [];
+  if (habits.length > 0 && habitChecksPossible > 0) {
+    habitsRows.push({ label: 'Активных привычек', value: String(habits.length) });
+    habitsRows.push({ label: 'Отметок', value: `${habitChecksDone} / ${habitChecksPossible}` });
+    if (habitDaysTracked > 0) {
+      habitsRows.push({ label: 'Дней с записями', value: String(habitDaysTracked) });
+    }
+  }
+
+  // === ВЕС ===
+  const body = loadBody().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const weightInRange = body.filter(b => inRange(b.date, from, to) && b.weight != null);
+  let weightRows = [];
+  let weightMain = null;
+  let weightDelta = null;
+  if (weightInRange.length > 0) {
+    const first = weightInRange[0].weight;
+    const last = weightInRange[weightInRange.length - 1].weight;
+    weightDelta = last - first;
+    weightMain = `${last}`;
+    weightRows.push({ label: 'Первый замер', value: `${first} кг` });
+    weightRows.push({ label: 'Изменение', value: `${weightDelta >= 0 ? '+' : ''}${weightDelta.toFixed(1)} кг`, emphasis: weightDelta < 0 ? 'var(--green)' : weightDelta > 0 ? 'var(--red)' : null });
+    if (weightInRange.length > 1) {
+      weightRows.push({ label: 'Замеров', value: String(weightInRange.length) });
+    }
+  }
+
+  // === ACTIVITY SCORE (сколько блоков задействовано) ===
+  const activeBlocks = [
+    (expense > 0 || income > 0),
+    (doneTasks > 0 || createdTasks > 0),
+    (periodWorkouts.length > 0),
+    (cardioSessions > 0),
+    (habitChecksDone > 0),
+    (weightInRange.length > 0)
+  ].filter(Boolean).length;
+  const activityPct = Math.round(activeBlocks / 6 * 100);
+
+  // === СБОРКА ===
+  let html = '';
+
+  // Шапка со сводкой
+  html += `<div class="apple-card p-5 rounded-[24px] mb-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <p class="text-xs text-secondary">За период · ${days} дн.</p>
+        <p class="text-2xl font-semibold numbers text-primary mt-1">${activeBlocks} / 6</p>
+        <p class="text-xs text-tertiary mt-0.5">блоков задействовано</p>
+      </div>
+      <div class="relative w-14 h-14">
+        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--neutral-fill)" stroke-width="3.5"/>
+          <circle cx="18" cy="18" r="15.5" fill="none"
+            stroke="url(#activityGrad)" stroke-width="3.5" stroke-linecap="round"
+            stroke-dasharray="${activityPct * 0.974} 100" />
+          <defs>
+            <linearGradient id="activityGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="var(--blue)"/>
+              <stop offset="100%" stop-color="var(--teal)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold numbers text-primary">${activityPct}%</span>
+      </div>
+    </div>
+  </div>`;
+
+  // Финансы
+  html += reportsCardHTML({
+    icon: 'coins',
+    color: 'blue',
+    title: 'Финансы',
+    onTap: "navigate('fin-analytics')",
+    mainValue: financeRows.length > 0 ? null : null,
+    mainLabel: null,
+    rows: financeRows,
+    emptyText: 'Нет операций за период'
+  });
+
+  // Задачи
+  html += reportsCardHTML({
+    icon: 'list-check',
+    color: 'green',
+    title: 'Задачи',
+    onTap: "navigate('tasks', {tab: true})",
+    mainValue: null,
+    rows: tasksRows,
+    emptyText: 'Нет задач за период'
+  });
+
+  // Тренировки
+  html += reportsCardHTML({
+    icon: 'dumbbell',
+    color: 'red',
+    title: 'Тренировки',
+    onTap: "navigate('workout-progress')",
+    mainValue: null,
+    rows: workoutRows,
+    emptyText: 'Нет тренировок за период'
+  });
+
+  // Кардио
+  html += reportsCardHTML({
+    icon: 'footprints',
+    color: 'orange',
+    title: 'Кардио',
+    onTap: "navigate('workout-cardio')",
+    mainValue: null,
+    rows: cardioRows,
+    emptyText: 'Нет кардио за период'
+  });
+
+  // Привычки
+  html += reportsCardHTML({
+    icon: 'check-circle',
+    color: 'teal',
+    title: 'Привычки',
+    onTap: "navigate('habits')",
+    mainValue: null,
+    rows: habitsRows,
+    emptyText: 'Привычек нет'
+  });
+
+  // Вес
+  if (weightMain !== null) {
+    html += reportsCardHTML({
+      icon: 'activity',
+      color: 'purple',
+      title: 'Вес',
+      onTap: "navigate('workout-body')",
+      mainValue: weightMain,
+      mainLabel: 'кг · ' + (weightDelta > 0 ? `+${weightDelta.toFixed(1)}` : weightDelta < 0 ? `${weightDelta.toFixed(1)}` : '0'),
+      rows: weightRows,
+      emptyText: ''
+    });
+  } else {
+    html += reportsCardHTML({
+      icon: 'activity',
+      color: 'purple',
+      title: 'Вес',
+      onTap: "navigate('workout-body')",
+      rows: [],
+      emptyText: 'Нет замеров за период'
+    });
+  }
+
+  // Подсказка внизу
+  html += `<p class="text-[11px] text-tertiary text-center mt-4 px-4">Сводка строится из ваших данных. Смена периода пересчитывает цифры автоматически.</p>`;
+
+  el.innerHTML = html;
+  lucide.createIcons();
+}
 
     // =========== SETTINGS ===========
     function loadProfile() { try { return JSON.parse(localStorage.getItem('aura_profile')||'{"targetWeight":77,"dailyKcal":1850,"dailyProtein":135,"startWeight":84}'); } catch(e) { return {targetWeight:77,dailyKcal:1850,dailyProtein:135,startWeight:84}; } }
