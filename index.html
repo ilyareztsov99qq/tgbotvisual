@@ -471,9 +471,22 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       </div>
     </section>
     <section id="screen-fin-capital" class="screen">
-      <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Итого</p><h1 class="text-xl font-semibold text-primary">Капитал</h1></div></header>
-      <div class="apple-card p-6 rounded-[28px] mb-4"><p class="text-xs text-secondary mb-1">Всего на счетах</p><div class="text-4xl font-semibold numbers text-primary mb-1">₽ 1 842 500</div><p class="text-xs text-tertiary">обновлено только что</p></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium">Итого</p>
+        <h1 class="text-xl font-semibold text-primary">Капитал</h1>
+      </div>
+    </div>
+    <button onclick="refreshCapital()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5">
+      <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+      <span>Обновить</span>
+    </button>
+  </header>
+
+  <div id="capital-content"></div>
+</section>
     <section id="screen-fin-goals" class="screen">
       <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Финансы</p><h1 class="text-xl font-semibold text-primary">Копилки</h1></div></header>
       <div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-tertiary">Копилки — в следующей итерации</p></div>
@@ -1262,9 +1275,9 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
       if (name === 'reports') renderReports();
+      if (name === 'fin-capital') renderCapital();
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
-      if (name === 'reports') renderReports();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function navigate(name, opts = {}) {
@@ -1655,6 +1668,178 @@ function renderAnalytics() {
   lucide.createIcons();
 }
 
+    // =========== CAPITAL ===========
+const ACCOUNT_META = {
+  card:       { icon: 'credit-card', color: 'blue',   label: 'Карта' },
+  credit:     { icon: 'credit-card', color: 'red',    label: 'Кредитка' },
+  cash:       { icon: 'banknote',    color: 'green',  label: 'Наличные' },
+  investment: { icon: 'trending-up', color: 'purple', label: 'Инвестиции' }
+};
+
+function getAccountMeta(type) {
+  return ACCOUNT_META[type] || { icon: 'wallet', color: 'gray', label: 'Счёт' };
+}
+
+function renderCapitalSkeleton() {
+  return `<div class="apple-card p-6 rounded-[28px] mb-4">
+    <div class="skeleton skeleton-line-lg" style="width:40%;height:10px;margin-bottom:10px;"></div>
+    <div class="skeleton skeleton-line-lg" style="width:60%;height:32px;margin-bottom:8px;"></div>
+    <div class="skeleton skeleton-line-sm" style="width:30%;height:9px;"></div>
+  </div>
+  <div class="space-y-3">
+    ${skeletonRow()}${skeletonRow()}${skeletonRow()}
+  </div>`;
+}
+
+async function renderCapital() {
+  const el = document.getElementById('capital-content');
+  if (!el) return;
+
+  // 1. Кэш (если есть) → показать сразу
+  let cached = null;
+  try {
+    const raw = localStorage.getItem('aura_capital_cache');
+    if (raw) cached = JSON.parse(raw);
+  } catch (e) {}
+
+  if (cached && cached.accounts && cached.accounts.length > 0) {
+    el.innerHTML = capitalHTML(cached);
+    lucide.createIcons();
+  } else {
+    el.innerHTML = renderCapitalSkeleton();
+    lucide.createIcons();
+  }
+
+  // 2. Свежие данные с сервера
+  try {
+    const fresh = await apiGet('getAccounts');
+    if (fresh && Array.isArray(fresh.accounts)) {
+      localStorage.setItem('aura_capital_cache', JSON.stringify(fresh));
+      el.innerHTML = capitalHTML(fresh);
+      lucide.createIcons();
+    }
+  } catch (e) {
+    console.warn('getAccounts failed:', e);
+    if (!cached) {
+      el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+          <i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i>
+        </div>
+        <p class="text-sm font-medium text-primary mb-1">Нет связи</p>
+        <p class="text-xs text-tertiary">Не удалось загрузить данные. Потяни вниз для обновления.</p>
+      </div>`;
+      lucide.createIcons();
+    }
+  }
+}
+
+async function refreshCapital() {
+  haptic('light');
+  const el = document.getElementById('capital-content');
+  if (el) {
+    el.innerHTML = renderCapitalSkeleton();
+    lucide.createIcons();
+  }
+  await renderCapital();
+  toast('Обновлено');
+}
+
+function capitalHTML(data) {
+  const total = data.total || 0;
+  const accounts = data.accounts || [];
+
+  if (accounts.length === 0) {
+    return `<div class="apple-card p-10 rounded-[28px] text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+        <i data-lucide="wallet" class="w-7 h-7 text-tertiary"></i>
+      </div>
+      <p class="text-sm font-medium text-primary mb-1">Счетов нет</p>
+      <p class="text-xs text-tertiary">Добавь счёт в лист «Счета» Google Sheets</p>
+    </div>`;
+  }
+
+  // Подсчёт по типам для полоски распределения
+  const byType = {};
+  accounts.forEach(a => {
+    const type = a.type || 'card';
+    byType[type] = (byType[type] || 0) + Math.max(0, a.balance);
+  });
+  const totalPositive = Object.values(byType).reduce((s, v) => s + v, 0);
+
+  let html = '';
+
+  // Главная карточка
+  html += `<div class="apple-card p-6 rounded-[28px] mb-4">
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-xs text-secondary">Всего на счетах</p>
+        <div class="text-4xl font-semibold tracking-tight numbers text-primary mt-1">₽ ${formatMoneyRu(total)}</div>
+        <p class="text-xs text-tertiary mt-1">${accounts.length} ${accounts.length === 1 ? 'счёт' : accounts.length < 5 ? 'счёта' : 'счетов'}</p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: rgba(52,199,89,.15); color: var(--green);">
+        <i data-lucide="trending-up" class="w-5 h-5"></i>
+      </div>
+    </div>`;
+
+  // Полоска распределения по типам
+  if (totalPositive > 0 && Object.keys(byType).length > 1) {
+    const colors = { card: 'var(--blue)', credit: 'var(--red)', cash: 'var(--green)', investment: 'var(--purple)' };
+    html += `<div class="h-2 w-full rounded-full flex overflow-hidden mt-4 mb-3 gap-0.5" style="background: var(--neutral-fill);">`;
+    Object.entries(byType).forEach(([type, sum]) => {
+      if (sum <= 0) return;
+      const pct = (sum / totalPositive) * 100;
+      html += `<div style="width:${pct}%; background: ${colors[type] || 'var(--gray)'};" class="h-full rounded-sm"></div>`;
+    });
+    html += `</div>`;
+
+    // Легенда
+    html += `<div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">`;
+    Object.entries(byType).forEach(([type, sum]) => {
+      if (sum <= 0) return;
+      const meta = getAccountMeta(type);
+      html += `<div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full" style="background: ${COLOR_MAP[meta.color]};"></span>
+        <span class="text-[10px] text-tertiary">${meta.label}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+
+  // Список счетов
+  html += `<div class="space-y-3">`;
+  accounts.forEach(a => {
+    const meta = getAccountMeta(a.type);
+    const isNegative = a.balance < 0;
+    const bg = BG_MAP[meta.color] || BG_MAP.gray;
+    const fg = COLOR_MAP[meta.color] || COLOR_MAP.gray;
+    const balanceColor = isNegative ? 'var(--red)' : 'var(--text-primary)';
+
+    html += `<div class="apple-card p-5 rounded-[20px] flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${bg}; color:${fg};">
+          <i data-lucide="${meta.icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium text-primary truncate">${escapeHtml(a.name)}</p>
+          <p class="text-[11px] text-tertiary">${meta.label}</p>
+        </div>
+      </div>
+      <span class="text-sm font-semibold numbers flex-shrink-0 ml-2" style="color:${balanceColor};">
+        ${isNegative ? '−' : ''}₽ ${formatMoneyRu(Math.abs(a.balance))}
+      </span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Подсказка внизу
+  html += `<p class="text-[11px] text-tertiary text-center mt-4 px-4">
+    Балансы считаются из стартовых сумм и всех транзакций.
+  </p>`;
+
+  return html;
+}
     // =========== TASKS ===========
     let taskState = { dateOption:'today', customDate:'', priority:'' }; let currentTaskTab = 'today';
     function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
