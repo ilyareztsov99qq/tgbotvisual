@@ -358,44 +358,28 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
   <div class="max-w-5xl mx-auto px-4 sm:px-8 pt-6 relative z-10">
     <!-- HOME -->
     <section id="screen-home" class="screen active">
-      <header class="flex justify-between items-center mb-8">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full apple-glass flex items-center justify-center font-bold text-xs text-primary">AF</div>
-          <div>
-  <div class="flex items-center gap-1.5">
-    <span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Общий капитал</span>
-    <span id="sync-dot" class="sync-dot" title="Синхронизация"></span>
+      <header class="flex justify-between items-center mb-6">
+  <div class="flex items-center space-x-3">
+    <div class="w-10 h-10 rounded-full apple-glass flex items-center justify-center font-bold text-xs text-primary">AF</div>
+    <div>
+      <span class="text-[11px] text-secondary font-medium tracking-wide uppercase">Aura Life</span>
+      <h1 class="text-sm font-semibold tracking-tight text-primary" id="home-greeting">Доброе утро</h1>
+    </div>
   </div>
-  <h1 class="text-sm font-semibold tracking-tight text-primary">Aura Portfolio</h1>
-</div>
-        <div class="apple-glass p-1 rounded-full flex space-x-1">
-          <button onclick="setPeriod(this)" class="segmented-btn active px-3 py-1 text-xs font-medium rounded-full">M</button>
-          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">W</button>
-          <button onclick="setPeriod(this)" class="segmented-btn px-3 py-1 text-xs font-medium rounded-full">Y</button>
-        </div>
-      </header>
+  <span id="sync-dot-header" class="sync-dot" title="Синхронизация"></span>
+</header>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
           <div class="apple-card p-6 sm:p-8 rounded-[28px] relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <div><p class="text-xs font-medium text-secondary">Текущий баланс</p><div id="balance" class="text-4xl sm:text-5xl font-semibold tracking-tight mt-1 numbers text-primary">—</div></div>
-              <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52,199,89,.1); border: .5px solid rgba(52,199,89,.25); color: var(--green);"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span></div>
-            </div>
-            <div class="h-44 w-full mt-4 flex items-end">
-              <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
-                <defs><linearGradient id="appleGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity=".35"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>
-                <path class="chart-area" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20 L 500 150 L 0 150 Z" fill="url(#appleGradient)"/>
-                <path class="chart-line" d="M 0 120 Q 80 50, 160 90 T 320 40 T 420 70 T 500 20" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
+  <div>
+    <p class="text-xs font-medium text-secondary">Общий капитал</p>
+    <div id="balance" class="text-4xl sm:text-5xl font-semibold tracking-tight mt-2 numbers text-primary">—</div>
+    <p class="text-xs text-tertiary mt-2" id="balance-updated">загрузка...</p>
+  </div>
+</div>
           <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175,82,222,.2);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
             <div><h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--purple);">Умный инсайт</h4><p class="text-xs sm:text-sm text-primary mt-0.5">В этом месяце траты на кафе снизились на 12%.</p></div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <button onclick="openTrx('expense')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Трата</span></button>
-            <button onclick="openTrx('income')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="arrow-down-left" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Доход</span></button>
           </div>
           <div class="apple-card p-6 rounded-[28px]">
             <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-semibold text-primary">Задачи на сегодня</h3><button onclick="navigate('tasks', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Все →</button></div>
@@ -410,7 +394,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
             <div id="home-workout-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
         </div>
-        <div class="space-y-6">
+        <div class="hidden md:block md:space-y-6">
           <div class="apple-card p-6 rounded-[28px]">
             <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-semibold text-primary">Категории</h3><button onclick="navigate('fin-analytics')" class="back-btn"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div>
             <div class="h-2 w-full rounded-full flex overflow-hidden mb-6 gap-0.5" style="background: var(--neutral-fill);">
@@ -1308,16 +1292,7 @@ document.addEventListener('visibilitychange', () => {
       else if (currentScreen === 'notes') openNoteForm();
       else openTrx('expense');
     }
-
-    // =========== PERIOD ===========
-    const periodData = { 'M': '₽ 1 842 500', 'W': '₽ 1 798 200', 'Y': '₽ 1 542 000' };
-    function setPeriod(btn) {
-      haptic('light');
-      btn.parentElement.querySelectorAll('.segmented-btn').forEach(el => el.classList.remove('active'));
-      btn.classList.add('active');
-      const d = periodData[btn.textContent.trim()];
-      if (d) { const b = document.getElementById('balance'); b.style.transition = 'opacity .15s ease'; b.style.opacity = '0'; setTimeout(() => { b.textContent = d; b.style.opacity = '1'; }, 150); }
-    }
+    
 
     // =========== TRANSACTIONS ===========
     const CATEGORIES = [
@@ -3260,10 +3235,24 @@ function renderReports() {
     // 1. Показать скелетоны сразу
 renderSkeletons();
 setSyncStatus('syncing');
+    
+    // Приветствие по времени суток
+function updateGreeting() {
+  const el = document.getElementById('home-greeting');
+  if (!el) return;
+  const h = new Date().getHours();
+  let greeting = 'Доброе утро';
+  if (h >= 12 && h < 18) greeting = 'Добрый день';
+  else if (h >= 18 && h < 23) greeting = 'Добрый вечер';
+  else if (h >= 23 || h < 5) greeting = 'Доброй ночи';
+  el.textContent = greeting;
+}
+updateGreeting();
 
 // Заполнить баланс на Home из кэша капитала
 function updateHomeBalance() {
   const balEl = document.getElementById('balance');
+  const updEl = document.getElementById('balance-updated');
   if (!balEl) return;
   try {
     const raw = localStorage.getItem('aura_capital_cache');
@@ -3271,11 +3260,19 @@ function updateHomeBalance() {
       const cached = JSON.parse(raw);
       if (cached && typeof cached.total === 'number') {
         balEl.textContent = '₽ ' + cached.total.toLocaleString('ru-RU');
+        if (updEl) {
+          const n = cached.accounts?.length || 0;
+          updEl.textContent = n === 0 ? 'нет счетов' :
+                              n === 1 ? 'из 1 счёта' :
+                              n < 5 ? `из ${n} счетов` :
+                              `из ${n} счетов`;
+        }
         return;
       }
     }
   } catch (e) {}
   balEl.textContent = '—';
+  if (updEl) updEl.textContent = 'нет данных';
 }
 
 // Первичная загрузка с индикатором
