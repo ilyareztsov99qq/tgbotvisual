@@ -3676,6 +3676,7 @@ function saveWorkoutDone(o) {
   el.innerHTML = html;
   lucide.createIcons();
 }
+
     // === Ручное добавление упражнения ===
 let currentAddExRpe = null;
 
@@ -3761,7 +3762,7 @@ function saveAddedExercise() {
   renderWorkoutToday();
   renderHomeWorkoutPreview();
 }
-    // === Финал тренировки ===
+// === Финал тренировки ===
 function finishWorkout() {
   haptic('medium');
   const plan = getTodayWorkoutPlan();
@@ -3848,6 +3849,7 @@ function closeWorkoutFinish() {
   renderWorkoutToday();
   renderHomeWorkoutPreview();
 }
+    
 // === Таймер отдыха ===
 let restTimerId = null;
 let restTimerEnd = 0;
@@ -3963,9 +3965,6 @@ function resetExerciseDone(name) {
   renderHomeWorkoutPreview();
   toast('Отметки сброшены');
 }
-      html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
-      el.innerHTML = html; lucide.createIcons();
-    }
     function toggleExerciseDone(i) {
   haptic('medium');
   const plan = getTodayWorkoutPlan();
