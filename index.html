@@ -2700,6 +2700,14 @@ function capitalHTML(data) {
     reps: String(ex.reps)
   });
 }
+    function renderWorkoutPlan() {
+      const plan = loadWorkoutPlan(); const today = getTodayDow();
+      const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
+      let html = '';
+      for (let d = 1; d <= 7; d++) {
+        const day = plan[d]; const isToday = d === today;
+        html += `<div class="day-row ${isToday?'today':''}"><div><div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div><div class="day-split">${day ? escapeHtml(day.split) : 'День отдыха'}</div></div><div class="day-count">${day ? day.exercises.length + ' упр.' : '—'}</div></div>`;
+      }
       document.getElementById('workout-plan-content').innerHTML = html;
       lucide.createIcons();
     }
@@ -3084,6 +3092,7 @@ function renderNotes() {
     function saveHabitLog(obj) { try { localStorage.setItem('aura_habit_log', JSON.stringify(obj)); } catch(e) {} }
     function openHabitForm() { haptic('medium'); document.getElementById('habit-name').value = ''; document.getElementById('habit-submit').disabled = true; document.getElementById('habit-sheet').classList.add('show'); document.getElementById('habit-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('habit-name').focus(),350); }
     function closeHabitForm() { haptic('light'); document.getElementById('habit-sheet').classList.remove('show'); document.getElementById('habit-sheet-overlay').classList.remove('show'); document.getElementById('habit-name').blur(); }
+    document.getElementById('habit-name').addEventListener('input', () => { document.getElementById('habit-submit').disabled = !document.getElementById('habit-name').value.trim(); });
     async function submitHabit() {
   const name = document.getElementById('habit-name').value.trim();
   if (!name) return;
