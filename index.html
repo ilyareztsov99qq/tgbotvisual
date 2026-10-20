@@ -247,6 +247,155 @@
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+    /* === AI Coach Chat === */
+.coach-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 180px);
+  min-height: 400px;
+}
+.coach-messages {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 4px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.coach-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  word-break: break-word;
+  animation: bubbleIn 0.25s ease;
+}
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.coach-bubble.user {
+  align-self: flex-end;
+  background: var(--blue);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+.coach-bubble.coach {
+  align-self: flex-start;
+  background: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  color: var(--text-primary);
+  border-bottom-left-radius: 6px;
+}
+.coach-bubble.coach b,
+.coach-bubble.coach strong { color: var(--text-primary); font-weight: 700; }
+.coach-bubble.coach i,
+.coach-bubble.coach em { color: var(--text-secondary); }
+.coach-bubble.coach code {
+  background: var(--neutral-fill);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: ui-monospace, monospace;
+}
+.coach-bubble.coach ul,
+.coach-bubble.coach ol {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.coach-bubble.coach li { margin: 2px 0; }
+.coach-bubble.coach p { margin: 6px 0; }
+.coach-bubble.coach p:first-child { margin-top: 0; }
+.coach-bubble.coach p:last-child { margin-bottom: 0; }
+
+.coach-typing {
+  align-self: flex-start;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  border-radius: 18px;
+  border-bottom-left-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.coach-typing-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: typing 1.2s ease-in-out infinite;
+}
+.coach-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.coach-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.coach-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 0 10px;
+  flex-shrink: 0;
+}
+.coach-chip {
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.coach-chip:active { transform: scale(0.96); background: var(--neutral-fill-hover); }
+.coach-chip.hidden { display: none; }
+
+.coach-input-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  flex-shrink: 0;
+  border-top: 0.5px solid var(--divider);
+  margin-top: auto;
+}
+.coach-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 22px;
+  background: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+.coach-input:focus { border-color: var(--blue); }
+.coach-input::placeholder { color: var(--text-tertiary); }
+.coach-send {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.coach-send:active { transform: scale(0.92); }
+.coach-send:disabled { opacity: 0.4; }
+.coach-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-tertiary);
+}
     /* === Notes: поиск, подсветка, счётчик === */
 .notes-search-wrap {
   display: flex;
@@ -584,12 +733,48 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
         <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Кардио</p><p class="text-[11px] text-tertiary" id="hub-cardio-label">—</p></div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
       </button>
-      <button onclick="toast('Скоро: AI-тренер')" class="hub-tile w-full mt-3" style="border-color: rgba(175,82,222,.2);">
-        <div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
-        <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">AI-тренер</p><p class="text-[11px] text-tertiary">Диалог, план</p></div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
-      </button>
+      <button onclick="navigate('workout-coach')" class="hub-tile w-full mt-3" style="border-color: rgba(175,82,222,.2);">
+  <div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+  <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">AI-тренер</p><p class="text-[11px] text-tertiary">Диалог, план</p></div>
+  <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+</button>
     </section>
+    <!-- WORKOUT COACH -->
+<section id="screen-workout-coach" class="screen">
+  <header class="flex items-center justify-between mb-4">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3 h-3" style="color: var(--purple);"></i>
+          AI
+        </p>
+        <h1 class="text-xl font-semibold text-primary">Тренер</h1>
+      </div>
+    </div>
+    <button onclick="clearCoachHistory()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5" title="Очистить историю">
+      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+    </button>
+  </header>
+
+  <div class="coach-wrapper">
+    <div id="coach-messages" class="coach-messages"></div>
+
+    <div id="coach-chips" class="coach-chips">
+      <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
+      <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
+      <button class="coach-chip" onclick="sendCoachQuick('Составь мне план на следующую неделю')">📅 Составь план</button>
+      <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
+    </div>
+
+    <div class="coach-input-wrap">
+      <input id="coach-input" class="coach-input" type="text" placeholder="Спроси тренера..." maxlength="500" onkeypress="if(event.key==='Enter'){event.preventDefault();sendCoachMessage();}" />
+      <button id="coach-send" class="coach-send" onclick="sendCoachMessage()">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+</section>
     <section id="screen-workout-today" class="screen">
       <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium" id="workout-today-label">Сегодня</p><h1 class="text-xl font-semibold text-primary">Тренировка</h1></div></header>
       <div id="workout-today-content"></div>
@@ -1501,6 +1686,7 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
+      if (name === 'workout-coach') { renderCoachMessages(); updateCoachChips(); }
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
       if (name === 'reports') renderReports();
@@ -2829,7 +3015,165 @@ function capitalHTML(data) {
       const total = plan.exercises.length;
       el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
     }
+// =========== AI COACH ===========
+const COACH_HISTORY_KEY = 'aura_coach_history';
+const COACH_GREETING = 'Привет! Я твой AI-тренер. Вижу твои тренировки, план и замеры — могу анализировать прогресс, предлагать корректировки и отвечать на вопросы. О чём поговорим?';
 
+function loadCoachHistory() {
+  try {
+    const raw = localStorage.getItem(COACH_HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function saveCoachHistory(arr) {
+  try {
+    localStorage.setItem(COACH_HISTORY_KEY, JSON.stringify(arr.slice(-40)));
+  } catch (e) {}
+}
+
+function renderCoachMessages() {
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+  const history = loadCoachHistory();
+
+  if (history.length === 0) {
+    el.innerHTML = `
+      <div class="coach-bubble coach">${COACH_GREETING}</div>
+      <div class="coach-empty">
+        <p class="text-xs">Выбери быстрый вопрос ниже или напиши свой</p>
+      </div>
+    `;
+  } else {
+    el.innerHTML = history.map(m =>
+      `<div class="coach-bubble ${m.role === 'user' ? 'user' : 'coach'}">${m.html || escapeHtml(m.content)}</div>`
+    ).join('');
+  }
+  // Скролл вниз
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  lucide.createIcons();
+}
+
+function appendCoachBubble(role, content, html) {
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+  // Убираем пустое состояние
+  const empty = el.querySelector('.coach-empty');
+  if (empty) empty.remove();
+
+  const bubble = document.createElement('div');
+  bubble.className = `coach-bubble ${role === 'user' ? 'user' : 'coach'}`;
+  bubble.innerHTML = html || escapeHtml(content);
+  el.appendChild(bubble);
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+}
+
+function showCoachTyping() {
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+  const typing = document.createElement('div');
+  typing.className = 'coach-typing';
+  typing.id = 'coach-typing';
+  typing.innerHTML = '<div class="coach-typing-dot"></div><div class="coach-typing-dot"></div><div class="coach-typing-dot"></div>';
+  el.appendChild(typing);
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+}
+
+function hideCoachTyping() {
+  const t = document.getElementById('coach-typing');
+  if (t) t.remove();
+}
+
+function updateCoachChips() {
+  const chips = document.getElementById('coach-chips');
+  if (!chips) return;
+  const history = loadCoachHistory();
+  // Скрываем чипы, если уже идёт диалог (больше 4 сообщений)
+  const visible = history.length < 4;
+  chips.querySelectorAll('.coach-chip').forEach(c => c.classList.toggle('hidden', !visible));
+}
+
+async function sendCoachMessage() {
+  const input = document.getElementById('coach-input');
+  const sendBtn = document.getElementById('coach-send');
+  if (!input || !sendBtn) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  haptic('light');
+  input.value = '';
+  sendBtn.disabled = true;
+
+  // Показываем сообщение пользователя
+  appendCoachBubble('user', text);
+
+  // История
+  const history = loadCoachHistory();
+  history.push({ role: 'user', content: text, ts: new Date().toISOString() });
+  saveCoachHistory(history);
+  updateCoachChips();
+
+  // Спиннер
+  showCoachTyping();
+
+  // Собираем историю для отправки (без текущего сообщения)
+  const historyForApi = history.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+
+  try {
+    const res = await apiPost('coachMessage', { history: historyForApi, message: text });
+    hideCoachTyping();
+    if (!res || !res.reply) {
+      throw new Error('Пустой ответ');
+    }
+    const replyHtml = sanitizeCoachHtml(res.reply);
+    appendCoachBubble('coach', res.reply, replyHtml);
+    history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() });
+    saveCoachHistory(history);
+    hapticNotify('success');
+  } catch (e) {
+    hideCoachTyping();
+    console.error('coach failed:', e);
+    const errMsg = (e && e.message && /unauthorized|forbidden/i.test(e.message))
+      ? 'Ошибка авторизации. Перезапусти Mini App.'
+      : (e && e.message && /quota|limit|too many/i.test(e.message))
+      ? 'Лимит AI исчерпан. Попробуй позже.'
+      : 'Не удалось получить ответ. Проверь связь и попробуй ещё.';
+    appendCoachBubble('coach', errMsg);
+    hapticNotify('error');
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function sendCoachQuick(text) {
+  const input = document.getElementById('coach-input');
+  if (input) { input.value = text; }
+  sendCoachMessage();
+}
+
+function clearCoachHistory() {
+  if (!confirm('Очистить всю историю диалога с тренером?')) return;
+  haptic('medium');
+  try { localStorage.removeItem(COACH_HISTORY_KEY); } catch (e) {}
+  renderCoachMessages();
+  updateCoachChips();
+  toast('История очищена');
+}
+
+// Простая «санитизация» HTML из markdown (уже конвертнутого сервером)
+function sanitizeCoachHtml(html) {
+  if (!html) return '';
+  // Убираем script-теги и on*-атрибуты — на всякий случай
+  let safe = String(html)
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/javascript:/gi, '');
+  // Простая конвертация переносов в <br> (если они ещё не в тегах)
+  // Не трогаем содержимое тегов
+  safe = safe.replace(/\n/g, '<br>');
+  return safe;
+}
     // =========== NOTES ===========
     let editingNoteId = null;
     function loadNotes() { try { return JSON.parse(localStorage.getItem('aura_notes')||'[]'); } catch(e) { return []; } }
@@ -3550,7 +3894,16 @@ function renderReports() {
       toast('Данные очищены');
       setTimeout(()=>{ navigate('home', {tab:true}); }, 500);
     }
-
+// При фокусе на input тренера — прокрутить вниз
+const coachInputEl = document.getElementById('coach-input');
+if (coachInputEl) {
+  coachInputEl.addEventListener('focus', () => {
+    setTimeout(() => {
+      const el = document.getElementById('coach-messages');
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 300);
+  });
+}
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
