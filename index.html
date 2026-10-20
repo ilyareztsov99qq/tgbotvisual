@@ -864,7 +864,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
 // ============================================================
 
 const QUEUE_KEY = 'aura_pending_sync';
-const QUEUEABLE_ACTIONS = ['addTransaction', 'addTask', 'addNote', 'addBody', 'addCardio', 'addHabit', 'toggleHabit', 'toggleShopping'];
+const QUEUEABLE_ACTIONS = ['addTransaction', 'addTask', 'addNote', 'addBody', 'addCardio', 'addHabit', 'toggleHabit', 'toggleShopping', 'addWorkoutSet'];
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [500, 1500, 3000];
 
@@ -2628,14 +2628,24 @@ function capitalHTML(data) {
     function getTodayDow() { const d = new Date().getDay(); return d === 0 ? 7 : d; }
     function getTodayWorkoutPlan() { return loadWorkoutPlan()[getTodayDow()] || null; }
     function renderWorkoutHub() {
-      const today = getTodayWorkoutPlan();
-      document.getElementById('hub-today-label').textContent = today ? today.split.split(' ')[0] : 'Отдых';
+  const today = getTodayWorkoutPlan();
+  document.getElementById('hub-today-label').textContent = today ? shortenSplitName(today.split) : 'Отдых';
       const body = loadBody();
       document.getElementById('hub-body-label').textContent = body.length ? `${body[body.length-1].weight} кг` : '—';
       const todayStr_ = todayStr();
       const todayCardio = loadCardio().filter(c => c.date.slice(0,10)===todayStr_).reduce((s,c) => s+c.minutes, 0);
       document.getElementById('hub-cardio-label').textContent = todayCardio ? `${todayCardio} мин` : 'Нет за сегодня';
     }
+    function shortenSplitName(name) {
+  if (!name) return 'Тренировка';
+  const s = String(name).trim();
+  // Убираем хвосты типа " / Пресс", " / Кардио"
+  const short = s.split(/\s*[\/·—]\s*/)[0].trim();
+  if (short.length <= 14) return short;
+  // Обрезаем по первому пробелу, если > 14 символов
+  const first = short.split(' ')[0];
+  return first.length > 14 ? first.slice(0, 13) + '…' : first;
+}
     function getWorkoutDone() { try { const d = localStorage.getItem('aura_workout_done_'+todayStr()); return d?JSON.parse(d):{}; } catch(e) { return {}; } }
     function saveWorkoutDone(o) { try { localStorage.setItem('aura_workout_done_'+todayStr(), JSON.stringify(o)); } catch(e) {} }
     function renderWorkoutToday() {
@@ -2654,20 +2664,42 @@ function capitalHTML(data) {
         const isDone = !!done[i];
         html += `<div class="ex-item ${isDone?'done':''}"><button class="ex-check ${isDone?'active':''}" onclick="toggleExerciseDone(${i})">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button><div class="ex-body"><div class="ex-name">${escapeHtml(ex.name)}</div><div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div></div><button class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium" style="color:var(--blue);" onclick="logWorkoutSet(${i})">Записать</button></div>`;
       });
-      html += `<div class="grid grid-cols-2 gap-3 mt-4"><button onclick="navigate('workout-cardio')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button><button onclick="toast('Скоро: AI-тренер')" class="apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="sparkles" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Тренер</span></button></div>`;
+      html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
       el.innerHTML = html; lucide.createIcons();
     }
     function toggleExerciseDone(i) { haptic('medium'); const done = getWorkoutDone(); done[i] = !done[i]; saveWorkoutDone(done); if (done[i]) hapticNotify('success'); renderWorkoutToday(); }
-    function logWorkoutSet(i) { haptic('medium'); const plan = getTodayWorkoutPlan(); if (!plan) return; const ex = plan.exercises[i]; const logs = loadWorkoutLog(); logs.unshift({id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),date: new Date().toISOString(),exercise: ex.name,weight: ex.weight,sets: ex.sets,reps: ex.reps,tonnage: ex.weight*ex.sets*ex.reps}); saveWorkoutLog(logs); const done = getWorkoutDone(); done[i] = true; saveWorkoutDone(done); hapticNotify('success'); renderWorkoutToday(); toast(`${ex.name} записано`); }
-    function renderWorkoutPlan() {
-      const plan = loadWorkoutPlan(); const today = getTodayDow();
-      const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
-      let html = '';
-      for (let d = 1; d <= 7; d++) {
-        const day = plan[d]; const isToday = d === today;
-        html += `<div class="day-row ${isToday?'today':''}"><div><div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div><div class="day-split">${day ? escapeHtml(day.split) : 'День отдыха'}</div></div><div class="day-count">${day ? day.exercises.length + ' упр.' : '—'}</div></div>`;
-      }
-      html += `<button onclick="toast('Скоро: редактирование плана')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2 mt-3"><i data-lucide="pencil" class="w-4 h-4" style="color:var(--blue);"></i><span class="text-sm font-medium" style="color:var(--blue);">Редактировать</span></button>`;
+    function logWorkoutSet(i) {
+  haptic('medium');
+  const plan = getTodayWorkoutPlan();
+  if (!plan) return;
+  const ex = plan.exercises[i];
+  const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const entry = {
+    id: clientId,
+    date: new Date().toISOString(),
+    exercise: ex.name,
+    weight: ex.weight,
+    sets: ex.sets,
+    reps: ex.reps,
+    tonnage: ex.weight * ex.sets * ex.reps
+  };
+  const logs = loadWorkoutLog();
+  logs.unshift(entry);
+  saveWorkoutLog(logs);
+  const done = getWorkoutDone();
+  done[i] = true;
+  saveWorkoutDone(done);
+  hapticNotify('success');
+  renderWorkoutToday();
+  toast(`${ex.name} записано`);
+  apiPost('addWorkoutSet', {
+    clientId: clientId,
+    exercise: ex.name,
+    weight: ex.weight,
+    sets: ex.sets,
+    reps: String(ex.reps)
+  });
+}
       document.getElementById('workout-plan-content').innerHTML = html;
       lucide.createIcons();
     }
@@ -2693,7 +2725,22 @@ function capitalHTML(data) {
       fields.forEach(f => {
         if (last[f.key] == null) return;
         let diff = '';
-        if (prev && prev[f.key] != null) { const d = last[f.key] - prev[f.key]; if (Math.abs(d) > .01) { const cls = (f.key==='weight'||f.key==='fat'||f.key==='waist'||f.key==='hips')?(d<0?'down':'up'):(d<0?'up':'down'); diff = `<span class="body-field-diff ${cls}">${d>0?'+':''}${d.toFixed(1)}</span>`; } }
+        if (prev && prev[f.key] != null) {
+  const d = last[f.key] - prev[f.key];
+  if (Math.abs(d) > .01) {
+    // Сколько дней между замерами
+    let days = '';
+    try {
+      const lastDate = new Date(last.date + 'T00:00:00');
+      const prevDate = new Date(prev.date + 'T00:00:00');
+      const diffDays = Math.round((lastDate - prevDate) / 86400000);
+      if (diffDays > 1) days = ` за ${diffDays} дн.`;
+      else if (diffDays === 1) days = ' за день';
+    } catch (e) {}
+    const cls = (f.key==='weight'||f.key==='fat'||f.key==='waist'||f.key==='hips')?(d<0?'down':'up'):(d<0?'up':'down');
+    diff = `<span class="body-field-diff ${cls}">${d>0?'+':''}${d.toFixed(1)}${days}</span>`;
+  }
+}
         html += `<div class="body-field"><div class="body-field-label"><i data-lucide="${f.icon}" class="w-4 h-4 text-secondary"></i>${f.label}</div><div><span class="body-field-value">${last[f.key]} ${f.unit}</span>${diff}</div></div>`;
       });
       if (body.length > 1) {
@@ -2706,16 +2753,33 @@ function capitalHTML(data) {
     function openBodyForm() { haptic('medium'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value=''); document.getElementById('body-sheet').classList.add('show'); document.getElementById('body-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('body-weight').focus(),350); }
     function closeBodyForm() { haptic('light'); document.getElementById('body-sheet').classList.remove('show'); document.getElementById('body-sheet-overlay').classList.remove('show'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).blur()); }
     async function submitBodyMeasurement() {
-      const w = parseFloat(document.getElementById('body-weight').value);
-      if (isNaN(w) || w <= 0) { toast('Введи вес'); return; }
-      hapticNotify('success');
-      const body = loadBody();
-      body.push({date: new Date().toISOString(),weight: w,fat: parseFloat(document.getElementById('body-fat').value)||null,waist: parseFloat(document.getElementById('body-waist').value)||null,chest: parseFloat(document.getElementById('body-chest').value)||null,hips: parseFloat(document.getElementById('body-hips').value)||null});
-      saveBody(body);
-      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_body', payload: body[body.length-1]})); } catch(e) {}
-      closeBodyForm(); renderWorkoutBody(); renderWorkoutHub(); toast('Замер сохранён');
-      apiPost('addBody', body[body.length-1]);
-    }
+  const w = parseFloat(document.getElementById('body-weight').value);
+  if (isNaN(w) || w <= 0) { toast('Введи вес'); return; }
+  hapticNotify('success');
+  const clientId = 'bm_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const entry = {
+    id: clientId,
+    date: new Date().toISOString(),
+    weight: w,
+    fat: parseFloat(document.getElementById('body-fat').value) || null,
+    waist: parseFloat(document.getElementById('body-waist').value) || null,
+    chest: parseFloat(document.getElementById('body-chest').value) || null,
+    hips: parseFloat(document.getElementById('body-hips').value) || null
+  };
+  const body = loadBody();
+  body.push(entry);
+  saveBody(body);
+  try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_body', payload: entry})); } catch(e) {}
+  closeBodyForm(); renderWorkoutBody(); renderWorkoutHub(); toast('Замер сохранён');
+  apiPost('addBody', {
+    clientId: clientId,
+    weight: entry.weight,
+    fat: entry.fat,
+    waist: entry.waist,
+    chest: entry.chest,
+    hips: entry.hips
+  });
+}
     let currentCardioType = null;
     function renderWorkoutCardio() {
       const today = todayStr();
@@ -2737,16 +2801,17 @@ function capitalHTML(data) {
     function closeCardioForm() { haptic('light'); document.getElementById('cardio-sheet').classList.remove('show'); document.getElementById('cardio-sheet-overlay').classList.remove('show'); document.getElementById('cardio-minutes').blur(); }
     function setCardioMinutes(n) { haptic('light'); document.getElementById('cardio-minutes').value = n; }
     async function submitCardio() {
-      const m = parseInt(document.getElementById('cardio-minutes').value, 10);
-      if (isNaN(m) || m <= 0) { toast('Введи минуты'); return; }
-      hapticNotify('success');
-      const logs = loadCardio();
-      const entry = {id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),date: new Date().toISOString(),type: currentCardioType,minutes: m};
-      logs.unshift(entry); saveCardio(logs);
-      try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_cardio', payload: entry})); } catch(e) {}
-      closeCardioForm(); renderWorkoutCardio(); renderWorkoutHub(); toast(`${m} мин записано`);
-      apiPost('addCardio', { type: entry.type, minutes: entry.minutes });
-    }
+  const m = parseInt(document.getElementById('cardio-minutes').value, 10);
+  if (isNaN(m) || m <= 0) { toast('Введи минуты'); return; }
+  hapticNotify('success');
+  const clientId = 'cd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const logs = loadCardio();
+  const entry = { id: clientId, date: new Date().toISOString(), type: currentCardioType, minutes: m };
+  logs.unshift(entry); saveCardio(logs);
+  try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_cardio', payload: entry})); } catch(e) {}
+  closeCardioForm(); renderWorkoutCardio(); renderWorkoutHub(); toast(`${m} мин записано`);
+  apiPost('addCardio', { clientId: clientId, type: entry.type, minutes: entry.minutes });
+}
     function renderHomeWorkoutPreview() {
       const el = document.getElementById('home-workout-preview'); if (!el) return;
       const plan = getTodayWorkoutPlan();
@@ -3019,21 +3084,35 @@ function renderNotes() {
     function saveHabitLog(obj) { try { localStorage.setItem('aura_habit_log', JSON.stringify(obj)); } catch(e) {} }
     function openHabitForm() { haptic('medium'); document.getElementById('habit-name').value = ''; document.getElementById('habit-submit').disabled = true; document.getElementById('habit-sheet').classList.add('show'); document.getElementById('habit-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('habit-name').focus(),350); }
     function closeHabitForm() { haptic('light'); document.getElementById('habit-sheet').classList.remove('show'); document.getElementById('habit-sheet-overlay').classList.remove('show'); document.getElementById('habit-name').blur(); }
-    document.getElementById('habit-name').addEventListener('input', () => { document.getElementById('habit-submit').disabled = !document.getElementById('habit-name').value.trim(); });
     async function submitHabit() {
-      const name = document.getElementById('habit-name').value.trim(); if (!name) return;
-      hapticNotify('success');
-      const habits = loadHabits();
-      habits.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name });
-      saveHabits(habits);
-      closeHabitForm(); renderHabits(); toast('Привычка добавлена');
-      await apiPost('addHabit', { name });
-      // обновим id с сервера
-      try {
-        const fresh = await apiGet('getAll');
-        if (fresh && Array.isArray(fresh.habits)) localStorage.setItem('aura_habits', JSON.stringify(fresh.habits));
-      } catch (e) {}
-    }
+  const name = document.getElementById('habit-name').value.trim();
+  if (!name) return;
+  hapticNotify('success');
+
+  // Проверка на дубликат локально
+  const habits = loadHabits();
+  if (habits.some(h => h.name.toLowerCase() === name.toLowerCase())) {
+    toast('Такая привычка уже есть');
+    return;
+  }
+
+  const clientId = 'hb_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  habits.push({ id: clientId, name });
+  saveHabits(habits);
+  closeHabitForm(); renderHabits();
+  const res = await apiPost('addHabit', { clientId: clientId, name });
+  if (res && res.duplicate) {
+    toast('Такая привычка уже есть');
+    // Перезагружаем с сервера — id из таблицы
+    try {
+      const fresh = await apiGet('getAll');
+      if (fresh && Array.isArray(fresh.habits)) localStorage.setItem('aura_habits', JSON.stringify(fresh.habits));
+      renderHabits();
+    } catch (e) {}
+  } else {
+    toast('Привычка добавлена');
+  }
+}
     function deleteHabit(id) {
       haptic('light');
       saveHabits(loadHabits().filter(h=>h.id!==id));
