@@ -55,6 +55,24 @@
 .sync-dot.syncing { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
 .sync-dot.online { background: var(--green); }
 .sync-dot.offline { background: var(--red); }
+    .sync-queue-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--orange);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-left: 6px;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.sync-queue-badge.visible { display: inline-flex; }
+.sync-queue-badge.error { background: var(--red); color: #fff; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 /* Pull-to-refresh */
@@ -366,7 +384,10 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       <h1 class="text-sm font-semibold tracking-tight text-primary" id="home-greeting">Доброе утро</h1>
     </div>
   </div>
+  <div class="flex items-center">
   <span id="sync-dot-header" class="sync-dot" title="Синхронизация"></span>
+  <span id="sync-queue-badge" class="sync-queue-badge" onclick="flushPendingQueue(true)" title="Нажми чтобы синхронизировать">0</span>
+</div>
 </header>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
@@ -838,25 +859,238 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       return json.data;
     }
 
-    async function apiPost(action, payload) {
-  if (!INIT_DATA) { setSyncStatus('offline'); return null; }
-  try {
-    const res = await fetch(WEBAPP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, initData: INIT_DATA, payload })
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'API error');
-    setSyncStatus('online');
-    return json.data;
-  } catch (e) {
-    console.warn('apiPost failed:', action, e);
-    setSyncStatus('offline');
+    // ============================================================
+// API С RETRY, ОЧЕРЕДЬЮ И ЛОГАМИ
+// ============================================================
+
+const QUEUE_KEY = 'aura_pending_sync';
+const QUEUEABLE_ACTIONS = ['addTransaction', 'addTask', 'addNote', 'addBody', 'addCardio', 'addHabit', 'toggleHabit', 'toggleShopping'];
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [500, 1500, 3000];
+
+// Низкоуровневый POST (без retry) — используется внутри retry-обёртки
+async function _apiPostRaw(action, payload) {
+  if (!INIT_DATA) throw new Error('Not in Telegram');
+  const res = await fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, initData: INIT_DATA, payload })
+  });
+  const json = await res.json();
+  if (!json.ok) {
+    const err = new Error(json.error || 'API error');
+    err.serverError = true;
+    err.errorCode = json.error;
+    throw err;
+  }
+  return json.data;
+}
+
+// Определяет, стоит ли retry (сеть/сервер) или бесполезно (авторизация/валидация)
+function _shouldRetry(err) {
+  if (!err) return false;
+  const msg = (err.message || '').toLowerCase();
+  // Auth-ошибки — не retry (бесполезно)
+  if (msg.includes('unauthorized') || msg.includes('forbidden')) return false;
+  // Валидация — тоже не retry
+  if (msg.includes('required') || msg.includes('not found')) return false;
+  // Всё остальное (сеть, 500, timeout) — retry
+  return true;
+}
+
+// Высокоуровневый apiPost: retry с backoff + очередь для add*
+async function apiPost(action, payload) {
+  if (!INIT_DATA) return null;
+
+  let lastErr = null;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const data = await _apiPostRaw(action, payload);
+      setSyncStatus('online');
+      // Успех — проверим очередь при случае
+      if (getPendingQueue().length > 0) setTimeout(() => flushPendingQueue(false), 1000);
+      return data;
+    } catch (e) {
+      lastErr = e;
+      console.warn(`apiPost[${action}] attempt ${attempt + 1} failed:`, e.message);
+
+      if (!_shouldRetry(e)) {
+        // Не повторяем (auth, валидация)
+        setSyncStatus('offline');
+        return null;
+      }
+
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt]));
+      }
+    }
+  }
+
+  // Все попытки провалились
+  console.warn(`apiPost[${action}] all ${MAX_RETRIES} attempts failed`);
+  setSyncStatus('offline');
+
+  // Для add* — кладём в очередь (не потеряем)
+  if (QUEUEABLE_ACTIONS.includes(action)) {
+    enqueueAction(action, payload);
+    toast('⚠️ Нет сети. Сохранено в очередь');
+  } else {
     toast('⚠️ Не синхронизировано');
-    return null;
+  }
+  return null;
+}
+
+// ============================================================
+// ОЧЕРЕДЬ ОТЛОЖЕННЫХ ДЕЙСТВИЙ
+// ============================================================
+
+function getPendingQueue() {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function savePendingQueue(arr) {
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(arr));
+    updateQueueBadge();
+  } catch (e) {}
+}
+
+function enqueueAction(action, payload) {
+  const queue = getPendingQueue();
+  const item = {
+    id: 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    action,
+    payload,
+    createdAt: new Date().toISOString(),
+    attempts: 0
+  };
+  // Дедупликация: если такой же action+clientId уже в очереди — не дублируем
+  if (payload && payload.clientId) {
+    const dup = queue.find(q => q.action === action && q.payload && q.payload.clientId === payload.clientId);
+    if (dup) return;
+  }
+  queue.push(item);
+  savePendingQueue(queue);
+}
+
+function updateQueueBadge() {
+  const badge = document.getElementById('sync-queue-badge');
+  if (!badge) return;
+  const n = getPendingQueue().length;
+  if (n === 0) {
+    badge.classList.remove('visible');
+  } else {
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.classList.add('visible');
+    badge.classList.toggle('error', n > 10);
   }
 }
+
+// Отправить очередь
+let _flushing = false;
+async function flushPendingQueue(showToast = false) {
+  if (_flushing) return;
+  if (!INIT_DATA) return;
+  const queue = getPendingQueue();
+  if (queue.length === 0) return;
+
+  _flushing = true;
+  if (showToast) toast('Синхронизация...');
+  setSyncStatus('syncing');
+
+  const remaining = [];
+  let sentCount = 0;
+  let failCount = 0;
+
+  for (const item of queue) {
+    try {
+      await _apiPostRaw(item.action, item.payload);
+      sentCount++;
+    } catch (e) {
+      // Auth-ошибки — выбрасываем (бесполезно держать)
+      if (!_shouldRetry(e)) {
+        console.warn('Dropping queue item (unrecoverable):', item.action, e.message);
+        continue;
+      }
+      // Сетевые — оставляем с обновлённым счётчиком
+      item.attempts = (item.attempts || 0) + 1;
+      // Если слишком долго не уходит (10+ попыток) — выбрасываем
+      if (item.attempts > 10) {
+        console.warn('Dropping queue item (too many attempts):', item.action);
+        continue;
+      }
+      remaining.push(item);
+      failCount++;
+    }
+  }
+
+  savePendingQueue(remaining);
+  _flushing = false;
+
+  if (sentCount > 0 && failCount === 0) {
+    setSyncStatus('online');
+    if (showToast) toast(`✅ Синхронизировано: ${sentCount}`);
+  } else if (failCount > 0) {
+    setSyncStatus('offline');
+    if (showToast) toast(`⚠️ Осталось в очереди: ${failCount}`);
+  } else if (sentCount > 0) {
+    setSyncStatus('online');
+  }
+}
+
+// Автоматический flush при появлении сети / возврате в приложение
+window.addEventListener('online', () => { setTimeout(() => flushPendingQueue(false), 500); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    setTimeout(() => flushPendingQueue(false), 1000);
+  }
+});
+
+// Периодический flush (каждые 30 сек, если приложение открыто)
+setInterval(() => {
+  if (document.visibilityState === 'visible' && getPendingQueue().length > 0) {
+    flushPendingQueue(false);
+  }
+}, 30000);
+    // ============================================================
+// ЛОГИ ОШИБОК КЛИЕНТА
+// ============================================================
+let _errorLogCooldown = 0;
+function logClientError(type, message, context) {
+  const now = Date.now();
+  // Не спамим чаще 1 раза в 5 секунд
+  if (now - _errorLogCooldown < 5000) return;
+  _errorLogCooldown = now;
+
+  try {
+    // Локально
+    console.error(`[${type}]`, message, context || '');
+    // На сервер (best effort, не блокирует)
+    apiPost('logError', {
+      type: type.slice(0, 50),
+      message: String(message || '').slice(0, 500),
+      context: String(context || '').slice(0, 500)
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+window.addEventListener('error', (e) => {
+  if (!e.message) return;
+  // Игнорируем ошибки от сторонних скриптов (tailwind, lucide)
+  if (e.filename && !e.filename.includes('github.io') && !e.filename.includes('script.google')) return;
+  logClientError('runtime', e.message, `${e.filename || ''}:${e.lineno || ''}`);
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  const reason = e.reason;
+  const msg = reason && reason.message ? reason.message : String(reason);
+  // Игнорируем "Network request failed" от apiGet (это ожидаемо офлайн)
+  if (/network|failed to fetch|load failed/i.test(msg)) return;
+  logClientError('promise', msg, '');
+});
 
     // ============================================================
 // SKELETON LOADING
@@ -1077,14 +1311,20 @@ function handleSwipeDelete(el) {
 // SYNC UI — индикатор + pull-to-refresh + автосинк
 // ============================================================
 function setSyncStatus(status) {
-  const dot = document.getElementById('sync-dot');
-  if (!dot) return;
-  dot.classList.remove('syncing', 'online', 'offline');
-  dot.classList.add(status);
+  // Обе точки (в шапке Home и в старых местах)
+  ['sync-dot', 'sync-dot-header'].forEach(id => {
+    const dot = document.getElementById(id);
+    if (!dot) return;
+    dot.classList.remove('syncing', 'online', 'offline');
+    dot.classList.add(status);
+  });
+  updateQueueBadge();
 }
 
 async function refreshFromBackend(silent = false) {
   if (!INIT_DATA) { setSyncStatus('offline'); return false; }
+    // Сначала пробуем слить очередь
+  await flushPendingQueue(false);
   setSyncStatus('syncing');
   const ok = await bootstrapFromBackend();
   setSyncStatus(ok ? 'online' : 'offline');
@@ -1370,11 +1610,12 @@ document.addEventListener('visibilitychange', () => {
         if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_transaction', payload: trx}));
       } catch(e) {}
       apiPost('addTransaction', {
-        type: trx.type, amount: trx.amount,
-        category: CAT_TO_SERVER[trx.categoryId] || '📦 Прочее',
-        account: ACC_TO_SERVER[trx.accountId] || 'Основная карта',
-        comment: trx.comment
-      });
+  clientId: trx.id,
+  type: trx.type, amount: trx.amount,
+  category: CAT_TO_SERVER[trx.categoryId] || '📦 Прочее',
+  account: ACC_TO_SERVER[trx.accountId] || 'Основная карта',
+  comment: trx.comment
+});
     }
     function loadTrx() { try { return JSON.parse(localStorage.getItem('aura_trx_buffer')||'[]'); } catch(e) { return []; } }
     function saveTrx(arr) { try { localStorage.setItem('aura_trx_buffer', JSON.stringify(arr.slice(0,200))); } catch(e) {} }
@@ -2079,7 +2320,7 @@ function capitalHTML(data) {
       const all = loadTasks(); all.unshift(task); saveTasks(all);
       closeTask(); renderTasksScreen(); renderHomeTasks(); toast('Задача создана');
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_task', payload: task})); } catch(e) {}
-      const res = await apiPost('addTask', { text: task.text, date: task.date, time: task.time, priority: task.priority, tags: task.tags });
+      const res = await apiPost('addTask', { clientId: task.id, text: task.text, date: task.date, time: task.time, priority: task.priority, tags: task.tags });
       if (res && res.id) {
         const fresh = loadTasks();
         const idx = fresh.findIndex(x => x.id === task.id);
@@ -2632,7 +2873,7 @@ document.getElementById('note-text').addEventListener('input', updateNoteCounter
   closeNoteForm();
   renderNotes();
   toast('Заметка добавлена');
-  const res = await apiPost('addNote', { text: note.text });
+  const res = await apiPost('addNote', { clientId: note.id, text: note.text });
   if (res && res.id) {
     const fresh = loadNotes();
     const idx = fresh.findIndex(n => n.id === note.id);
@@ -3275,24 +3516,30 @@ function updateHomeBalance() {
   if (updEl) updEl.textContent = 'нет данных';
 }
 
-// Первичная загрузка с индикатором
+// 1. Показать очередь, если есть
+updateQueueBadge();
+
+// 2. Первичная загрузка с индикатором
 setSyncStatus('syncing');
 renderSkeletons();
 updateHomeBalance();
 
-bootstrapFromBackend().then(ok => {
-  setSyncStatus(ok ? 'online' : 'offline');
-  if (ok) {
-    renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
-    renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
-  }
-  // Подтянуть капитал для главной цифры
-  apiGet('getAccounts').then(data => {
-    if (data) {
-      localStorage.setItem('aura_capital_cache', JSON.stringify(data));
-      updateHomeBalance();
+// 3. Сначала сливаем очередь (если была с прошлого раза)
+flushPendingQueue(false).then(() => {
+  // 4. Потом грузим данные
+  bootstrapFromBackend().then(ok => {
+    setSyncStatus(ok ? 'online' : 'offline');
+    if (ok) {
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
+      renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
     }
-  }).catch(e => console.warn('home capital failed:', e));
+    apiGet('getAccounts').then(data => {
+      if (data) {
+        localStorage.setItem('aura_capital_cache', JSON.stringify(data));
+        updateHomeBalance();
+      }
+    }).catch(e => console.warn('home capital failed:', e));
+  });
 });
   </script>
 </body>
