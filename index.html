@@ -28,7 +28,20 @@
       --divider: rgba(0,0,0,0.06); --neutral-fill: rgba(0,0,0,0.04); --neutral-fill-hover: rgba(0,0,0,0.08);
       --key-bg: rgba(255,255,255,0.9); --key-bg-active: rgba(0,0,0,0.08); --field-bg: rgba(0,0,0,0.04);
     }
-    body { font-family: var(--font-stack); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; background: var(--bg); color: var(--text-primary); user-select: none; -webkit-tap-highlight-color: transparent; min-height: 100vh; padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transition: background-color .3s ease, color .3s ease; overflow-x: hidden; }
+    body {
+  font-family: var(--font-stack);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
     input, textarea { user-select: text; }
     .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); } .text-tertiary { color: var(--text-tertiary); }
     .numbers { font-variant-numeric: tabular-nums; } .divider { border-color: var(--divider); }
@@ -1756,14 +1769,57 @@ document.addEventListener('visibilitychange', () => {
 
     // =========== TELEGRAM INIT ===========
     const tg = window.Telegram?.WebApp;
-    if (tg) { tg.ready(); tg.expand(); }
-    function applyTheme() {
-      const scheme = tg?.colorScheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-      if (scheme === 'light') { document.body.classList.add('light'); if (tg) { tg.setHeaderColor('#F2F2F7'); tg.setBackgroundColor('#F2F2F7'); } }
-      else { document.body.classList.remove('light'); if (tg) { tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000'); } }
+if (tg) { tg.ready(); tg.expand(); }
+
+function getBgColor() {
+  const scheme = tg?.colorScheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  return scheme === 'light' ? '#F2F2F7' : '#000000';
+}
+
+function applyTheme() {
+  const scheme = tg?.colorScheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const bg = getBgColor();
+  if (scheme === 'light') document.body.classList.add('light');
+  else document.body.classList.remove('light');
+
+  if (tg) {
+    try { tg.setHeaderColor(bg); } catch (e) {}
+    try { tg.setBackgroundColor(bg); } catch (e) {}
+    try { if (typeof tg.setBottomBarColor === 'function') tg.setBottomBarColor(bg); } catch (e) {}
+  }
+}
+
+applyTheme();
+if (tg) tg.onEvent('themeChanged', applyTheme);
+
+// === FULLSCREEN + отключение свайпа ===
+if (tg) {
+  // 1. Пробуем уйти в fullscreen (Bot API 7.7+)
+  try {
+    if (typeof tg.requestFullscreen === 'function') {
+      tg.requestFullscreen({
+        is_visible: true,           // оставить кнопки закрыть/свернуть
+        is_background_color: true   // фон фулскрина = bg
+      });
     }
-    applyTheme();
-    if (tg) tg.onEvent('themeChanged', applyTheme);
+  } catch (e) { console.log('Fullscreen unavailable:', e); }
+
+  // 2. Отключаем случайный свайп вниз (он закрывает Mini App)
+  try {
+    if (typeof tg.disableVerticalSwipes === 'function') {
+      tg.disableVerticalSwipes();
+    }
+  } catch (e) {}
+
+  // 3. Слушаем смену fullscreen — пересчитываем layout
+  try {
+    tg.onEvent('fullscreenChanged', () => {
+      setTimeout(() => {
+        if (currentScreen === 'workout-coach') applyCoachHeight();
+      }, 150);
+    });
+  } catch (e) {}
+}
     function haptic(s='light') { try { tg?.HapticFeedback?.impactOccurred(s); } catch(e) {} }
     function hapticNotify(t='success') { try { tg?.HapticFeedback?.notificationOccurred(t); } catch(e) {} }
     let toastTimeout;
