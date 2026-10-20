@@ -55,6 +55,53 @@
 .sync-dot.syncing { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
 .sync-dot.online { background: var(--green); }
 .sync-dot.offline { background: var(--red); }
+    /* === Чат: fixed, не уезжает при клавиатуре === */
+#screen-workout-coach.active {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top, 0) 16px env(safe-area-inset-bottom, 0);
+}
+#screen-workout-coach .coach-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+}
+#screen-workout-coach .coach-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+#screen-workout-coach .coach-chips,
+#screen-workout-coach .coach-input-wrap {
+  flex-shrink: 0;
+}
+
+/* Таббар скрывается на специфичных экранах */
+body[data-screen="workout-coach"] nav[data-tabbar],
+body[data-screen="workout-timer"] nav[data-tabbar] {
+  transform: translateY(200%);
+}
+
+/* Клик-элементы */
+.day-row { cursor: pointer; }
+
+/* Таймер */
+.timer-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.timer-phase {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  font-size: 11px;
+}
     /* Tabbar плавно прячется при фокусе на input */
 nav[data-tabbar] {
   transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
@@ -564,7 +611,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
             <div id="home-menu-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Тренировка</h3><button onclick="navigate('workout', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
+            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Тренировка</h3><button onclick="navigate('workout')" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
             <div id="home-workout-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
         </div>
@@ -725,7 +772,13 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
 
     <!-- WORKOUT -->
     <section id="screen-workout" class="screen">
-      <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Спорт</p><h1 class="text-2xl font-semibold text-primary">Тренировки</h1></header>
+      <header class="flex items-center mb-6">
+  <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+  <div>
+    <p class="text-[11px] text-secondary uppercase font-medium mb-1">Спорт</p>
+    <h1 class="text-2xl font-semibold text-primary">Тренировки</h1>
+  </div>
+</header>
       <div class="grid grid-cols-2 gap-3 mb-4">
         <button onclick="navigate('workout-today')" class="hub-tile"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Сегодня</p><p class="text-sm font-semibold text-primary" id="hub-today-label">—</p></div></button>
         <button onclick="navigate('workout-plan')" class="hub-tile"><div class="hub-icon" style="background: rgba(0,122,255,.15); color: var(--blue);"><i data-lucide="calendar" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">План</p><p class="text-sm font-semibold text-primary">Неделя</p></div></button>
@@ -737,6 +790,11 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
         <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Кардио</p><p class="text-[11px] text-tertiary" id="hub-cardio-label">—</p></div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
       </button>
+      <button onclick="navigate('workout-timer')" class="hub-tile w-full mt-3">
+  <div class="hub-icon" style="background: rgba(90,200,250,.15); color: var(--teal);"><i data-lucide="timer" class="w-5 h-5"></i></div>
+  <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Таймер</p><p class="text-[11px] text-tertiary">Секундомер, интервалы</p></div>
+  <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+</button>
       <button onclick="navigate('workout-coach')" class="hub-tile w-full mt-3" style="border-color: rgba(175,82,222,.2);">
   <div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
   <div class="flex-1 text-left"><p class="text-sm font-medium text-primary">AI-тренер</p><p class="text-[11px] text-tertiary">Диалог, план</p></div>
@@ -802,6 +860,26 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">Кардио</h1></div></header>
       <div id="workout-cardio-content"></div>
     </section>
+    
+    <!-- WORKOUT TIMER -->
+<section id="screen-workout-timer" class="screen">
+  <header class="flex items-center justify-between mb-4">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium">Спорт</p>
+        <h1 class="text-xl font-semibold text-primary">Таймер</h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="apple-glass p-1 rounded-full flex space-x-1 mb-6">
+    <button data-timer-mode="stopwatch" onclick="setTimerMode('stopwatch')" class="segmented-btn active flex-1 py-2 text-xs font-medium rounded-full">Секундомер</button>
+    <button data-timer-mode="interval" onclick="setTimerMode('interval')" class="segmented-btn flex-1 py-2 text-xs font-medium rounded-full">Интервалы</button>
+  </div>
+
+  <div id="timer-content"></div>
+</section>
 
     <!-- NOTES -->
     <section id="screen-notes" class="screen">
@@ -868,7 +946,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
       <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Разделы</p><h1 class="text-2xl font-semibold text-primary">Ещё</h1></header>
       <div class="space-y-3">
         <button onclick="navigate('food', {tab:true})" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="utensils" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Питание</p><p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
-        <button onclick="navigate('workout', {tab:true})" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Тренировки</p><p class="text-[11px] text-tertiary">План, прогресс, замеры</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <button onclick="navigate('workout')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Тренировки</p><p class="text-[11px] text-tertiary">План, прогресс, замеры</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('notes')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(90,200,250,.15); color: var(--teal);"><i data-lucide="notebook" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Заметки</p><p class="text-[11px] text-tertiary">Быстрые записи</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('reports')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(88,86,214,.15); color: var(--indigo);"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Отчёты</p><p class="text-[11px] text-tertiary">Итоги и статистика</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('habits')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="check-circle" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Привычки</p><p class="text-[11px] text-tertiary">Трекер</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
@@ -1015,7 +1093,20 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
   </div>
 
   <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
-
+<!-- WORKOUT DAY SHEET -->
+<div id="workout-day-sheet-overlay" class="task-sheet-overlay" onclick="closeWorkoutDay()"></div>
+<div id="workout-day-sheet" class="task-sheet" style="top: auto; max-height: 75vh;">
+  <div class="task-drag-handle"></div>
+  <div class="task-sheet-header">
+    <button class="trx-close" onclick="closeWorkoutDay()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 id="workout-day-title" class="text-base font-semibold text-primary">Тренировка</h2>
+    <div class="w-9"></div>
+  </div>
+  <div class="task-sheet-body" id="workout-day-body"></div>
+  <div class="task-sheet-footer">
+    <button onclick="closeWorkoutDay()" class="submit-btn" style="margin:0; background: var(--neutral-fill-hover); color: var(--text-primary);">Закрыть</button>
+  </div>
+</div>
   <script>   
     // ============================================================
     // ⚙️ API-КОНСТАНТЫ — ЗАМЕНИТЬ URL
@@ -1663,6 +1754,7 @@ document.addEventListener('visibilitychange', () => {
     let history = ['home']; let currentScreen = 'home';
     function showScreen(name) {
       currentScreen = name;
+      document.body.dataset.screen = name;
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const target = document.getElementById('screen-' + name);
       if (target) target.classList.add('active');
@@ -1670,12 +1762,13 @@ document.addEventListener('visibilitychange', () => {
       const tabMatch = document.querySelector(`[data-nav="${name}"]`);
       if (tabMatch) tabMatch.classList.add('active');
       else {
-        const parent = {
-          'fin-budget':'finance','fin-capital':'finance','fin-goals':'finance','fin-history':'finance','fin-analytics':'finance',
-          'food-dish':'more','food-shop':'more','notes':'more','habits':'more','reports':'more','settings':'more',
-          'task-detail':'tasks',
-          'workout-today':'more','workout-plan':'more','workout-progress':'more','workout-body':'more','workout-cardio':'more'
-        }[name];
+  const parent = {
+    'fin-budget':'finance','fin-capital':'finance','fin-goals':'finance','fin-history':'finance','fin-analytics':'finance',
+    'food-dish':'more','food-shop':'more','notes':'more','habits':'more','reports':'more','settings':'more',
+    'task-detail':'tasks',
+    'workout':'more',
+    'workout-today':'more','workout-plan':'more','workout-progress':'more','workout-body':'more','workout-cardio':'more','workout-coach':'more','workout-timer':'more'
+  }[name];
         if (parent) { const el = document.querySelector(`[data-nav="${parent}"]`); if (el) el.classList.add('active'); }
       }
       if (tg?.BackButton) { history.length > 1 ? tg.BackButton.show() : tg.BackButton.hide(); }
