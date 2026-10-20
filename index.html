@@ -55,6 +55,10 @@
 .sync-dot.syncing { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
 .sync-dot.online { background: var(--green); }
 .sync-dot.offline { background: var(--red); }
+    /* Tabbar плавно прячется при фокусе на input */
+nav[data-tabbar] {
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
     .sync-queue-badge {
   display: none;
   align-items: center;
@@ -763,7 +767,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
     <div id="coach-chips" class="coach-chips">
       <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
       <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
-      <button class="coach-chip" onclick="sendCoachQuick('Составь мне план на следующую неделю')">📅 Составь план</button>
+      <button class="coach-chip" data-always-visible="true" onclick="generatePlanFlow()">📅 Составь план</button>
       <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
     </div>
 
@@ -880,7 +884,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
 
   <button id="fab" class="fab" onclick="onFabTap()" style="display: none;"><i data-lucide="plus" class="w-6 h-6"></i></button>
 
-  <nav class="fixed inset-x-0 flex justify-center z-50 px-4" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));">
+  <nav data-tabbar class="fixed inset-x-0 flex justify-center z-50 px-4" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));">
     <div class="apple-glass px-6 py-3 rounded-full flex items-center space-x-8 shadow-2xl">
       <button data-nav="home" onclick="navigate('home', {tab:true})" class="nav-btn active flex flex-col items-center"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Обзор</span></button>
       <button data-nav="finance" onclick="navigate('finance', {tab:true})" class="nav-btn flex flex-col items-center"><i data-lucide="coins" class="w-5 h-5"></i><span class="text-[10px] mt-1 font-medium">Финансы</span></button>
@@ -3088,9 +3092,11 @@ function updateCoachChips() {
   const chips = document.getElementById('coach-chips');
   if (!chips) return;
   const history = loadCoachHistory();
-  // Скрываем чипы, если уже идёт диалог (больше 4 сообщений)
   const visible = history.length < 4;
-  chips.querySelectorAll('.coach-chip').forEach(c => c.classList.toggle('hidden', !visible));
+  chips.querySelectorAll('.coach-chip').forEach(c => {
+    if (c.dataset.alwaysVisible === 'true') return;
+    c.classList.toggle('hidden', !visible);
+  });
 }
 
 async function sendCoachMessage() {
@@ -3149,6 +3155,143 @@ function sendCoachQuick(text) {
   const input = document.getElementById('coach-input');
   if (input) { input.value = text; }
   sendCoachMessage();
+}
+    // ============================================================
+// AI-ГЕНЕРАЦИЯ ПЛАНА
+// ============================================================
+let pendingPlan = null;
+
+async function generatePlanFlow(userMessage) {
+  const input = document.getElementById('coach-input');
+  const sendBtn = document.getElementById('coach-send');
+  const text = userMessage || (input ? input.value.trim() : '') || 'Составь план на следующую неделю';
+
+  haptic('medium');
+  if (input) input.value = '';
+  if (sendBtn) sendBtn.disabled = true;
+
+  appendCoachBubble('user', text);
+  const history = loadCoachHistory();
+  history.push({ role: 'user', content: text, ts: new Date().toISOString() });
+  saveCoachHistory(history);
+
+  showCoachTyping();
+  toast('Составляю план... 10–15 сек');
+
+  try {
+    const res = await apiPost('generatePlan', { message: text });
+    hideCoachTyping();
+    if (!res || !res.plan) throw new Error('Пустой план от AI');
+
+    const replyText = res.explanation || 'Вот план на следующую неделю. Проверь и применяй, если подходит:';
+    appendCoachBubble('coach', replyText);
+    history.push({ role: 'coach', content: replyText, ts: new Date().toISOString() });
+    saveCoachHistory(history);
+
+    showPlanPreview(res);
+    hapticNotify('success');
+  } catch (e) {
+    hideCoachTyping();
+    console.error('generatePlan failed:', e);
+    const msg = (e && e.message && /quota|limit|too many/i.test(e.message))
+      ? 'Лимит AI исчерпан. Попробуй позже.'
+      : 'Не удалось составить план. ' + ((e && e.message) || 'Попробуй ещё раз.');
+    appendCoachBubble('coach', msg);
+    hapticNotify('error');
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+function showPlanPreview(data) {
+  pendingPlan = data;
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+
+  const dowNames = { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Вс' };
+  const days = {};
+  for (const day of data.plan) {
+    if (!days[day.dow]) days[day.dow] = { name: day.name, exercises: [] };
+    days[day.dow].exercises.push(...day.exercises);
+  }
+
+  let planHtml = '';
+  Object.keys(days).sort((a, b) => a - b).forEach(dow => {
+    const d = days[dow];
+    planHtml += `<div class="mt-2 pb-2 border-b divider last:border-0">
+      <p class="text-xs font-semibold text-primary mb-1">${dowNames[dow] || dow} · ${escapeHtml(d.name)}</p>
+      <ul class="text-[11px] text-secondary list-none m-0 p-0">
+        ${d.exercises.map(ex =>
+          `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`
+        ).join('')}
+      </ul>
+    </div>`;
+  });
+
+  const card = document.createElement('div');
+  card.className = 'coach-bubble coach plan-preview';
+  card.style.maxWidth = '95%';
+  card.style.background = 'var(--bg)';
+  card.style.border = '1px solid var(--purple)';
+  card.innerHTML = `
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="calendar" class="w-4 h-4" style="color: var(--purple);"></i>
+      <span class="text-xs font-semibold text-primary">План на неделю с ${data.weekStart.split('-').reverse().slice(0, 2).join('.')}</span>
+    </div>
+    ${planHtml}
+    <div class="flex gap-2 mt-3">
+      <button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">
+        ✓ Применить
+      </button>
+      <button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">
+        Отмена
+      </button>
+    </div>
+  `;
+  el.appendChild(card);
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  lucide.createIcons();
+}
+
+async function applyPlanPreview() {
+  if (!pendingPlan) return;
+  haptic('medium');
+  toast('Записываю план...');
+  try {
+    const res = await apiPost('applyPlan', {
+      plan: pendingPlan.plan,
+      weekStart: pendingPlan.weekStart
+    });
+    if (!res || !res.ok) throw new Error('Не удалось записать');
+    hapticNotify('success');
+    toast(`✓ Записано ${res.exercises} упражнений`);
+    pendingPlan = null;
+    // Убираем карточку превью
+    const cards = document.querySelectorAll('#coach-messages .plan-preview');
+    cards.forEach(c => c.remove());
+    // Перезагружаем план с сервера
+    await reloadWorkoutPlanFromServer();
+  } catch (e) {
+    console.error('applyPlan failed:', e);
+    toast('Ошибка: ' + ((e && e.message) || 'попробуй ещё'));
+  }
+}
+
+function cancelPlanPreview() {
+  pendingPlan = null;
+  haptic('light');
+  const cards = document.querySelectorAll('#coach-messages .plan-preview');
+  cards.forEach(c => c.remove());
+  toast('Отменено');
+}
+
+async function reloadWorkoutPlanFromServer() {
+  try {
+    const fresh = await apiGet('getAll');
+    if (fresh && fresh.workoutPlan && Object.keys(fresh.workoutPlan).length > 0) {
+      localStorage.setItem('aura_workout_plan', JSON.stringify(fresh.workoutPlan));
+    }
+  } catch (e) { console.warn('reload plan failed:', e); }
 }
 
 function clearCoachHistory() {
@@ -3894,6 +4037,33 @@ function renderReports() {
       toast('Данные очищены');
       setTimeout(()=>{ navigate('home', {tab:true}); }, 500);
     }
+    // ============================================================
+// СКРЫТИЕ TABBAR ПРИ ФОКУСЕ НА INPUT
+// ============================================================
+(function setupKeyboardHandling() {
+  const tabbar = document.querySelector('nav[data-tabbar]');
+  if (!tabbar) return;
+
+  let blurTimer = null;
+
+  document.addEventListener('focusin', (e) => {
+    if (!e.target.matches('input, textarea, [contenteditable]')) return;
+    clearTimeout(blurTimer);
+    tabbar.style.transform = 'translateY(200%)';
+    const fab = document.getElementById('fab');
+    if (fab) fab.style.display = 'none';
+  });
+
+  document.addEventListener('focusout', (e) => {
+    if (!e.target.matches('input, textarea, [contenteditable]')) return;
+    blurTimer = setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active.matches('input, textarea, [contenteditable]')) return;
+      tabbar.style.transform = 'translateY(0)';
+      if (typeof updateFabForScreen === 'function') updateFabForScreen(currentScreen);
+    }, 100);
+  });
+})();
 // При фокусе на input тренера — прокрутить вниз
 const coachInputEl = document.getElementById('coach-input');
 if (coachInputEl) {
