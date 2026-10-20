@@ -3645,6 +3645,12 @@ function updateCoachChips() {
   });
 }
 
+    function looksLikePlanRequest(text) {
+  const lower = String(text || "").toLowerCase().trim();
+  const direct = /(состав|сгенерир|сделай|сдела|распиши|распиш|напиши|напиш|обнови|обнов|построй|постро)\w*[^.]{0,20}(план|тренировк|программ)/i;
+  return direct.test(lower);
+}
+    
 async function sendCoachMessage() {
   const input = document.getElementById('coach-input');
   const sendBtn = document.getElementById('coach-send');
@@ -3652,31 +3658,31 @@ async function sendCoachMessage() {
   const text = input.value.trim();
   if (!text) return;
 
+  // Роутим запросы на составление плана в генератор
+  if (looksLikePlanRequest(text)) {
+    generatePlanFlow(text);
+    return;
+  }
+
   haptic('light');
   input.value = '';
   sendBtn.disabled = true;
 
-  // Показываем сообщение пользователя
   appendCoachBubble('user', text);
 
-  // История
   const history = loadCoachHistory();
   history.push({ role: 'user', content: text, ts: new Date().toISOString() });
   saveCoachHistory(history);
   updateCoachChips();
 
-  // Спиннер
   showCoachTyping();
 
-  // Собираем историю для отправки (без текущего сообщения)
   const historyForApi = history.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
 
   try {
     const res = await apiPost('coachMessage', { history: historyForApi, message: text });
     hideCoachTyping();
-    if (!res || !res.reply) {
-      throw new Error('Пустой ответ');
-    }
+    if (!res || !res.reply) throw new Error('Пустой ответ');
     const replyHtml = sanitizeCoachHtml(res.reply);
     appendCoachBubble('coach', res.reply, replyHtml);
     history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() });
@@ -3722,7 +3728,7 @@ async function generatePlanFlow(userMessage) {
   saveCoachHistory(history);
 
   showCoachTyping();
-  toast('Составляю план... 10–15 сек');
+  toast(/сегодня|завтра|день/i.test(text) ? 'Составляю тренировку... 10–15 сек' : 'Составляю план... 10–15 сек');
 
   try {
     const res = await apiPost('generatePlan', { message: text });
@@ -3755,24 +3761,36 @@ function showPlanPreview(data) {
   if (!el) return;
 
   const dowNames = { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Вс' };
-  const days = {};
-  for (const day of data.plan) {
-    if (!days[day.dow]) days[day.dow] = { name: day.name, exercises: [] };
-    days[day.dow].exercises.push(...day.exercises);
-  }
 
+  let headerTitle = '';
   let planHtml = '';
-  Object.keys(days).sort((a, b) => a - b).forEach(dow => {
-    const d = days[dow];
-    planHtml += `<div class="mt-2 pb-2 border-b divider last:border-0">
-      <p class="text-xs font-semibold text-primary mb-1">${dowNames[dow] || dow} · ${escapeHtml(d.name)}</p>
-      <ul class="text-[11px] text-secondary list-none m-0 p-0">
-        ${d.exercises.map(ex =>
-          `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`
-        ).join('')}
-      </ul>
-    </div>`;
-  });
+
+  if (data.mode === 'single') {
+    const dd = data.targetDate.split('-').reverse().slice(0, 2).join('.');
+    const dow = dowNames[data.day.dow] || '';
+    headerTitle = `${dow} ${dd} · ${data.day.name}`;
+    planHtml = `<ul class="text-[11px] text-secondary list-none m-0 p-0 mt-2">${data.day.exercises.map(ex =>
+      `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`
+    ).join('')}</ul>`;
+  } else {
+    const days = {};
+    for (const day of data.plan) {
+      if (!days[day.dow]) days[day.dow] = { name: day.name, exercises: [] };
+      days[day.dow].exercises.push(...day.exercises);
+    }
+    headerTitle = `План на неделю с ${data.weekStart.split('-').reverse().slice(0, 2).join('.')}`;
+    Object.keys(days).sort((a, b) => a - b).forEach(dow => {
+      const d = days[dow];
+      planHtml += `<div class="mt-2 pb-2 border-b divider last:border-0">
+        <p class="text-xs font-semibold text-primary mb-1">${dowNames[dow] || dow} · ${escapeHtml(d.name)}</p>
+        <ul class="text-[11px] text-secondary list-none m-0 p-0">
+          ${d.exercises.map(ex =>
+            `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`
+          ).join('')}
+        </ul>
+      </div>`;
+    });
+  }
 
   const card = document.createElement('div');
   card.className = 'coach-bubble coach plan-preview';
@@ -3782,16 +3800,12 @@ function showPlanPreview(data) {
   card.innerHTML = `
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="calendar" class="w-4 h-4" style="color: var(--purple);"></i>
-      <span class="text-xs font-semibold text-primary">План на неделю с ${data.weekStart.split('-').reverse().slice(0, 2).join('.')}</span>
+      <span class="text-xs font-semibold text-primary">${escapeHtml(headerTitle)}</span>
     </div>
     ${planHtml}
     <div class="flex gap-2 mt-3">
-      <button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">
-        ✓ Применить
-      </button>
-      <button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">
-        Отмена
-      </button>
+      <button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">✓ Применить</button>
+      <button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">Отмена</button>
     </div>
   `;
   el.appendChild(card);
@@ -3803,20 +3817,35 @@ async function applyPlanPreview() {
   if (!pendingPlan) return;
   haptic('medium');
   toast('Записываю план...');
+
   try {
-    const res = await apiPost('applyPlan', {
-      plan: pendingPlan.plan,
-      weekStart: pendingPlan.weekStart
-    });
+    let body;
+    if (pendingPlan.mode === 'single') {
+      body = {
+        mode: 'single',
+        targetDate: pendingPlan.targetDate,
+        day: pendingPlan.day
+      };
+    } else {
+      body = {
+        mode: 'week',
+        plan: pendingPlan.plan,
+        weekStart: pendingPlan.weekStart
+      };
+    }
+
+    const res = await apiPost('applyPlan', body);
     if (!res || !res.ok) throw new Error('Не удалось записать');
     hapticNotify('success');
     toast(`✓ Записано ${res.exercises} упражнений`);
     pendingPlan = null;
-    // Убираем карточку превью
-    const cards = document.querySelectorAll('#coach-messages .plan-preview');
-    cards.forEach(c => c.remove());
-    // Перезагружаем план с сервера
+    document.querySelectorAll('#coach-messages .plan-preview').forEach(c => c.remove());
     await reloadWorkoutPlanFromServer();
+
+    // Если обновили сегодняшний план — обновить и экран "Сегодня"
+    if (res.mode === 'single' && res.targetDate === todayStr()) {
+      if (currentScreen === 'workout-today') renderWorkoutToday();
+    }
   } catch (e) {
     console.error('applyPlan failed:', e);
     toast('Ошибка: ' + ((e && e.message) || 'попробуй ещё'));
