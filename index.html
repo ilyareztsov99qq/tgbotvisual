@@ -253,217 +253,16 @@ body[data-screen="workout-timer"] nav[data-tabbar] {
   color: var(--blue);
 }
 .ex-rpe-btn.active .label { opacity: 1; }
+.rpe-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; vertical-align: -1px;
+}
+
+.ex-item.skipped { opacity: 0.55; filter: grayscale(0.4); }
+.ex-item.skipped .ex-check { color: var(--text-tertiary); }
+.ex-item.skipped .ex-check.skipped-badge { color: var(--orange); }
 
 .ex-row-with-log {
   cursor: pointer;
-}
-    /* === Workout Today: счётчики, кнопки, финал === */
-.ex-sets-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--neutral-fill);
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-}
-.ex-sets-badge.partial {
-  background: rgba(0, 122, 255, 0.15);
-  color: var(--blue);
-}
-.ex-sets-badge.full {
-  background: rgba(52, 199, 89, 0.15);
-  color: var(--green);
-}
-.ex-rpe-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-right: 4px;
-}
-.ex-rpe-dot.easy { background: var(--green); }
-.ex-rpe-dot.mid { background: var(--yellow); }
-.ex-rpe-dot.hard { background: var(--red); }
-
-.ex-more-btn {
-  padding: 4px 8px;
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-.ex-action-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 0.15s ease;
-}
-.ex-action-btn:active { transform: scale(0.98); }
-.ex-action-btn.start { background: var(--green); color: #fff; }
-.ex-action-btn.finish { background: var(--blue); color: #fff; }
-.ex-action-btn.secondary {
-  background: var(--card-bg);
-  border: 0.5px solid var(--card-border);
-  color: var(--text-primary);
-}
-
-/* Автотаймер отдыха */
-#rest-timer {
-  position: fixed;
-  bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%) translateY(120%);
-  background: var(--glass-bg);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 0.5px solid var(--glass-border);
-  border-radius: 20px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  z-index: 60;
-  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  min-width: 280px;
-  max-width: 92vw;
-}
-#rest-timer.show { transform: translateX(-50%) translateY(0); }
-.rest-timer-time {
-  font-size: 28px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  min-width: 60px;
-}
-.rest-timer-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-tertiary);
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-.rest-timer-controls {
-  display: flex;
-  gap: 6px;
-}
-.rest-timer-btn {
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: var(--neutral-fill);
-  border: none;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.rest-timer-btn:active { background: var(--neutral-fill-hover); }
-.rest-timer-btn.primary {
-  background: var(--orange);
-  color: #000;
-}
-
-/* Финал-модалка */
-#workout-finish-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 210;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-#workout-finish-overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-#workout-finish {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 215;
-  padding: 20px;
-  pointer-events: none;
-}
-#workout-finish.show {
-  display: flex;
-}
-.workout-finish-card {
-  background: var(--bg);
-  border: 0.5px solid var(--card-border);
-  border-radius: 28px;
-  padding: 28px 24px;
-  max-width: 380px;
-  width: 100%;
-  pointer-events: auto;
-  animation: finishIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-@keyframes finishIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-.finish-hero {
-  font-size: 64px;
-  text-align: center;
-  margin-bottom: 8px;
-  line-height: 1;
-}
-.finish-title {
-  font-size: 22px;
-  font-weight: 700;
-  text-align: center;
-  color: var(--text-primary);
-  margin-bottom: 24px;
-  letter-spacing: -0.02em;
-}
-.finish-stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 0.5px solid var(--divider);
-}
-.finish-stat-row:last-child { border-bottom: none; }
-.finish-stat-label { font-size: 13px; color: var(--text-secondary); }
-.finish-stat-value { font-size: 13px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.finish-prs {
-  margin-top: 16px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255, 204, 0, 0.1);
-  border: 0.5px solid rgba(255, 204, 0, 0.3);
-}
-.finish-prs-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
-  color: var(--yellow);
-  margin-bottom: 6px;
-}
-.finish-prs-item {
-  font-size: 12px;
-  color: var(--text-primary);
-  padding: 3px 0;
 }
 /* Клик-элементы */
 .day-row { cursor: pointer; }
@@ -1531,77 +1330,7 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
     </div>
     <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--orange);" onclick="submitCardio()">Записать</button></div>
   </div>
-<!-- REST TIMER -->
-<div id="rest-timer">
-  <div>
-    <div class="rest-timer-label">Отдых</div>
-    <div class="rest-timer-time" id="rest-timer-time">90</div>
-  </div>
-  <div class="rest-timer-controls">
-    <button class="rest-timer-btn" onclick="restTimerAdd(30)">+30</button>
-    <button class="rest-timer-btn primary" onclick="restTimerSkip()">Пропустить</button>
-  </div>
-</div>
 
-<!-- WORKOUT FINISH MODAL -->
-<div id="workout-finish-overlay" onclick="closeWorkoutFinish()"></div>
-<div id="workout-finish">
-  <div class="workout-finish-card">
-    <div class="finish-hero">🏁</div>
-    <div class="finish-title">Тренировка завершена</div>
-    <div id="finish-stats"></div>
-    <div id="finish-prs"></div>
-    <button onclick="closeWorkoutFinish()" class="ex-action-btn finish" style="margin-top: 20px;">Готово</button>
-  </div>
-</div>
-
-<!-- ADD EXERCISE SHEET -->
-<div id="add-ex-sheet-overlay" class="task-sheet-overlay" onclick="closeAddExercise()"></div>
-<div id="add-ex-sheet" class="task-sheet" style="top: 20vh;">
-  <div class="task-drag-handle"></div>
-  <div class="task-sheet-header">
-    <button class="trx-close" onclick="closeAddExercise()"><i data-lucide="x" class="w-5 h-5"></i></button>
-    <h2 class="text-base font-semibold text-primary">Добавить упражнение</h2>
-    <div class="w-9"></div>
-  </div>
-  <div class="task-sheet-body">
-    <input id="add-ex-name" type="text" class="task-input" placeholder="Название: жим лёжа, присед..." maxlength="60" style="margin-bottom: 14px;">
-
-    <div class="ex-inputs-grid">
-      <div class="ex-input-box">
-        <div class="ex-input-label">Вес</div>
-        <input id="add-ex-weight" class="ex-input-field" type="number" step="0.5" min="0" inputmode="decimal" placeholder="—">
-        <div class="ex-input-unit">кг</div>
-      </div>
-      <div class="ex-input-box">
-        <div class="ex-input-label">Подходы</div>
-        <input id="add-ex-sets" class="ex-input-field" type="number" step="1" min="1" max="20" inputmode="numeric" placeholder="3">
-        <div class="ex-input-unit">сет</div>
-      </div>
-      <div class="ex-input-box">
-        <div class="ex-input-label">Повторы</div>
-        <input id="add-ex-reps" class="ex-input-field" type="number" step="1" min="1" max="50" inputmode="numeric" placeholder="8">
-        <div class="ex-input-unit">раз</div>
-      </div>
-    </div>
-
-    <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 8px;">Насколько тяжело?</div>
-    <div class="ex-rpe-row">
-      <button class="ex-rpe-btn" data-add-rpe="6" onclick="setAddExRpe(6)">
-        <span class="emoji">😌</span><span>Легко</span><span class="label">RPE 6</span>
-      </button>
-      <button class="ex-rpe-btn" data-add-rpe="8" onclick="setAddExRpe(8)">
-        <span class="emoji">😐</span><span>Средне</span><span class="label">RPE 8</span>
-      </button>
-      <button class="ex-rpe-btn" data-add-rpe="9" onclick="setAddExRpe(9)">
-        <span class="emoji">🥵</span><span>Тяжело</span><span class="label">RPE 9</span>
-      </button>
-    </div>
-  </div>
-  <div class="task-sheet-footer">
-    <button onclick="saveAddedExercise()" class="submit-btn" style="margin: 0; background: var(--green);">Записать</button>
-  </div>
-</div>
   <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
 <!-- WORKOUT DAY SHEET -->
 <div id="workout-day-sheet-overlay" class="task-sheet-overlay" onclick="closeWorkoutDay()"></div>
@@ -1617,6 +1346,73 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
     <button onclick="closeWorkoutDay()" class="submit-btn" style="margin:0; background: var(--neutral-fill-hover); color: var(--text-primary);">Закрыть</button>
   </div>
 </div>
+  <!-- WORKOUT FINISH OVERLAY -->
+  <div id="workout-finish-overlay" class="task-sheet-overlay" onclick="closeWorkoutFinish()"></div>
+  <div id="workout-finish" class="task-sheet" style="top: 20vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header">
+      <button class="trx-close" onclick="closeWorkoutFinish()"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h2 class="text-base font-semibold text-primary">Итоги тренировки</h2>
+      <div class="w-9"></div>
+    </div>
+    <div class="task-sheet-body" id="workout-finish-content"></div>
+  </div>
+  <!-- REST TIMER OVERLAY -->
+  <div id="rest-timer-overlay" class="task-sheet-overlay" onclick="closeRestTimer()"></div>
+  <div id="rest-timer" class="task-sheet" style="top: 30vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header">
+      <h2 class="text-base font-semibold text-primary">Отдых между подходами</h2>
+      <div class="w-9"></div>
+    </div>
+    <div class="task-sheet-body" style="text-align:center;">
+      <div id="rest-timer-display" class="text-6xl font-bold numbers text-primary mt-4">60</div>
+      <div class="text-sm text-secondary mb-6">секунд до следующего подхода</div>
+      <div class="flex justify-center gap-3">
+        <button onclick="setRestTime(60)" class="ex-rpe-btn" style="flex:none;width:auto;padding:8px 16px;">60 сек</button>
+        <button onclick="setRestTime(90)" class="ex-rpe-btn" style="flex:none;width:auto;padding:8px 16px;">90 сек</button>
+        <button onclick="setRestTime(120)" class="ex-rpe-btn" style="flex:none;width:auto;padding:8px 16px;">120 сек</button>
+      </div>
+    </div>
+    <div class="task-sheet-footer">
+      <button onclick="closeRestTimer()" class="submit-btn" style="margin:0 8px 0 0; background: var(--neutral-fill-hover); color: var(--text-primary);">Закрыть</button>
+      <button onclick="skipRestTimer()" class="submit-btn" style="margin:0; background: var(--green);">Пропустить</button>
+    </div>
+  </div>
+  <!-- ADD EXERCISE SHEET -->
+  <div id="add-ex-sheet-overlay" class="task-sheet-overlay" onclick="closeAddExerciseSheet()"></div>
+  <div id="add-ex-sheet" class="task-sheet" style="top: 20vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header">
+      <button class="trx-close" onclick="closeAddExerciseSheet()"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h2 class="text-base font-semibold text-primary">Добавить упражнение</h2>
+      <div class="w-9"></div>
+    </div>
+    <div class="task-sheet-body">
+      <div class="ex-input-box" style="margin-bottom: 14px;">
+        <div class="ex-input-label">Название</div>
+        <input id="add-ex-name" class="ex-input-field" type="text" placeholder="Напр. Жим лёги">
+      </div>
+      <div class="ex-inputs-grid" style="margin-bottom: 14px;">
+        <div class="ex-input-box">
+          <div class="ex-input-label">Вес (кг)</div>
+          <input id="add-ex-weight" class="ex-input-field" type="number" step="0.5" min="0" inputmode="decimal" placeholder="—">
+        </div>
+        <div class="ex-input-box">
+          <div class="ex-input-label">Подходы</div>
+          <input id="add-ex-sets" class="ex-input-field" type="number" step="1" min="1" max="20" inputmode="numeric" placeholder="3">
+        </div>
+        <div class="ex-input-box">
+          <div class="ex-input-label">Повторы</div>
+          <input id="add-ex-reps" class="ex-input-field" type="number" step="1" min="1" max="50" inputmode="numeric" placeholder="8">
+        </div>
+      </div>
+    </div>
+    <div class="task-sheet-footer">
+      <button onclick="closeAddExerciseSheet()" class="submit-btn" style="margin:0 8px 0 0; background: var(--neutral-fill-hover); color: var(--text-primary);">Отмена</button>
+      <button onclick="saveAddedExercise()" class="submit-btn" style="margin:0; background: var(--green);">Добавить</button>
+    </div>
+  </div>
   <script>   
     // ============================================================
     // ⚙️ API-КОНСТАНТЫ — ЗАМЕНИТЬ URL
@@ -3471,47 +3267,6 @@ function capitalHTML(data) {
     function saveBody(arr) { try { localStorage.setItem('aura_body', JSON.stringify(arr)); } catch(e) {} }
     function loadCardio() { try { return JSON.parse(localStorage.getItem('aura_cardio')||'[]'); } catch(e) { return []; } }
     function saveCardio(arr) { try { localStorage.setItem('aura_cardio', JSON.stringify(arr)); } catch(e) {} }
-    // PR (локальный, из loadWorkoutLog)
-function getLocalPR(exerciseName, excludeClientId) {
-  if (!exerciseName) return 0;
-  const logs = loadWorkoutLog();
-  const t = exerciseName.toLowerCase().trim();
-  let pr = 0;
-  for (const l of logs) {
-    if (excludeClientId && l.id === excludeClientId) continue;
-    if (!l.exercise) continue;
-    const ex = l.exercise.toLowerCase();
-    if (ex.includes(t) || t.includes(ex)) {
-      const w = Number(l.weight) || 0;
-      if (w > pr) pr = w;
-    }
-  }
-  return pr;
-}
-
-// Старт тренировки (время)
-function getWorkoutStartedAt() {
-  try {
-    const raw = localStorage.getItem('aura_workout_started_' + todayStr());
-    return raw ? Number(raw) : 0;
-  } catch (e) { return 0; }
-}
-function setWorkoutStartedAt(ts) {
-  try {
-    if (ts) localStorage.setItem('aura_workout_started_' + todayStr(), String(ts));
-    else localStorage.removeItem('aura_workout_started_' + todayStr());
-  } catch (e) {}
-}
-
-function formatDuration(ms) {
-  if (ms <= 0) return '0 мин';
-  const totalMin = Math.floor(ms / 60000);
-  if (totalMin < 1) return 'только начали';
-  if (totalMin < 60) return totalMin + ' мин';
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return h + 'ч ' + m + 'м';
-}
     function getTodayDow() { const d = new Date().getDay(); return d === 0 ? 7 : d; }
     function getTodayWorkoutPlan() { return loadWorkoutPlan()[getTodayDow()] || null; }
     function renderWorkoutHub() {
@@ -3533,493 +3288,327 @@ function formatDuration(ms) {
   const first = short.split(' ')[0];
   return first.length > 14 ? first.slice(0, 13) + '…' : first;
 }
-    // Новый формат: { "жим лёжа": { sets: 2, rpe: 8 }, "тяга блока": { sets: 3 } }
-function getWorkoutDone() {
-  try {
-    const d = localStorage.getItem('aura_workout_done_' + todayStr());
-    const raw = d ? JSON.parse(d) : {};
-    // Миграция: если старый формат (ключи-числа) — игнорируем
-    const clean = {};
-    for (const k of Object.keys(raw)) {
-      if (/^\d+$/.test(k)) continue; // старый формат
-      const v = raw[k];
-      if (typeof v === 'number') clean[k] = { sets: v };
-      else if (typeof v === 'object' && v !== null) clean[k] = v;
-      else if (v === true) clean[k] = { sets: 999 };
+    function getWorkoutDone() { try { const d = localStorage.getItem('aura_workout_done_'+todayStr()); return d?JSON.parse(d):{}; } catch(e) { return {}; } }
+    function saveWorkoutDone(o) { try { localStorage.setItem('aura_workout_done_'+todayStr(), JSON.stringify(o)); } catch(e) {} }
+    // Миграция старого done (по индексу) на новый (по id упражнения)
+    function migrateWorkoutDone() {
+      try {
+        const done = getWorkoutDone();
+        const keys = Object.keys(done);
+        const hasIndexKey = keys.some(k => /^\d+$/.test(k));
+        if (!hasIndexKey) return; // уже в новом формате
+        const plan = getTodayWorkoutPlan();
+        if (!plan) return;
+        const newDone = {};
+        keys.forEach(k => {
+          if (done[k] === true) {
+            const ex = plan.exercises[Number(k)];
+            if (ex && ex.id) newDone[ex.id] = true;
+          }
+        });
+        saveWorkoutDone(newDone);
+      } catch(e) {}
     }
-    return clean;
-  } catch (e) { return {}; }
-}
-function saveWorkoutDone(o) {
-  try { localStorage.setItem('aura_workout_done_' + todayStr(), JSON.stringify(o)); } catch (e) {}
-}
+    function rpeColor(rpe) {
+      const n = Number(rpe);
+      if (n <= 7) return 'var(--green)';
+      if (n <= 8) return 'var(--yellow)';
+      return 'var(--red)';
+    }
+    function getExerciseId(ex, idx) {
+      if (ex.id) return ex.id;
+      //.generate stable id from name + position if missing
+      return 'ex_' + (ex.name || 'unknown') + '_' + idx;
+    }
+    function ensureExerciseIds(plan) {
+      let changed = false;
+      plan.exercises.forEach((ex, idx) => {
+        if (!ex.id) { ex.id = getExerciseId(ex, idx); changed = true; }
+      });
+      return changed;
+    }
     function renderWorkoutToday() {
-  const plan = getTodayWorkoutPlan();
-  document.getElementById('workout-today-label').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
-  const el = document.getElementById('workout-today-content');
-  if (!el) return;
-
-  if (!plan || !plan.exercises || !plan.exercises.length) {
-    el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center">
-      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
-        <i data-lucide="moon" class="w-7 h-7 text-tertiary"></i>
-      </div>
-      <p class="text-sm font-medium text-primary mb-1">День отдыха</p>
-      <p class="text-xs text-tertiary">Восстановление — тоже тренировка</p>
-    </div>`;
-    lucide.createIcons();
-    return;
-  }
-
-  const done = getWorkoutDone();
-  const startedAt = getWorkoutStartedAt();
-
-  // Считаем прогресс: упражнение "полностью выполнено" если sets >= target
-  let doneCount = 0;
-  const exDoneStatus = plan.exercises.map(ex => {
-    const d = done[ex.name] || { sets: 0 };
-    const target = ex.sets || 3;
-    const full = d.sets >= target;
-    if (full) doneCount++;
-    return { sets: d.sets || 0, target, full, rpe: d.rpe };
-  });
-  const total = plan.exercises.length;
-  const allDone = doneCount === total;
-
-  let html = '';
-
-  // Шапка с прогрессом
-  html += `<div class="apple-card p-5 rounded-[24px] mb-4">
-    <div class="flex justify-between items-start mb-2">
-      <div>
-        <p class="text-xs text-secondary">Сегодня</p>
-        <p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p>
-      </div>
-      <div class="text-right">
-        <p class="text-xs text-tertiary uppercase tracking-wide">Выполнено</p>
-        <p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p>
-      </div>
+      const plan = getTodayWorkoutPlan();
+      document.getElementById('workout-today-label').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
+      const el = document.getElementById('workout-today-content');
+      if (!plan || !plan.exercises || !plan.exercises.length) {
+        el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="moon" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">День отдыха</p><p class="text-xs text-tertiary">Восстановление — тоже тренировка</p></div>`;
+        lucide.createIcons(); return;
+      }
+      ensureExerciseIds(plan);
+      migrateWorkoutDone();
+      const done = getWorkoutDone();
+      const logs = loadWorkoutLog();
+      const todayStr = todayStr();
+      const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
+      const total = plan.exercises.length;
+      // Счётчик подходов и RPE по каждому упражнению за сегодня
+      const setCounts = {};
+      const lastRpe = {};
+      logs.forEach(l => {
+        if (l.date && l.date.startsWith(todayStr)) {
+          setCounts[l.exercise] = (setCounts[l.exercise]||0) + 1;
+          if (l.rpe) lastRpe[l.exercise] = l.rpe;
+        }
+      });
+      let html = `<div class="apple-card p-5 rounded-[24px] mb-4"><div class="flex justify-between items-start mb-2"><div><p class="text-xs text-secondary">Сегодня</p><p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p></div><div class="text-right"><p class="text-xs text-tertiary uppercase">Выполнено</p><p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p></div></div><div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div></div></div>`;
+      // Кнопка «Начать тренировку» — если есть невыполненные упражнения
+      const firstNotDone = plan.exercises.find(ex => !done[ex.id]);
+      if (firstNotDone && doneCount < total) {
+        html += `<div class="apple-card p-4 rounded-[24px] mb-4"><button onclick="startWorkout()" class="w-full apple-card tappable p-5 rounded-2xl flex items-center justify-center space-x-3 bg-green/10 border border-green/30 hover:border-green/50 transition-colors"><span style="font-size:24px;">▶</span><div><p class="text-sm font-semibold text-primary">Начать тренировку</p><p class="text-xs text-tertiary">Первое невыполненное: ${escapeHtml(firstNotDone.name)}</p></div></button></div>`;
+      }
+      plan.exercises.forEach((ex, i) => {
+  const exId = ex.id || getExerciseId(ex, i);
+  const isDone = done[exId] === true;
+  const isSkipped = done[exId] === 'skipped';
+  const loggedSets = setCounts[ex.name] || 0;
+  const setCounter = loggedSets > 0 ? `<span class="text-[10px] text-tertiary ml-2">${loggedSets} / ${ex.sets} подх.</span>` : '';
+  // RPE точка
+  const rpeDot = (isDone && lastRpe[ex.name]) ? `<span class="rpe-dot" style="background:${rpeColor(lastRpe[ex.name])};" title="RPE ${lastRpe[ex.name]}"></span>` : '';
+  // Ищем последний подход для подсказки
+  const lastLog = getLastExerciseLog(ex.name);
+  const lastHint = lastLog && lastLog.weight > 0
+    ? `<span class="text-[10px] text-tertiary ml-1">· прошлый: ${lastLog.weight}кг×${lastLog.sets}×${lastLog.reps}</span>`
+    : '';
+  html += `<div class="ex-item ex-row-with-log ${isDone?'done':''}${isSkipped?' skipped':''}">
+    <button class="ex-check ${isDone?'active':isSkipped?'skipped-badge':''}" onclick="event.stopPropagation();toggleExerciseDone('${exId}')">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':isSkipped?'⏭':''}</button>
+    <div class="ex-body" onclick="openExerciseLogSheet(${i})">
+      <div class="ex-name">${escapeHtml(ex.name)}${rpeDot}${setCounter}${lastHint}</div>
+      <div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div>
     </div>
-    <div class="progress-track h-2 rounded-full mb-2">
-      <div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div>
-    </div>
-    ${startedAt ? `<p class="text-[11px] text-tertiary text-center">⏱ В зале: ${formatDuration(Date.now() - startedAt)}</p>` : ''}
   </div>`;
-
-  // Список упражнений
-  plan.exercises.forEach((ex, i) => {
-    const st = exDoneStatus[i];
-    const isFull = st.full;
-    const isPartial = st.sets > 0 && st.sets < st.target;
-
-    const lastLog = getLastExerciseLog(ex.name);
-    const lastHint = lastLog && lastLog.weight > 0
-      ? `<span class="text-[10px] text-tertiary ml-1">· прошлый: ${lastLog.weight}×${lastLog.sets}×${lastLog.reps}</span>`
-      : '';
-
-    let badgeClass = 'ex-sets-badge';
-    if (isFull) badgeClass += ' full';
-    else if (isPartial) badgeClass += ' partial';
-
-    let rpeDot = '';
-    if (st.rpe) {
-      const cls = st.rpe >= 9 ? 'hard' : st.rpe >= 8 ? 'mid' : 'easy';
-      rpeDot = `<span class="ex-rpe-dot ${cls}" title="RPE ${st.rpe}"></span>`;
+});
+      // Финальный баннер когда все упражнения выполнены
+      if (doneCount === total && total > 0) {
+        const todayLogs = logs.filter(l => l.date && l.date.startsWith(todayStr));
+        const totalSets = todayLogs.length;
+        const totalTonnage = todayLogs.reduce((s, l) => s + (l.tonnage || 0), 0);
+        // Считаем новые рекорды сегодня
+        const prsToday = {};
+        todayLogs.forEach(l => {
+          if (!prsToday[l.exercise] || l.weight > prsToday[l.exercise]) prsToday[l.exercise] = l.weight;
+        });
+        const prCount = Object.keys(prsToday).length;
+        const startedAt = todayLogs.length > 0 ? new Date(todayLogs[todayLogs.length-1].date) : new Date();
+        const now = new Date();
+        const mins = Math.round((now - startedAt) / 60000);
+        html += `<div class="apple-card p-6 rounded-[28px] mb-4" style="background:var(--green);border:none;">
+          <div class="text-center">
+            <div class="text-2xl mb-2">🏁 Всё выполнено</div>
+            <p class="text-xs text-green/80 mb-4">Все ${total} упражнений закрыты</p>
+            <button onclick="showWorkoutFinish(${totalSets}, ${Math.round(totalTonnage)}, ${prCount}, ${mins})" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2" style="background:rgba(0,0,0,0.15);color:var(--text-primary);border:none;">
+              <span>📊</span><span class="text-sm font-semibold">Завершить тренировку</span>
+            </button>
+          </div>
+        </div>`;
+      }
+      // Кнопка ручного добавления упражнения
+      html += `<div class="mb-4"><button onclick="openAddExerciseSheet()" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2" style="border:1px dashed var(--card-border-hover);">
+        <i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">+ Добавить упражнение</span>
+      </button></div>`;
+      html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
+      el.innerHTML = html; lucide.createIcons();
+      setupExerciseSwipes();
     }
 
-    html += `<div class="ex-item ex-row-with-log ${isFull?'done':''}">
-      <button class="ex-check ${isFull?'active':''}" onclick="event.stopPropagation();toggleExerciseDone(${i})">
-        ${isFull?'<i data-lucide="check" class="w-4 h-4"></i>':''}
-      </button>
-      <div class="ex-body" onclick="openExerciseLogSheet(${i})">
-        <div class="ex-name flex items-center">${rpeDot}${escapeHtml(ex.name)}${lastHint}</div>
-        <div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div>
-      </div>
-      <span class="${badgeClass}">${isFull?'✓ ':''}${st.sets}/${st.target}</span>
-      <button class="ex-more-btn" onclick="event.stopPropagation();openExerciseActions(${i})">
-        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-      </button>
-    </div>`;
-  });
-
-  // Кнопки снизу
-  html += `<div class="mt-4 space-y-2">`;
-  if (!startedAt && doneCount === 0) {
-    // Ещё не начинали
-    html += `<button class="ex-action-btn start" onclick="startWorkout()">
-      <i data-lucide="play" class="w-4 h-4"></i>
-      Начать тренировку
-    </button>`;
-  } else if (!allDone) {
-    // В процессе
-    html += `<button class="ex-action-btn secondary" onclick="openAddExercise()">
-      <i data-lucide="plus" class="w-4 h-4"></i>
-      Добавить упражнение
-    </button>
-    <button class="ex-action-btn finish" onclick="finishWorkout()">
-      <i data-lucide="flag" class="w-4 h-4"></i>
-      Завершить тренировку
-    </button>`;
-  } else {
-    // Всё выполнено
-    html += `<button class="ex-action-btn finish" onclick="finishWorkout()">
-      <i data-lucide="check-circle" class="w-4 h-4"></i>
-      Все выполнено — завершить
-    </button>`;
-  }
-  html += `<button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2">
-    <i data-lucide="footprints" class="w-4 h-4 text-secondary"></i>
-    <span class="text-sm font-medium text-primary">Кардио</span>
-  </button>`;
-  html += `</div>`;
-
-  el.innerHTML = html;
-  lucide.createIcons();
-}
-
-    // === Ручное добавление упражнения ===
-let currentAddExRpe = null;
-
-function openAddExercise() {
-  haptic('medium');
-  document.getElementById('add-ex-name').value = '';
-  document.getElementById('add-ex-weight').value = '';
-  document.getElementById('add-ex-sets').value = '3';
-  document.getElementById('add-ex-reps').value = '8';
-  currentAddExRpe = null;
-  document.querySelectorAll('[data-add-rpe]').forEach(b => b.classList.remove('active'));
-  document.getElementById('add-ex-sheet').classList.add('show');
-  document.getElementById('add-ex-sheet-overlay').classList.add('show');
-  document.getElementById('fab').style.display = 'none';
-  setTimeout(() => document.getElementById('add-ex-name').focus(), 350);
-}
-
-function closeAddExercise() {
-  haptic('light');
-  document.getElementById('add-ex-sheet').classList.remove('show');
-  document.getElementById('add-ex-sheet-overlay').classList.remove('show');
-  ['add-ex-name','add-ex-weight','add-ex-sets','add-ex-reps'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.blur();
-  });
-  currentAddExRpe = null;
-  updateFabForScreen(currentScreen);
-}
-
-function setAddExRpe(v) {
-  haptic('light');
-  currentAddExRpe = (currentAddExRpe === v) ? null : v;
-  document.querySelectorAll('[data-add-rpe]').forEach(b => {
-    b.classList.toggle('active', Number(b.dataset.addRpe) === currentAddExRpe);
-  });
-}
-
-function saveAddedExercise() {
-  const name = document.getElementById('add-ex-name').value.trim();
-  if (!name) { toast('Введи название'); return; }
-
-  const w = parseFloat(document.getElementById('add-ex-weight').value) || 0;
-  const s = parseInt(document.getElementById('add-ex-sets').value, 10) || 1;
-  const r = parseInt(document.getElementById('add-ex-reps').value, 10) || 8;
-  const rpe = currentAddExRpe;
-
-  if (s < 1) { toast('Хотя бы 1 подход'); return; }
-  if (r < 1) { toast('Хотя бы 1 повтор'); return; }
-
-  const prBefore = getLocalPR(name);
-  const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const entry = {
-    id: clientId,
-    date: new Date().toISOString(),
-    exercise: name,
-    weight: w,
-    sets: s,
-    reps: r,
-    rpe: rpe,
-    tonnage: w * s * r
-  };
-  const logs = loadWorkoutLog();
-  logs.unshift(entry);
-  saveWorkoutLog(logs);
-
-  apiPost('addWorkoutSet', {
-    clientId: clientId,
-    exercise: name,
-    weight: w,
-    sets: s,
-    reps: String(r),
-    rpe: rpe || ''
-  });
-
-  if (!getWorkoutStartedAt()) setWorkoutStartedAt(Date.now());
-
-  hapticNotify('success');
-  closeAddExercise();
-
-  const isPR = w > prBefore && w > 0;
-  if (isPR) toast(`🎉 Рекорд: ${name} ${w}кг`);
-  else toast(`✓ ${name} записано`);
-
-  renderWorkoutToday();
-  renderHomeWorkoutPreview();
-}
-// === Финал тренировки ===
-function finishWorkout() {
-  haptic('medium');
-  const plan = getTodayWorkoutPlan();
-  if (!plan) return;
-
-  const done = getWorkoutDone();
-  const logs = loadWorkoutLog();
-  const today = todayStr();
-  const todayLogs = logs.filter(l => l.date.slice(0, 10) === today);
-
-  // Статистика
-  const exercisesDone = plan.exercises.filter(ex => {
-    const d = done[ex.name] || { sets: 0 };
-    return d.sets >= (ex.sets || 3);
-  }).length;
-  const exercisesTotal = plan.exercises.length;
-  const totalSets = todayLogs.reduce((s, l) => s + (l.sets || 0), 0);
-  const totalTonnage = todayLogs.reduce((s, l) => s + (l.tonnage || 0), 0);
-
-  const startedAt = getWorkoutStartedAt();
-  const duration = startedAt ? formatDuration(Date.now() - startedAt) : '—';
-
-  // Рекорды — прогоняем все подходы и ищем где weight > PR на момент сохранения
-  // Простой способ: найти все уникальные упражнения, для каждого взять макс вес
-  // и сравнить с макс весом из всех логов до сегодня
-  const prsFound = [];
-  const byEx = {};
-  todayLogs.forEach(l => {
-    if (!l.exercise || l.weight <= 0) return;
-    if (!byEx[l.exercise] || l.weight > byEx[l.exercise].weight) {
-      byEx[l.exercise] = { weight: l.weight, sets: l.sets, reps: l.reps };
+    function setupExerciseSwipes() {
+      document.querySelectorAll('.ex-item').forEach((el, idx) => {
+        if (el.dataset.swipeInit) return;
+        el.dataset.swipeInit = '1';
+        let startX = 0, currentX = 0, isSwiping = false;
+        const btn = document.createElement('button');
+        btn.className = 'ex-skip-btn';
+        btn.innerHTML = 'Пропустить';
+        btn.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--neutral-fill);color:var(--text-tertiary);border:none;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;z-index:10;';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const plan = getTodayWorkoutPlan();
+          const ex = plan ? plan.exercises[idx] : null;
+          if (!ex) return;
+          const exId = ex.id || getExerciseId(ex, idx);
+          const done = getWorkoutDone();
+          done[exId] = 'skipped';
+          saveWorkoutDone(done);
+          apiPost('toggleWorkoutDone', { exerciseId: exId, done: 'skipped' });
+          renderWorkoutToday();
+          toast('Пропущено');
+        };
+        el.style.position = 'relative';
+        el.appendChild(btn);
+        el.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; currentX = startX; isSwiping = false; }, {passive:true});
+        el.addEventListener('touchmove', (e) => {
+          currentX = e.touches[0].clientX;
+          const dx = currentX - startX;
+          if (dx < -30 && !isSwiping) { isSwiping = true; btn.style.opacity = '1'; el.style.paddingRight = '80px'; }
+          if (isSwiping && dx < 0) {
+            const pct = Math.min(Math.abs(dx) / 80, 1);
+            btn.style.opacity = pct;
+            el.style.transform = `translateX(${Math.max(dx, -80)}px)`;
+          }
+        }, {passive:true});
+        el.addEventListener('touchend', (e) => {
+          const dx = currentX - startX;
+          if (isSwiping && dx < -50) {
+            // Свайп подтверждён — показываем кнопку, тап нужен для действия
+            btn.style.opacity = '1';
+            el.style.paddingRight = '80px';
+          } else {
+            btn.style.opacity = '0';
+            el.style.paddingRight = '0';
+            el.style.transform = '';
+          }
+          isSwiping = false;
+        });
+      });
     }
-  });
-  // Для каждого — смотрим предыдущий максимум (логи НЕ за сегодня)
-  const olderLogs = logs.filter(l => l.date.slice(0, 10) !== today);
-  Object.keys(byEx).forEach(exName => {
-    const currentMax = byEx[exName].weight;
-    let prevPR = 0;
-    for (const l of olderLogs) {
-      if (l.exercise && l.exercise.toLowerCase().includes(exName.toLowerCase()) && l.weight > prevPR) {
-        prevPR = l.weight;
+
+    // === ФИНАЛ ТРЕНИРОВКИ (модалка с итогами) ===
+    function showWorkoutFinish(setsCount, tonnage, prCount, mins) {
+      const plan = getTodayWorkoutPlan();
+      const done = getWorkoutDone();
+      const exDone = plan ? plan.exercises.filter(ex => done[ex.id]).length : 0;
+      let html = `<div class="p-6">
+        <div class="text-center mb-6">
+          <div class="text-3xl mb-2">🏁 Тренировка завершена</div>
+          <p class="text-sm text-secondary">${plan ? escapeHtml(plan.split) : ''}</p>
+        </div>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-fill">
+            <span class="text-sm text-secondary">Упражнений</span>
+            <span class="text-lg font-semibold numbers text-primary">${exDone}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-fill">
+            <span class="text-sm text-secondary">Подходов</span>
+            <span class="text-lg font-semibold numbers text-primary">${setsCount}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-fill">
+            <span class="text-sm text-secondary">Тоннаж</span>
+            <span class="text-lg font-semibold numbers text-primary">${tonnage.toLocaleString()} кг</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-fill">
+            <span class="text-sm text-secondary">Рекордов</span>
+            <span class="text-lg font-semibold numbers text-primary">${prCount}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-xl bg-neutral-fill">
+            <span class="text-sm text-secondary">Время</span>
+            <span class="text-lg font-semibold numbers text-primary">${mins} мин</span>
+          </div>
+        </div>
+        <div class="mt-6">
+          <button onclick="closeWorkoutFinish(); renderWorkoutToday();" class="w-full submit-btn" style="background:var(--green);margin:0;">Готово</button>
+        </div>
+      </div>`;
+      document.getElementById('workout-finish-content').innerHTML = html;
+      document.getElementById('workout-finish-overlay').classList.add('show');
+      document.getElementById('workout-finish').classList.add('show');
+    }
+    function closeWorkoutFinish() {
+      document.getElementById('workout-finish-overlay').classList.remove('show');
+      document.getElementById('workout-finish').classList.remove('show');
+    }
+
+    // === ТАЙМЕР ОТДЫХА ===
+    let restTimerInterval = null;
+    let restTimeLeft = 60;
+    function showRestTimer() {
+      restTimeLeft = 60;
+      document.getElementById('rest-timer-display').textContent = restTimeLeft;
+      document.getElementById('rest-timer-overlay').classList.add('show');
+      document.getElementById('rest-timer').classList.add('show');
+      restTimerInterval = setInterval(() => {
+        restTimeLeft--;
+        document.getElementById('rest-timer-display').textContent = restTimeLeft;
+        if (restTimeLeft <= 0) {
+          clearInterval(restTimerInterval);
+          restTimerInterval = null;
+          closeRestTimer();
+          // Автооткрытие следующего невыполненного упражнения
+          const plan = getTodayWorkoutPlan();
+          const done = getWorkoutDone();
+          const next = plan ? plan.exercises.find(ex => done[ex.id] !== true && done[ex.id] !== 'skipped') : null;
+          if (next) {
+            const idx = plan.exercises.findIndex(ex => ex.id === next.id);
+            if (idx >= 0) openExerciseLogSheet(idx);
+          }
+        }
+      }, 1000);
+    }
+    function closeRestTimer() {
+      if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+      document.getElementById('rest-timer-overlay').classList.remove('show');
+      document.getElementById('rest-timer').classList.remove('show');
+    }
+    function skipRestTimer() {
+      closeRestTimer();
+    }
+    function setRestTime(sec) {
+      restTimeLeft = sec;
+      document.getElementById('rest-timer-display').textContent = restTimeLeft;
+    }
+
+    // === РУЧНОЕ ДОБАВЛЕНИЕ УПРАЖНЕНИЯ ===
+    function openAddExerciseSheet() {
+      haptic('medium');
+      document.getElementById('add-ex-name').value = '';
+      document.getElementById('add-ex-weight').value = '';
+      document.getElementById('add-ex-sets').value = '3';
+      document.getElementById('add-ex-reps').value = '8';
+      document.getElementById('add-ex-sheet-overlay').classList.add('show');
+      document.getElementById('add-ex-sheet').classList.add('show');
+      setTimeout(() => document.getElementById('add-ex-name').focus(), 350);
+    }
+    function closeAddExerciseSheet() {
+      haptic('light');
+      document.getElementById('add-ex-sheet-overlay').classList.remove('show');
+      document.getElementById('add-ex-sheet').classList.remove('show');
+    }
+    function saveAddedExercise() {
+      const name = document.getElementById('add-ex-name').value.trim();
+      const weight = parseFloat(document.getElementById('add-ex-weight').value.replace(',', '.')) || 0;
+      const sets = parseInt(document.getElementById('add-ex-sets').value, 10) || 3;
+      const reps = parseInt(document.getElementById('add-ex-reps').value, 10) || 8;
+      if (!name) { toast('Укажите название'); return; }
+      const plan = getTodayWorkoutPlan();
+      if (!plan) { toast('Нет плана на сегодня'); return; }
+      ensureExerciseIds(plan);
+      const newEx = {
+        id: 'ex_manual_' + Date.now().toString(36),
+        name: name,
+        weight: weight,
+        sets: sets,
+        reps: reps
+      };
+      plan.exercises.push(newEx);
+      // Сохраняем обновлённый план в localStorage
+      try {
+        const all = loadWorkoutPlan();
+        const dow = getTodayDow();
+        all[dow] = plan;
+        localStorage.setItem('aura_workout_plan', JSON.stringify(all));
+      } catch(e) {}
+      closeAddExerciseSheet();
+      renderWorkoutToday();
+      renderHomeWorkoutPreview();
+      toast(`Добавлено: ${name}`);
+    }
+    function startWorkout() {
+      const plan = getTodayWorkoutPlan();
+      if (!plan) return;
+      const done = getWorkoutDone();
+      const firstNotDone = plan.exercises.find(ex => !done[ex.id]);
+      if (firstNotDone) {
+        // Находим индекс для openExerciseLogSheet (понимаем, что она теперь принимает id)
+        const idx = plan.exercises.findIndex(ex => ex.id === firstNotDone.id);
+        openExerciseLogSheetById(firstNotDone.id);
       }
     }
-    if (currentMax > prevPR && currentMax > 0) {
-      prsFound.push({ exercise: exName, weight: currentMax, prev: prevPR });
+    function openExerciseLogSheetById(exId) {
+      const plan = getTodayWorkoutPlan();
+      if (!plan) return;
+      const idx = plan.exercises.findIndex(ex => ex.id === exId);
+      if (idx >= 0) openExerciseLogSheet(idx);
     }
-  });
-
-  // Рендер
-  const statsEl = document.getElementById('finish-stats');
-  if (statsEl) {
-    let html = '';
-    if (startedAt) html += `<div class="finish-stat-row"><span class="finish-stat-label">Время в зале</span><span class="finish-stat-value">${duration}</span></div>`;
-    html += `<div class="finish-stat-row"><span class="finish-stat-label">Упражнений</span><span class="finish-stat-value">${exercisesDone} / ${exercisesTotal}</span></div>`;
-    html += `<div class="finish-stat-row"><span class="finish-stat-label">Подходов</span><span class="finish-stat-value">${totalSets}</span></div>`;
-    if (totalTonnage > 0) html += `<div class="finish-stat-row"><span class="finish-stat-label">Тоннаж</span><span class="finish-stat-value">${totalTonnage.toLocaleString('ru-RU')} кг</span></div>`;
-    statsEl.innerHTML = html;
-  }
-
-  const prsEl = document.getElementById('finish-prs');
-  if (prsEl) {
-    if (prsFound.length > 0) {
-      prsEl.innerHTML = `<div class="finish-prs">
-        <div class="finish-prs-title">🎉 Новые рекорды</div>
-        ${prsFound.map(p => `<div class="finish-prs-item">• <b>${escapeHtml(p.exercise)}</b>: ${p.weight} кг ${p.prev > 0 ? `(было ${p.prev})` : ''}</div>`).join('')}
-      </div>`;
-    } else {
-      prsEl.innerHTML = '';
-    }
-  }
-
-  // Показываем модалку
-  document.getElementById('workout-finish').classList.add('show');
-  document.getElementById('workout-finish-overlay').classList.add('show');
-  hapticNotify('success');
-}
-
-function closeWorkoutFinish() {
-  haptic('light');
-  document.getElementById('workout-finish').classList.remove('show');
-  document.getElementById('workout-finish-overlay').classList.remove('show');
-  // Сбрасываем старт (чтобы завтра началось с чистого листа... хотя завтра новый день)
-  setWorkoutStartedAt(0);
-  renderWorkoutToday();
-  renderHomeWorkoutPreview();
-}
-    
-// === Таймер отдыха ===
-let restTimerId = null;
-let restTimerEnd = 0;
-
-function restTimerStart(seconds) {
-  restTimerStop();
-  restTimerEnd = Date.now() + seconds * 1000;
-  const el = document.getElementById('rest-timer');
-  const timeEl = document.getElementById('rest-timer-time');
-  if (!el || !timeEl) return;
-  el.classList.add('show');
-  updateRestTimerDisplay();
-  restTimerId = setInterval(() => {
-    const remain = restTimerEnd - Date.now();
-    if (remain <= 0) {
-      restTimerStop();
-      hapticNotify('success');
-      if (audioCtx) { timerBeep(880, 200); setTimeout(() => timerBeep(880, 200), 250); }
-      return;
-    }
-    updateRestTimerDisplay();
-  }, 500);
-}
-
-function updateRestTimerDisplay() {
-  const timeEl = document.getElementById('rest-timer-time');
-  if (!timeEl) return;
-  const remain = Math.max(0, Math.ceil((restTimerEnd - Date.now()) / 1000));
-  timeEl.textContent = remain;
-}
-
-function restTimerStop() {
-  if (restTimerId) { clearInterval(restTimerId); restTimerId = null; }
-  const el = document.getElementById('rest-timer');
-  if (el) el.classList.remove('show');
-}
-
-function restTimerAdd(seconds) {
-  haptic('light');
-  restTimerEnd += seconds * 1000;
-  updateRestTimerDisplay();
-}
-
-function restTimerSkip() {
-  haptic('light');
-  restTimerStop();
-}
-function startWorkout() {
-  haptic('medium');
-  setWorkoutStartedAt(Date.now());
-  renderWorkoutToday();
-  toast('Поехали! 💪');
-  // Открываем первое невыполненное
-  const plan = getTodayWorkoutPlan();
-  if (!plan) return;
-  const done = getWorkoutDone();
-  for (let i = 0; i < plan.exercises.length; i++) {
-    const st = done[plan.exercises[i].name] || { sets: 0 };
-    if (st.sets < (plan.exercises[i].sets || 3)) {
-      setTimeout(() => openExerciseLogSheet(i), 300);
-      return;
-    }
-  }
-}
-
-function openExerciseActions(i) {
-  haptic('light');
-  const plan = getTodayWorkoutPlan();
-  if (!plan || !plan.exercises[i]) return;
-  const ex = plan.exercises[i];
-  const done = getWorkoutDone();
-  const st = done[ex.name] || { sets: 0 };
-  const lastLog = getLastExerciseLog(ex.name);
-
-  // Собираем bottom sheet вручную
-  const body = document.getElementById('workout-day-body');
-  const title = document.getElementById('workout-day-title');
-  if (!body || !title) return;
-
-  title.textContent = ex.name;
-
-  let html = `<div class="space-y-2">`;
-  html += `<button onclick="closeWorkoutDay();openExerciseLogSheet(${i})" class="w-full apple-card tappable p-4 rounded-2xl text-left text-sm font-medium text-primary flex items-center gap-3">
-    <i data-lucide="plus-circle" class="w-5 h-5 text-secondary"></i>
-    Записать подход
-  </button>`;
-  if (st.sets > 0) {
-    html += `<button onclick="closeWorkoutDay();resetExerciseDone('${escapeHtml(ex.name).replace(/'/g, "\\'")}')" class="w-full apple-card tappable p-4 rounded-2xl text-left text-sm font-medium text-primary flex items-center gap-3">
-      <i data-lucide="rotate-ccw" class="w-5 h-5 text-secondary"></i>
-      Сбросить отметки (${st.sets}/${ex.sets})
-    </button>`;
-  }
-  if (lastLog && lastLog.weight > 0) {
-    html += `<div class="apple-card p-4 rounded-2xl">
-      <p class="text-xs text-tertiary mb-1">Прошлый раз:</p>
-      <p class="text-sm font-semibold text-primary">${lastLog.weight} кг × ${lastLog.sets}×${lastLog.reps}</p>
-    </div>`;
-  }
-  html += `</div>`;
-  body.innerHTML = html;
-  lucide.createIcons();
-  document.getElementById('workout-day-sheet').classList.add('show');
-  document.getElementById('workout-day-sheet-overlay').classList.add('show');
-}
-
-function resetExerciseDone(name) {
-  haptic('medium');
-  const done = getWorkoutDone();
-  delete done[name];
-  saveWorkoutDone(done);
-  closeWorkoutDay();
-  renderWorkoutToday();
-  renderHomeWorkoutPreview();
-  toast('Отметки сброшены');
-}
-    function toggleExerciseDone(i) {
-  haptic('medium');
-  const plan = getTodayWorkoutPlan();
-  if (!plan || !plan.exercises[i]) return;
-  const ex = plan.exercises[i];
-  const done = getWorkoutDone();
-  const current = done[ex.name] || { sets: 0 };
-  const target = ex.sets || 3;
-
-  if (current.sets >= target) {
-    // Снимаем отметку
-    delete done[ex.name];
-    saveWorkoutDone(done);
-    renderWorkoutToday();
-    renderHomeWorkoutPreview();
-    toast('Отметка снята');
-  } else {
-    // Отмечаем всё упражнение выполненным — пишем подход в дневник
-    const remaining = target - (current.sets || 0);
-    if (remaining <= 0) return;
-
-    const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const entry = {
-      id: clientId,
-      date: new Date().toISOString(),
-      exercise: ex.name,
-      weight: ex.weight || 0,
-      sets: remaining,
-      reps: ex.reps || 8,
-      tonnage: (ex.weight || 0) * remaining * (ex.reps || 8)
-    };
-    const logs = loadWorkoutLog();
-    logs.unshift(entry);
-    saveWorkoutLog(logs);
-
-    done[ex.name] = { sets: target };
-    saveWorkoutDone(done);
-    hapticNotify('success');
-    renderWorkoutToday();
-    renderHomeWorkoutPreview();
-    toast(`✓ ${ex.name} (${remaining}×${ex.reps || 8})`);
-
-    // На сервер
-    apiPost('addWorkoutSet', {
-      clientId: clientId,
-      exercise: ex.name,
-      weight: ex.weight || 0,
-      sets: remaining,
-      reps: String(ex.reps || 8)
-    });
-
-    // Если ещё не стартовали — стартуем
-    if (!getWorkoutStartedAt()) setWorkoutStartedAt(Date.now());
-  }
-}
+    function toggleExerciseDone(exId) { haptic('medium'); const done = getWorkoutDone(); done[exId] = !done[exId]; saveWorkoutDone(done); apiPost('toggleWorkoutDone', { exerciseId: exId, done: !!done[exId] }); if (done[exId]) hapticNotify('success'); renderWorkoutToday(); }
     let currentExSheetIndex = null;
 let currentExSheetRpe = null;
 
@@ -4106,9 +3695,6 @@ function saveExerciseSet(keepOpen) {
   const notes = document.getElementById('ex-input-notes').value.trim();
   const rpe = currentExSheetRpe;
 
-  // PR до записи
-  const prBefore = getLocalPR(ex.name);
-
   // 1. Локально
   const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const entry = {
@@ -4126,19 +3712,16 @@ function saveExerciseSet(keepOpen) {
   logs.unshift(entry);
   saveWorkoutLog(logs);
 
-  // 2. Счётчик подходов
+  // 2. Отметить выполненным (по id упражнения)
   const done = getWorkoutDone();
-  const prev = done[ex.name] || { sets: 0 };
-  const newSets = (prev.sets || 0) + sets;
-  done[ex.name] = { sets: newSets, rpe: rpe || prev.rpe };
+  const exId = ex.id || getExerciseId(ex, currentExSheetIndex);
+  done[exId] = true;
   saveWorkoutDone(done);
 
-  // 3. Стартуем если ещё не
-  if (!getWorkoutStartedAt()) setWorkoutStartedAt(Date.now());
-
-  // 4. На сервер
+  // 3. На сервер
   apiPost('addWorkoutSet', {
     clientId: clientId,
+    exerciseId: exId,
     exercise: ex.name,
     weight: weight,
     sets: sets,
@@ -4147,32 +3730,32 @@ function saveExerciseSet(keepOpen) {
     notes: notes || ''
   });
 
-  hapticNotify('success');
-
-  // 5. PR-уведомление
-  const isPR = weight > prBefore && weight > 0;
-  if (isPR && prBefore > 0) {
-    toast(`🎉 Рекорд: ${weight} кг (было ${prBefore})`);
-  } else if (isPR) {
-    toast(`🎉 Первый рекорд: ${weight} кг`);
-  } else {
-    toast(`✓ ${ex.name}: ${weight > 0 ? weight + 'кг × ' : ''}${sets}×${reps}`);
+  // 4. PR-проверка: если вес больше прошлого рекорда по этому упражнению
+  let prText = '';
+  const lastLog = getLastExerciseLog(ex.name);
+  if (lastLog && lastLog.weight > 0 && weight > lastLog.weight) {
+    prText = ` 🎉 Новый рекорд! Было ${lastLog.weight}кг, стало ${weight}кг`;
   }
 
-  // 6. Если keepOpen — следующий подход
+  hapticNotify('success');
+  toast(`✓ ${ex.name}: ${weight > 0 ? weight + 'кг × ' : ''}${sets}×${reps}${prText}`);
+
   if (keepOpen) {
+    // Оставляем шторку открытой, сбрасываем счётчик подходов на 1 для следующего
     document.getElementById('ex-input-sets').value = 1;
     document.getElementById('ex-input-reps').value = reps;
     document.getElementById('ex-input-notes').value = '';
+    // RPE остаётся (часто подходы подряд с одинаковой тяжестью)
     document.getElementById('ex-input-reps').focus();
   } else {
     closeExerciseLogSheet();
     renderWorkoutToday();
     renderHomeWorkoutPreview();
-    // 7. Таймер отдыха
-    if (weight > 0 && rpe !== 9) restTimerStart(90);
-    else if (rpe === 9) restTimerStart(120);
-    else restTimerStart(90);
+    // Показываем таймер отдыха только если есть ещё невыполненные упражнения
+    const plan = getTodayWorkoutPlan();
+    const done = getWorkoutDone();
+    const hasNext = plan ? plan.exercises.some(ex => done[ex.id] !== true && done[ex.id] !== 'skipped') : false;
+    if (hasNext) showRestTimer();
   }
 }
     function renderWorkoutPlan() {
@@ -4352,8 +3935,10 @@ function closeWorkoutDay() {
       const el = document.getElementById('home-workout-preview'); if (!el) return;
       const plan = getTodayWorkoutPlan();
       if (!plan) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Сегодня день отдыха</p>'; return; }
+      ensureExerciseIds(plan);
+      migrateWorkoutDone();
       const done = getWorkoutDone();
-      const doneCount = plan.exercises.filter((_,i) => done[i]).length;
+      const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
       const total = plan.exercises.length;
       el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
     }
@@ -5847,16 +5432,6 @@ function updateGreeting() {
   el.textContent = greeting;
 }
 updateGreeting();
-    // Сброс таймера тренировки, если день сменился
-(function cleanupOldWorkoutState() {
-  try {
-    const today = todayStr();
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('aura_workout_done_') || k.startsWith('aura_workout_started_'));
-    for (const k of keys) {
-      if (!k.includes(today)) localStorage.removeItem(k);
-    }
-  } catch (e) {}
-})();
 
 // Заполнить баланс на Home из кэша капитала
 function updateHomeBalance() {
