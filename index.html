@@ -120,6 +120,28 @@
   padding-right: 0;
 }
 
+    /* Шапка чата — прозрачный оверлей поверх сообщений */
+#screen-workout-coach.active > header {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 6px 16px 24px;
+  padding-right: 92px;
+  background: linear-gradient(to bottom, var(--bg) 45%, transparent 100%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#screen-workout-coach.active > header > * {
+  pointer-events: auto;
+}
+#screen-workout-coach .coach-wrapper {
+  padding-top: 58px;
+}
+
 /* Таббар скрывается на специфичных экранах */
 body[data-screen="workout-coach"] nav[data-tabbar],
 body[data-screen="workout-timer"] nav[data-tabbar] {
@@ -863,7 +885,6 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
     <div id="coach-chips" class="coach-chips">
       <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
       <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
-      <button class="coach-chip" data-always-visible="true" onclick="generatePlanFlow()">📅 Составь план</button>
       <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
     </div>
 
