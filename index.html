@@ -148,6 +148,115 @@ body[data-screen="workout-timer"] nav[data-tabbar] {
   transform: translateY(200%);
 }
 
+    /* === Exercise log sheet: квадраты для ввода === */
+.ex-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ex-input-box {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.ex-input-box:focus-within {
+  border-color: var(--blue);
+  background: rgba(0, 122, 255, 0.08);
+}
+.ex-input-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+.ex-input-field {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 32px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  padding: 0;
+  line-height: 1;
+  -moz-appearance: textfield;
+}
+.ex-input-field::-webkit-outer-spin-button,
+.ex-input-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.ex-input-field::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.4;
+}
+.ex-input-unit {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.ex-sheet-info {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--neutral-fill);
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.ex-sheet-info b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ex-rpe-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.ex-rpe-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.15s ease;
+}
+.ex-rpe-btn:active { transform: scale(0.96); }
+.ex-rpe-btn .emoji { font-size: 18px; line-height: 1; }
+.ex-rpe-btn .label { font-size: 10px; font-weight: 500; opacity: 0.7; }
+.ex-rpe-btn.active {
+  background: rgba(0, 122, 255, 0.15);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.ex-rpe-btn.active .label { opacity: 1; }
+
+.ex-row-with-log {
+  cursor: pointer;
+}
 /* Клик-элементы */
 .day-row { cursor: pointer; }
 
@@ -1134,6 +1243,70 @@ body.light .note-text mark { background: rgba(255, 204, 0, 0.55); }
     <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--purple);" onclick="submitBodyMeasurement()">Сохранить</button></div>
   </div>
 
+  <!-- EXERCISE LOG SHEET -->
+<div id="ex-sheet-overlay" class="task-sheet-overlay" onclick="closeExerciseLogSheet()"></div>
+<div id="ex-sheet" class="task-sheet" style="top: 18vh;">
+  <div class="task-drag-handle"></div>
+  <div class="task-sheet-header">
+    <button class="trx-close" onclick="closeExerciseLogSheet()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 id="ex-sheet-title" class="text-base font-semibold text-primary">Упражнение</h2>
+    <div class="w-9"></div>
+  </div>
+  <div class="task-sheet-body">
+    <div class="ex-sheet-info">
+      <div id="ex-sheet-plan">План: —</div>
+      <div id="ex-sheet-last" style="display:none; margin-top: 4px; color: var(--text-tertiary);"></div>
+    </div>
+
+    <div class="ex-inputs-grid">
+      <div class="ex-input-box">
+        <div class="ex-input-label">Вес</div>
+        <input id="ex-input-weight" class="ex-input-field" type="number" step="0.5" min="0" inputmode="decimal" placeholder="—">
+        <div class="ex-input-unit">кг</div>
+      </div>
+      <div class="ex-input-box">
+        <div class="ex-input-label">Подходы</div>
+        <input id="ex-input-sets" class="ex-input-field" type="number" step="1" min="1" max="20" inputmode="numeric" placeholder="—">
+        <div class="ex-input-unit">сет</div>
+      </div>
+      <div class="ex-input-box">
+        <div class="ex-input-label">Повторы</div>
+        <input id="ex-input-reps" class="ex-input-field" type="number" step="1" min="1" max="50" inputmode="numeric" placeholder="—">
+        <div class="ex-input-unit">раз</div>
+      </div>
+    </div>
+
+    <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 8px;">Насколько тяжело?</div>
+    <div class="ex-rpe-row">
+      <button class="ex-rpe-btn" data-rpe="6" onclick="setExerciseRpe(6)">
+        <span class="emoji">😌</span>
+        <span>Легко</span>
+        <span class="label">RPE 6</span>
+      </button>
+      <button class="ex-rpe-btn" data-rpe="8" onclick="setExerciseRpe(8)">
+        <span class="emoji">😐</span>
+        <span>Средне</span>
+        <span class="label">RPE 8</span>
+      </button>
+      <button class="ex-rpe-btn" data-rpe="9" onclick="setExerciseRpe(9)">
+        <span class="emoji">🥵</span>
+        <span>Тяжело</span>
+        <span class="label">RPE 9</span>
+      </button>
+    </div>
+
+    <input id="ex-input-notes" type="text" class="task-time-input" placeholder="Заметка (необязательно): болит плечо, легко пошло..." maxlength="100">
+  </div>
+  <div class="task-sheet-footer">
+    <button onclick="saveExerciseSet(false)" class="submit-btn" style="margin: 0; background: var(--green);">
+      Сохранить
+    </button>
+    <button onclick="saveExerciseSet(true)" class="submit-btn" style="margin: 8px 0 0; background: var(--neutral-fill-hover); color: var(--text-primary);">
+      Сохранить и ещё подход
+    </button>
+  </div>
+</div>
+  
   <!-- CARDIO SHEET -->
   <div id="cardio-sheet-overlay" class="task-sheet-overlay" onclick="closeCardioForm()"></div>
   <div id="cardio-sheet" class="task-sheet" style="top: 30vh;">
@@ -3056,44 +3229,159 @@ function capitalHTML(data) {
       const total = plan.exercises.length;
       let html = `<div class="apple-card p-5 rounded-[24px] mb-4"><div class="flex justify-between items-start mb-2"><div><p class="text-xs text-secondary">Сегодня</p><p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p></div><div class="text-right"><p class="text-xs text-tertiary uppercase">Выполнено</p><p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p></div></div><div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div></div></div>`;
       plan.exercises.forEach((ex, i) => {
-        const isDone = !!done[i];
-        html += `<div class="ex-item ${isDone?'done':''}"><button class="ex-check ${isDone?'active':''}" onclick="toggleExerciseDone(${i})">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button><div class="ex-body"><div class="ex-name">${escapeHtml(ex.name)}</div><div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div></div><button class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium" style="color:var(--blue);" onclick="logWorkoutSet(${i})">Записать</button></div>`;
-      });
+  const isDone = !!done[i];
+  // Ищем последний подход для подсказки
+  const lastLog = getLastExerciseLog(ex.name);
+  const lastHint = lastLog && lastLog.weight > 0
+    ? `<span class="text-[10px] text-tertiary ml-1">· прошлый: ${lastLog.weight}кг×${lastLog.sets}×${lastLog.reps}</span>`
+    : '';
+  html += `<div class="ex-item ex-row-with-log ${isDone?'done':''}">
+    <button class="ex-check ${isDone?'active':''}" onclick="event.stopPropagation();toggleExerciseDone(${i})">${isDone?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button>
+    <div class="ex-body" onclick="openExerciseLogSheet(${i})">
+      <div class="ex-name">${escapeHtml(ex.name)}${lastHint}</div>
+      <div class="ex-plan">${ex.weight>0?ex.weight+' кг × ':''}${ex.sets}×${ex.reps}</div>
+    </div>
+    <button class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium" style="color:var(--blue);" onclick="event.stopPropagation();openExerciseLogSheet(${i})">Записать</button>
+  </div>`;
+});
       html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
       el.innerHTML = html; lucide.createIcons();
     }
     function toggleExerciseDone(i) { haptic('medium'); const done = getWorkoutDone(); done[i] = !done[i]; saveWorkoutDone(done); if (done[i]) hapticNotify('success'); renderWorkoutToday(); }
-    function logWorkoutSet(i) {
+    let currentExSheetIndex = null;
+let currentExSheetRpe = null;
+
+function openExerciseLogSheet(i) {
   haptic('medium');
   const plan = getTodayWorkoutPlan();
-  if (!plan) return;
+  if (!plan || !plan.exercises[i]) return;
   const ex = plan.exercises[i];
+  currentExSheetIndex = i;
+  currentExSheetRpe = null;
+
+  // Заголовок и подсказки
+  document.getElementById('ex-sheet-title').textContent = ex.name;
+  const planStr = `${ex.weight > 0 ? ex.weight + ' кг × ' : ''}${ex.sets} × ${ex.reps}`;
+  document.getElementById('ex-sheet-plan').innerHTML = `<b>План:</b> ${planStr}`;
+
+  // Последний результат
+  const lastLog = getLastExerciseLog(ex.name);
+  const lastEl = document.getElementById('ex-sheet-last');
+  if (lastLog && lastLog.weight > 0) {
+    const dd = lastLog.date ? lastLog.date.split('-').reverse().slice(0, 2).join('.') : '';
+    lastEl.innerHTML = `<b>Прошлый раз:</b> ${lastLog.weight} кг × ${lastLog.sets} × ${lastLog.reps}${dd ? ' (' + dd + ')' : ''}`;
+    lastEl.style.display = 'block';
+  } else {
+    lastEl.style.display = 'none';
+  }
+
+  // Значения по умолчанию
+  const defWeight = lastLog && lastLog.weight > 0 ? lastLog.weight : (ex.weight || 0);
+  document.getElementById('ex-input-weight').value = defWeight > 0 ? defWeight : '';
+  document.getElementById('ex-input-sets').value = ex.sets || 3;
+  document.getElementById('ex-input-reps').value = ex.reps || 8;
+  document.getElementById('ex-input-notes').value = '';
+
+  // RPE
+  document.querySelectorAll('[data-rpe]').forEach(b => b.classList.remove('active'));
+
+  document.getElementById('ex-sheet').classList.add('show');
+  document.getElementById('ex-sheet-overlay').classList.add('show');
+  document.getElementById('fab').style.display = 'none';
+  setTimeout(() => document.getElementById('ex-input-weight').focus(), 350);
+}
+
+function closeExerciseLogSheet() {
+  haptic('light');
+  document.getElementById('ex-sheet').classList.remove('show');
+  document.getElementById('ex-sheet-overlay').classList.remove('show');
+  document.getElementById('ex-input-weight').blur();
+  document.getElementById('ex-input-sets').blur();
+  document.getElementById('ex-input-reps').blur();
+  document.getElementById('ex-input-notes').blur();
+  currentExSheetIndex = null;
+  currentExSheetRpe = null;
+  updateFabForScreen(currentScreen);
+}
+
+function setExerciseRpe(v) {
+  haptic('light');
+  currentExSheetRpe = (currentExSheetRpe === v) ? null : v;
+  document.querySelectorAll('[data-rpe]').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.rpe) === currentExSheetRpe);
+  });
+}
+
+function saveExerciseSet(keepOpen) {
+  if (currentExSheetIndex === null) return;
+  const plan = getTodayWorkoutPlan();
+  if (!plan) return;
+  const ex = plan.exercises[currentExSheetIndex];
+  if (!ex) return;
+
+  const weightInput = document.getElementById('ex-input-weight').value.trim();
+  const setsInput = document.getElementById('ex-input-sets').value.trim();
+  const repsInput = document.getElementById('ex-input-reps').value.trim();
+
+  const weight = weightInput === '' ? 0 : parseFloat(weightInput.replace(',', '.'));
+  const sets = parseInt(setsInput, 10);
+  const reps = parseInt(repsInput, 10);
+
+  if (isNaN(sets) || sets < 1) { toast('Укажи подходы'); return; }
+  if (isNaN(reps) || reps < 1) { toast('Укажи повторы'); return; }
+  if (isNaN(weight) || weight < 0) { toast('Неверный вес'); return; }
+
+  const notes = document.getElementById('ex-input-notes').value.trim();
+  const rpe = currentExSheetRpe;
+
+  // 1. Локально
   const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const entry = {
     id: clientId,
     date: new Date().toISOString(),
     exercise: ex.name,
-    weight: ex.weight,
-    sets: ex.sets,
-    reps: ex.reps,
-    tonnage: ex.weight * ex.sets * ex.reps
+    weight: weight,
+    sets: sets,
+    reps: reps,
+    rpe: rpe,
+    notes: notes,
+    tonnage: weight * sets * reps
   };
   const logs = loadWorkoutLog();
   logs.unshift(entry);
   saveWorkoutLog(logs);
+
+  // 2. Отметить выполненным
   const done = getWorkoutDone();
-  done[i] = true;
+  done[currentExSheetIndex] = true;
   saveWorkoutDone(done);
-  hapticNotify('success');
-  renderWorkoutToday();
-  toast(`${ex.name} записано`);
+
+  // 3. На сервер
   apiPost('addWorkoutSet', {
     clientId: clientId,
     exercise: ex.name,
-    weight: ex.weight,
-    sets: ex.sets,
-    reps: String(ex.reps)
+    weight: weight,
+    sets: sets,
+    reps: String(reps),
+    rpe: rpe || '',
+    notes: notes || ''
   });
+
+  hapticNotify('success');
+  toast(`✓ ${ex.name}: ${weight > 0 ? weight + 'кг × ' : ''}${sets}×${reps}`);
+
+  if (keepOpen) {
+    // Оставляем шторку открытой, сбрасываем счётчик подходов на 1 для следующего
+    document.getElementById('ex-input-sets').value = 1;
+    document.getElementById('ex-input-reps').value = reps;
+    document.getElementById('ex-input-notes').value = '';
+    // RPE остаётся (часто подходы подряд с одинаковой тяжестью)
+    document.getElementById('ex-input-reps').focus();
+  } else {
+    closeExerciseLogSheet();
+    renderWorkoutToday();
+    renderHomeWorkoutPreview();
+  }
 }
     function renderWorkoutPlan() {
   const plan = loadWorkoutPlan(); const today = getTodayDow();
