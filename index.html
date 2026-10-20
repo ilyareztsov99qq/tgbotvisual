@@ -57,29 +57,54 @@
 .sync-dot.offline { background: var(--red); }
     /* === Чат: fixed, не уезжает при клавиатуре === */
 #screen-workout-coach.active {
-  position: fixed;
-  inset: 0;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   background: var(--bg);
-  z-index: 45;
-  display: flex;
+  z-index: 100;
+  display: flex !important;
   flex-direction: column;
-  padding: env(safe-area-inset-top, 0) 16px env(safe-area-inset-bottom, 0);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: 0;
 }
+
+#screen-workout-coach.active > header {
+  flex-shrink: 0;
+}
+
 #screen-workout-coach .coach-wrapper {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding-top: 12px;
+  padding-top: 8px;
 }
+
 #screen-workout-coach .coach-messages {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
 #screen-workout-coach .coach-chips,
 #screen-workout-coach .coach-input-wrap {
   flex-shrink: 0;
+}
+
+#screen-workout-coach .coach-input-wrap {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Таббар скрывается на специфичных экранах */
@@ -1783,7 +1808,11 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
-      if (name === 'workout-coach') { renderCoachMessages(); updateCoachChips(); }
+      if (name === 'workout-coach') {
+  renderCoachMessages();
+  updateCoachChips();
+  applyCoachHeight();
+}
       if (name === 'workout-timer') renderTimerScreen();
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
@@ -1792,6 +1821,11 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'fin-budget') renderBudgetScreen();
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
+      // Если уходим с чата — снимаем JS-высоту (чтобы не сломать другие экраны)
+if (name !== 'workout-coach') {
+  const coachEl = document.getElementById('screen-workout-coach');
+  if (coachEl) coachEl.style.height = '';
+}
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function navigate(name, opts = {}) {
@@ -4535,6 +4569,35 @@ function renderReports() {
       toast('Данные очищены');
       setTimeout(()=>{ navigate('home', {tab:true}); }, 500);
     }
+
+    // ============================================================
+// ВЫСОТА ЧАТА: страховка на случай если 100dvh не работает
+// ============================================================
+function applyCoachHeight() {
+  const section = document.getElementById('screen-workout-coach');
+  if (!section) return;
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  if (h && h > 100) {
+    // Переопределяем height через JS — гарантированно работает
+    section.style.height = h + 'px';
+  }
+}
+
+// Отслеживаем изменение viewport (клавиатура, поворот)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    if (currentScreen === 'workout-coach') applyCoachHeight();
+  });
+}
+window.addEventListener('resize', () => {
+  if (currentScreen === 'workout-coach') applyCoachHeight();
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (currentScreen === 'workout-coach') applyCoachHeight();
+  }, 200);
+});
     // ============================================================
 // СКРЫТИЕ TABBAR ПРИ ФОКУСЕ НА INPUT
 // ============================================================
