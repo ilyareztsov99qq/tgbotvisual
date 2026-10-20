@@ -1784,6 +1784,7 @@ document.addEventListener('visibilitychange', () => {
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
       if (name === 'workout-coach') { renderCoachMessages(); updateCoachChips(); }
+      if (name === 'workout-timer') renderTimerScreen();
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
       if (name === 'reports') renderReports();
@@ -2984,16 +2985,69 @@ function capitalHTML(data) {
   });
 }
     function renderWorkoutPlan() {
-      const plan = loadWorkoutPlan(); const today = getTodayDow();
-      const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
-      let html = '';
-      for (let d = 1; d <= 7; d++) {
-        const day = plan[d]; const isToday = d === today;
-        html += `<div class="day-row ${isToday?'today':''}"><div><div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div><div class="day-split">${day ? escapeHtml(day.split) : 'День отдыха'}</div></div><div class="day-count">${day ? day.exercises.length + ' упр.' : '—'}</div></div>`;
-      }
-      document.getElementById('workout-plan-content').innerHTML = html;
-      lucide.createIcons();
-    }
+  const plan = loadWorkoutPlan(); const today = getTodayDow();
+  const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
+  let html = '';
+  for (let d = 1; d <= 7; d++) {
+    const day = plan[d]; const isToday = d === today;
+    const hasExercises = day && day.exercises && day.exercises.length > 0;
+    html += `<div class="day-row ${isToday?'today':''}" onclick="openWorkoutDay(${d})">
+      <div>
+        <div class="day-name">${dayNames[d]} ${isToday?'· Сегодня':''}</div>
+        <div class="day-split">${hasExercises ? escapeHtml(day.split) : 'День отдыха'}</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="day-count">${hasExercises ? day.exercises.length + ' упр.' : '—'}</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i>
+      </div>
+    </div>`;
+  }
+  document.getElementById('workout-plan-content').innerHTML = html;
+  lucide.createIcons();
+}
+
+let currentWorkoutDayDow = null;
+function openWorkoutDay(dow) {
+  haptic('light');
+  currentWorkoutDayDow = dow;
+  const plan = loadWorkoutPlan();
+  const day = plan[dow];
+  const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
+  const title = document.getElementById('workout-day-title');
+  const body = document.getElementById('workout-day-body');
+  if (!title || !body) return;
+
+  if (!day || !day.exercises || day.exercises.length === 0) {
+    title.textContent = dayNames[dow] + ' · Отдых';
+    body.innerHTML = `<div class="apple-card p-8 rounded-[20px] text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+        <i data-lucide="moon" class="w-7 h-7 text-tertiary"></i>
+      </div>
+      <p class="text-sm font-medium text-primary mb-1">День отдыха</p>
+      <p class="text-xs text-tertiary">Восстановление — тоже тренировка</p>
+    </div>`;
+  } else {
+    title.textContent = dayNames[dow] + ' · ' + day.split;
+    body.innerHTML = `<div class="space-y-2">${day.exercises.map((ex, i) => `
+      <div class="ex-item">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold" style="background:var(--neutral-fill); color:var(--text-secondary);">${i + 1}</div>
+        <div class="ex-body">
+          <div class="ex-name">${escapeHtml(ex.name)}</div>
+          <div class="ex-plan">${ex.weight > 0 ? ex.weight + ' кг × ' : ''}${ex.sets}×${ex.reps}</div>
+        </div>
+      </div>
+    `).join('')}</div>`;
+  }
+  lucide.createIcons();
+  document.getElementById('workout-day-sheet').classList.add('show');
+  document.getElementById('workout-day-sheet-overlay').classList.add('show');
+}
+
+function closeWorkoutDay() {
+  haptic('light');
+  document.getElementById('workout-day-sheet').classList.remove('show');
+  document.getElementById('workout-day-sheet-overlay').classList.remove('show');
+}
     function renderWorkoutProgress() {
       const logs = loadWorkoutLog(); const prs = {};
       logs.forEach(l => { if (l.weight > 0) { if (!prs[l.exercise] || l.weight > prs[l.exercise].weight) prs[l.exercise] = l; } });
@@ -3409,6 +3463,357 @@ function sanitizeCoachHtml(html) {
   // Не трогаем содержимое тегов
   safe = safe.replace(/\n/g, '<br>');
   return safe;
+}
+    // =========== TIMER (STOPWATCH + INTERVAL) ===========
+let timerMode = 'stopwatch';
+let timerState = {
+  running: false,
+  // stopwatch
+  elapsedMs: 0,
+  startTs: 0,
+  pausedElapsedMs: 0,
+  laps: [],
+  // interval
+  workSec: 40,
+  restSec: 20,
+  rounds: 8,
+  lastPhaseKey: '',
+  finished: false
+};
+let timerInterval = null;
+let audioCtx = null;
+
+function initAudio() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {}
+}
+
+function timerBeep(freq, durationMs, vol) {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.value = vol || 0.15;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    setTimeout(() => { try { osc.stop(); gain.disconnect(); } catch (e) {} }, durationMs);
+  } catch (e) {}
+}
+
+function setTimerMode(mode) {
+  haptic('light');
+  if (timerState.running) {
+    if (!confirm('Остановить текущий таймер?')) return;
+    timerResetInternal();
+  }
+  timerMode = mode;
+  document.querySelectorAll('[data-timer-mode]').forEach(b => {
+    b.classList.toggle('active', b.dataset.timerMode === mode);
+  });
+  renderTimerScreen();
+}
+
+function renderTimerScreen() {
+  if (timerMode === 'stopwatch') renderStopwatch();
+  else renderInterval();
+}
+
+function formatStopwatch(ms) {
+  const totalSec = ms / 1000;
+  const min = Math.floor(totalSec / 60);
+  const sec = Math.floor(totalSec % 60);
+  const cs = Math.floor((ms % 1000) / 10);
+  return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+
+function formatSec(ms) {
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function renderStopwatch() {
+  const el = document.getElementById('timer-content');
+  if (!el) return;
+  const running = timerState.running;
+  const elapsed = running ? (Date.now() - timerState.startTs) : timerState.elapsedMs;
+
+  let html = `<div class="apple-card p-8 rounded-[28px] mb-4 text-center">
+    <div class="text-6xl font-semibold tracking-tight numbers text-primary timer-display" id="stopwatch-display">${formatStopwatch(elapsed)}</div>
+  </div>
+  <div class="grid grid-cols-2 gap-3 mb-4">
+    ${!running
+      ? `<button onclick="startTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">▶ ${elapsed > 0 ? 'Продолжить' : 'Старт'}</button>`
+      : `<button onclick="pauseTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--orange); color:#000;">⏸ Пауза</button>`
+    }
+    ${running
+      ? `<button onclick="addLap()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--blue); color:#fff;">⊕ Круг</button>`
+      : `<button onclick="timerReset()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Сброс</button>`
+    }
+  </div>`;
+
+  if (timerState.laps.length > 0) {
+    html += `<div class="apple-card p-5 rounded-[24px]">
+      <h3 class="text-xs font-semibold uppercase text-secondary mb-3">Круги (${timerState.laps.length})</h3>
+      <div class="space-y-2">`;
+    timerState.laps.forEach((lapMs, i) => {
+      const lapDuration = i === 0 ? lapMs : lapMs - timerState.laps[i - 1];
+      html += `<div class="flex justify-between items-center text-sm py-1 border-b divider last:border-0">
+        <span class="text-tertiary text-xs w-8">#${i + 1}</span>
+        <span class="numbers font-semibold text-primary">${formatStopwatch(lapDuration)}</span>
+        <span class="numbers text-tertiary text-xs">${formatStopwatch(lapMs)}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+  el.innerHTML = html;
+  lucide.createIcons();
+}
+
+function updateStopwatchDisplay() {
+  const el = document.getElementById('stopwatch-display');
+  if (!el) return;
+  el.textContent = formatStopwatch(Date.now() - timerState.startTs);
+}
+
+function computeIntervalState() {
+  if (timerState.startTs === 0 && !timerState.running) {
+    return { phase: 'idle', remainMs: timerState.workSec * 1000, round: 1, done: false };
+  }
+  const elapsed = timerState.running ? (Date.now() - timerState.startTs) : (timerState.pausedElapsedMs || 0);
+  const workMs = timerState.workSec * 1000;
+  const restMs = timerState.restSec * 1000;
+  const cycleMs = workMs + restMs;
+  const totalMs = timerState.rounds * cycleMs;
+
+  if (elapsed >= totalMs - restMs) {
+    // Финиш — не показываем "отдых" после последнего раунда
+    if (elapsed >= totalMs) {
+      return { phase: 'done', remainMs: 0, round: timerState.rounds, done: true };
+    }
+  }
+
+  const roundIdx = Math.floor(elapsed / cycleMs);
+  const inCycle = elapsed - roundIdx * cycleMs;
+  let phase, remainMs;
+  if (inCycle < workMs) {
+    phase = 'work';
+    remainMs = workMs - inCycle;
+  } else {
+    phase = 'rest';
+    remainMs = cycleMs - inCycle;
+  }
+  return { phase, remainMs, round: roundIdx + 1, done: false };
+}
+
+function updateIntervalTick() {
+  const state = computeIntervalState();
+  if (state.done) {
+    timerState.running = false;
+    timerState.finished = true;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    hapticNotify('success');
+    timerBeep(1200, 300);
+    setTimeout(() => timerBeep(1200, 300), 400);
+    setTimeout(() => timerBeep(1200, 300), 800);
+    renderInterval();
+    return;
+  }
+  const key = `${state.round}:${state.phase}`;
+  if (key !== timerState.lastPhaseKey) {
+    timerState.lastPhaseKey = key;
+    haptic('heavy');
+    if (state.phase === 'work') timerBeep(880, 180);
+    else timerBeep(520, 180);
+  }
+  const remainEl = document.getElementById('timer-remain');
+  const phaseEl = document.getElementById('timer-phase');
+  const roundEl = document.getElementById('timer-round');
+  if (remainEl) remainEl.textContent = formatSec(state.remainMs);
+  if (phaseEl) {
+    phaseEl.textContent = state.phase === 'work' ? 'РАБОТА' : 'ОТДЫХ';
+    phaseEl.style.color = state.phase === 'work' ? 'var(--green)' : 'var(--blue)';
+  }
+  if (roundEl) roundEl.textContent = `Раунд ${state.round} / ${timerState.rounds}`;
+}
+
+function renderInterval() {
+  const el = document.getElementById('timer-content');
+  if (!el) return;
+
+  // Настройки (idle)
+  if (timerState.startTs === 0 && !timerState.running && !timerState.finished) {
+    const totalSec = timerState.rounds * (timerState.workSec + timerState.restSec) - timerState.restSec;
+    let html = `<div class="apple-card p-6 rounded-[24px] mb-4">
+      <h3 class="text-sm font-semibold text-primary mb-4">Настройки</h3>
+
+      <div class="mb-4">
+        <p class="text-xs text-secondary mb-2">Работа (сек)</p>
+        <div class="grid grid-cols-4 gap-2">
+          ${[20, 30, 40, 45].map(v => `<button onclick="setIntervalParam('workSec',${v})" class="py-2 rounded-xl text-sm font-semibold numbers" style="${timerState.workSec === v ? 'background:var(--green); color:#fff;' : 'background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);'}">${v}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <p class="text-xs text-secondary mb-2">Отдых (сек)</p>
+        <div class="grid grid-cols-4 gap-2">
+          ${[10, 15, 20, 30].map(v => `<button onclick="setIntervalParam('restSec',${v})" class="py-2 rounded-xl text-sm font-semibold numbers" style="${timerState.restSec === v ? 'background:var(--blue); color:#fff;' : 'background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);'}">${v}</button>`).join('')}
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs text-secondary mb-2">Раунды</p>
+        <div class="grid grid-cols-4 gap-2">
+          ${[5, 8, 10, 15].map(v => `<button onclick="setIntervalParam('rounds',${v})" class="py-2 rounded-xl text-sm font-semibold numbers" style="${timerState.rounds === v ? 'background:var(--purple); color:#fff;' : 'background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);'}">${v}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t divider">
+        <p class="text-xs text-tertiary">Общее время: <b class="text-primary numbers">${formatSec(totalSec * 1000)}</b></p>
+      </div>
+    </div>
+
+    <div class="apple-card p-5 rounded-[24px] mb-4">
+      <h3 class="text-xs font-semibold uppercase text-secondary mb-3">Пресеты</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="applyIntervalPreset(20,10,8)" class="py-3 rounded-xl text-xs font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">Tabata 20/10×8</button>
+        <button onclick="applyIntervalPreset(40,20,8)" class="py-3 rounded-xl text-xs font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">40/20 × 8</button>
+        <button onclick="applyIntervalPreset(60,0,10)" class="py-3 rounded-xl text-xs font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">EMOM 60×10</button>
+        <button onclick="applyIntervalPreset(30,30,10)" class="py-3 rounded-xl text-xs font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">30/30 × 10</button>
+      </div>
+    </div>
+
+    <button onclick="startTimer()" class="w-full py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">▶ Старт</button>`;
+    el.innerHTML = html;
+    lucide.createIcons();
+    return;
+  }
+
+  // Активный таймер
+  const state = computeIntervalState();
+  let phaseLabel, phaseColor, remainMs, roundNum;
+  if (state.done || timerState.finished) {
+    phaseLabel = '✓ ГОТОВО';
+    phaseColor = 'var(--purple)';
+    remainMs = 0;
+    roundNum = timerState.rounds;
+  } else if (!timerState.running && timerState.pausedElapsedMs > 0) {
+    phaseLabel = state.phase === 'work' ? 'РАБОТА · ПАУЗА' : 'ОТДЫХ · ПАУЗА';
+    phaseColor = 'var(--orange)';
+    remainMs = state.remainMs;
+    roundNum = state.round;
+  } else {
+    phaseLabel = state.phase === 'work' ? 'РАБОТА' : 'ОТДЫХ';
+    phaseColor = state.phase === 'work' ? 'var(--green)' : 'var(--blue)';
+    remainMs = state.remainMs;
+    roundNum = state.round;
+  }
+
+  let html = `<div class="apple-card p-8 rounded-[28px] mb-4 text-center">
+    <div class="timer-phase mb-3" id="timer-phase" style="color:${phaseColor};">${phaseLabel}</div>
+    <div class="text-6xl font-semibold tracking-tight numbers text-primary timer-display" id="timer-remain">${formatSec(remainMs)}</div>
+    <div class="text-xs text-tertiary mt-3" id="timer-round">Раунд ${roundNum} / ${timerState.rounds}</div>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    ${state.done || timerState.finished
+      ? `<button onclick="timerReset()" class="col-span-2 py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">↺ Заново</button>`
+      : timerState.running
+        ? `<button onclick="pauseTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--orange); color:#000;">⏸ Пауза</button>
+           <button onclick="timerReset()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Сброс</button>`
+        : `<button onclick="startTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">▶ Продолжить</button>
+           <button onclick="timerReset()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Сброс</button>`
+    }
+  </div>`;
+  el.innerHTML = html;
+  lucide.createIcons();
+}
+
+function setIntervalParam(key, value) {
+  haptic('light');
+  timerState[key] = value;
+  renderInterval();
+}
+
+function applyIntervalPreset(work, rest, rounds) {
+  haptic('medium');
+  timerState.workSec = work;
+  timerState.restSec = rest;
+  timerState.rounds = rounds;
+  renderInterval();
+}
+
+function startTimer() {
+  initAudio();
+  haptic('medium');
+  if (timerMode === 'stopwatch') {
+    timerState.startTs = Date.now() - timerState.elapsedMs;
+  } else {
+    if (timerState.finished) {
+      timerState.finished = false;
+      timerState.pausedElapsedMs = 0;
+    }
+    timerState.startTs = Date.now() - (timerState.pausedElapsedMs || 0);
+    timerState.lastPhaseKey = '';
+  }
+  timerState.running = true;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(timerTick, 50);
+  timerBeep(660, 80);
+  renderTimerScreen();
+}
+
+function pauseTimer() {
+  haptic('light');
+  if (timerMode === 'stopwatch') {
+    timerState.elapsedMs = Date.now() - timerState.startTs;
+  } else {
+    timerState.pausedElapsedMs = Date.now() - timerState.startTs;
+  }
+  timerState.running = false;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  renderTimerScreen();
+}
+
+function timerResetInternal() {
+  timerState.running = false;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  timerState.elapsedMs = 0;
+  timerState.startTs = 0;
+  timerState.pausedElapsedMs = 0;
+  timerState.laps = [];
+  timerState.lastPhaseKey = '';
+  timerState.finished = false;
+}
+
+function timerReset() {
+  haptic('light');
+  timerResetInternal();
+  renderTimerScreen();
+  toast('Сброшено');
+}
+
+function addLap() {
+  if (!timerState.running || timerMode !== 'stopwatch') return;
+  haptic('light');
+  timerState.laps.push(Date.now() - timerState.startTs);
+  renderStopwatch();
+}
+
+function timerTick() {
+  if (!timerState.running) return;
+  if (timerMode === 'stopwatch') {
+    updateStopwatchDisplay();
+  } else {
+    updateIntervalTick();
+  }
 }
     // =========== NOTES ===========
     let editingNoteId = null;
