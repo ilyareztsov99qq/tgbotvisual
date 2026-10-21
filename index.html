@@ -88,12 +88,13 @@
       overflow: hidden;
       margin: 0;
     }
-    #screen-workout-coach .coach-wrapper {
+        #screen-workout-coach .coach-wrapper {
       flex: 1;
       min-height: 0;
       display: flex;
       flex-direction: column;
-      padding-top: 58px; /* Место под прозрачную шапку */
+      /* Увеличили отступ, чтобы не перекрывала кнопка "Назад" */
+      padding-top: max(80px, calc(env(safe-area-inset-top, 0px) + 60px)); 
       height: 100%;
     }
     #screen-workout-coach .coach-messages {
@@ -106,16 +107,16 @@
       flex-shrink: 0;
       padding-bottom: max(8px, env(safe-area-inset-bottom));
     }
-    /* Шапка чата — прозрачный оверлей поверх сообщений */
+        /* Шапка чата — прозрачный оверлей поверх сообщений */
     #screen-workout-coach.active > header {
       position: absolute;
       top: env(safe-area-inset-top, 0px);
       left: 0;
       right: 0;
       z-index: 10;
-      padding: 6px 16px 24px;
+      padding: 10px 16px 30px; /* Чуть увеличили нижний отступ */
       padding-right: 92px;
-      background: linear-gradient(to bottom, var(--bg) 45%, transparent 100%);
+      background: linear-gradient(to bottom, var(--bg) 60%, transparent 100%);
       pointer-events: none;
       display: flex;
       align-items: center;
@@ -316,10 +317,47 @@
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     
     /* === AI Coach Chat === */
-    .coach-bubble { max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.45; word-break: break-word; animation: bubbleIn 0.25s ease; }
-    @keyframes bubbleIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .coach-bubble.user { align-self: flex-end; background: var(--blue); color: #fff; border-bottom-right-radius: 6px; }
-    .coach-bubble.coach { align-self: flex-start; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); border-bottom-left-radius: 6px; }
+        .coach-bubble {
+      max-width: 90%;
+      padding: 12px 16px;
+      border-radius: 20px;
+      font-size: 15px;
+      line-height: 1.5;
+      word-break: break-word;
+      animation: bubbleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .coach-bubble.user {
+      align-self: flex-end;
+      background: var(--blue);
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+    .coach-bubble.coach {
+      align-self: flex-start;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      color: var(--text-primary);
+      border-bottom-left-radius: 6px;
+    }
+
+    /* Умные отступы как в Telegram */
+    .coach-messages { gap: 4px; } /* Базовый маленький отступ */
+    
+    /* Если сообщения от разных авторов — отступ больше */
+    .coach-bubble.user + .coach-bubble.coach,
+    .coach-bubble.coach + .coach-bubble.user {
+      margin-top: 16px;
+    }
+    
+    /* Если сообщения от одного автора подряд — прижимаем их */
+    .coach-bubble.user + .coach-bubble.user,
+    .coach-bubble.coach + .coach-bubble.coach {
+      margin-top: 2px;
+    }
     .coach-bubble.coach b, .coach-bubble.coach strong { color: var(--text-primary); font-weight: 700; }
     .coach-bubble.coach i, .coach-bubble.coach em { color: var(--text-secondary); }
     .coach-bubble.coach code { background: var(--neutral-fill); padding: 1px 5px; border-radius: 4px; font-size: 13px; font-family: ui-monospace, monospace; }
@@ -337,7 +375,17 @@
     .coach-chip { padding: 7px 12px; font-size: 12px; font-weight: 500; border-radius: 999px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-secondary); transition: all 0.15s ease; white-space: nowrap; }
     .coach-chip:active { transform: scale(0.96); background: var(--neutral-fill-hover); }
     .coach-chip.hidden { display: none; }
-    .coach-input-wrap { display: flex; gap: 8px; align-items: center; padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--bg); flex-shrink: 0; border-top: 0.5px solid var(--divider); margin-top: auto; }
+       .coach-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: var(--bg);
+      flex-shrink: 0;
+      border-top: 0.5px solid var(--divider);
+      margin-top: auto;
+      z-index: 20; /* Чтобы инпут всегда был поверх сообщений */
+    }
     .coach-input { flex: 1; padding: 12px 16px; border-radius: 22px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s ease; font-family: inherit; }
     .coach-input:focus { border-color: var(--blue); }
     .coach-input::placeholder { color: var(--text-tertiary); }
@@ -2934,7 +2982,15 @@
         hideCoachTyping(); console.error('coach failed:', e);
         const errMsg = (e && e.message && /unauthorized|forbidden/i.test(e.message)) ? 'Ошибка авторизации. Перезапусти Mini App.' : (e && e.message && /quota|limit|too many/i.test(e.message)) ? 'Лимит AI исчерпан. Попробуй позже.' : 'Не удалось получить ответ. Проверь связь и попробуй ещё.';
         appendCoachBubble('coach', errMsg); hapticNotify('error');
-      } finally { sendBtn.disabled = false; }
+            } finally {
+        sendBtn.disabled = false;
+        // Плавный скролл вниз после ответа
+        setTimeout(() => {
+          const el = document.getElementById('coach-messages');
+          if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+        }, 50);
+      }
+    }
     }
     
     function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
