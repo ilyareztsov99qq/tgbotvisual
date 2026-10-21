@@ -3328,11 +3328,13 @@ function capitalHTML(data) {
       return changed;
     }
     function renderWorkoutToday() {
+      console.log('[workout] renderWorkoutToday start');
       const labelEl = document.getElementById('workout-today-label');
       if (labelEl) labelEl.textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
       const el = document.getElementById('workout-today-content');
       if (!el) return;
       const plan = getTodayWorkoutPlan();
+      console.log('[workout] plan:', plan ? plan.split + ' ' + plan.exercises.length + ' ex' : null);
       if (!plan || !plan.exercises || !plan.exercises.length) {
         el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="moon" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">День отдыха</p><p class="text-xs text-tertiary">Восстановление — тоже тренировка</p></div>`;
         if (typeof lucide !== 'undefined') lucide.createIcons(); return;
@@ -3410,11 +3412,14 @@ function capitalHTML(data) {
       </button></div>`;
       html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
       el.innerHTML = html;
+      console.log('[workout] renderWorkoutToday html set, length:', html.length);
       if (typeof lucide !== 'undefined') lucide.createIcons();
-      setupExerciseSwipes();
+      try { setupExerciseSwipes(); } catch(e) { console.error('[workout] setupExerciseSwipes error:', e); }
+      console.log('[workout] renderWorkoutToday done');
     }
 
     function setupExerciseSwipes() {
+      console.log('[workout] setupExerciseSwipes start, items:', document.querySelectorAll('.ex-item').length);
       document.querySelectorAll('.ex-item').forEach((el, idx) => {
         if (el.dataset.swipeInit) return;
         el.dataset.swipeInit = '1';
@@ -3436,8 +3441,10 @@ function capitalHTML(data) {
           renderWorkoutToday();
           toast('Пропущено');
         };
+        try {
         el.style.position = 'relative';
         el.appendChild(btn);
+        } catch(e) { console.error('[workout] swipe setup append error:', e); return; }
         const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
         el.addEventListener('touchstart', (e) => { startX = getClientX(e); currentX = startX; isSwiping = false; }, {passive:true});
         el.addEventListener('mousedown', (e) => { startX = getClientX(e); currentX = startX; isSwiping = false; }, {passive:true});
