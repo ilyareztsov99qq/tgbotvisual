@@ -3328,7 +3328,8 @@ function capitalHTML(data) {
       return changed;
     }
     function renderWorkoutToday() {
-      const plan = getTodayWorkoutPlan();
+      try {
+        const plan = getTodayWorkoutPlan();
       document.getElementById('workout-today-label').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
       const el = document.getElementById('workout-today-content');
       if (!plan || !plan.exercises || !plan.exercises.length) {
@@ -3339,14 +3340,14 @@ function capitalHTML(data) {
       migrateWorkoutDone();
       const done = getWorkoutDone();
       const logs = loadWorkoutLog();
-      const todayStr = todayStr();
+      const todayDateStr = todayStr();
       const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
       const total = plan.exercises.length;
       // Счётчик подходов и RPE по каждому упражнению за сегодня
       const setCounts = {};
       const lastRpe = {};
       logs.forEach(l => {
-        if (l.date && l.date.startsWith(todayStr)) {
+        if (l.date && l.date.startsWith(todayDateStr)) {
           setCounts[l.exercise] = (setCounts[l.exercise]||0) + 1;
           if (l.rpe) lastRpe[l.exercise] = l.rpe;
         }
@@ -3380,7 +3381,7 @@ function capitalHTML(data) {
 });
       // Финальный баннер когда все упражнения выполнены
       if (doneCount === total && total > 0) {
-        const todayLogs = logs.filter(l => l.date && l.date.startsWith(todayStr));
+        const todayLogs = logs.filter(l => l.date && l.date.startsWith(todayDateStr));
         const totalSets = todayLogs.length;
         const totalTonnage = todayLogs.reduce((s, l) => s + (l.tonnage || 0), 0);
         // Считаем новые рекорды сегодня
@@ -3409,6 +3410,11 @@ function capitalHTML(data) {
       html += `<div class="mt-4"><button onclick="navigate('workout-cardio')" class="w-full apple-card tappable p-4 rounded-2xl flex items-center justify-center space-x-2"><i data-lucide="footprints" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">Кардио</span></button></div>`;
       el.innerHTML = html; lucide.createIcons();
       setupExerciseSwipes();
+      } catch(e) {
+        console.error('renderWorkoutToday error:', e);
+        const el = document.getElementById('workout-today-content');
+        if (el) el.innerHTML = '<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-red">Ошибка загрузки тренировки</p><p class="text-xs text-tertiary">Обновите страницу</p></div>';
+      }
     }
 
     function setupExerciseSwipes() {
@@ -3932,15 +3938,19 @@ function closeWorkoutDay() {
   apiPost('addCardio', { clientId: clientId, type: entry.type, minutes: entry.minutes });
 }
     function renderHomeWorkoutPreview() {
-      const el = document.getElementById('home-workout-preview'); if (!el) return;
-      const plan = getTodayWorkoutPlan();
-      if (!plan) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Сегодня день отдыха</p>'; return; }
-      ensureExerciseIds(plan);
-      migrateWorkoutDone();
-      const done = getWorkoutDone();
-      const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
-      const total = plan.exercises.length;
-      el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
+      try {
+        const el = document.getElementById('home-workout-preview'); if (!el) return;
+        let plan = getTodayWorkoutPlan();
+        if (!plan) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Сегодня день отдыха</p>'; return; }
+        ensureExerciseIds(plan);
+        migrateWorkoutDone();
+        const done = getWorkoutDone();
+        const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
+        const total = plan.exercises.length;
+        el.innerHTML = `<div class="flex justify-between items-center"><div><p class="text-sm font-medium text-primary">${escapeHtml(plan.split)}</p><p class="text-[11px] text-tertiary mt-0.5">${total} упражнений</p></div><span class="text-xs font-semibold numbers" style="color:${doneCount===total?'var(--green)':'var(--text-tertiary)'}">${doneCount} / ${total}</span></div>`;
+      } catch(e) {
+        console.error('renderHomeWorkoutPreview error:', e);
+      }
     }
 // =========== AI COACH ===========
 const COACH_HISTORY_KEY = 'aura_coach_history';
