@@ -2016,9 +2016,15 @@ document.addEventListener('visibilitychange', () => {
         if (Array.isArray(data.body)) localStorage.setItem('aura_body', JSON.stringify(data.body));
         if (Array.isArray(data.workoutLog)) localStorage.setItem('aura_workout_log', JSON.stringify(data.workoutLog));
         if (Array.isArray(data.cardio)) localStorage.setItem('aura_cardio', JSON.stringify(data.cardio));
-        if (data.workoutPlan && Object.keys(data.workoutPlan).length > 0) {
-          localStorage.setItem('aura_workout_plan', JSON.stringify(data.workoutPlan));
-        }
+        if (data.workoutPlan && typeof data.workoutPlan === 'object') {
+  if (Object.keys(data.workoutPlan).length > 0) {
+    localStorage.setItem('aura_workout_plan', JSON.stringify(data.workoutPlan));
+  } else {
+    // Сервер явно вернул пусто — сохраняем маркер "{}", чтобы не подставлять DEFAULT
+    localStorage.setItem('aura_workout_plan', '{}');
+  }
+  localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString());
+}
         if (data.foodMenu) {
           const all = JSON.parse(localStorage.getItem('aura_food_menu') || '{}');
           all[todayStr()] = data.foodMenu;
@@ -3260,7 +3266,18 @@ function capitalHTML(data) {
       5:{split:'Кардио / Пресс',exercises:[{name:'Бег 30 мин',weight:0,sets:1,reps:1},{name:'Планка',weight:0,sets:3,reps:60}]}
     };
     const CARDIO_OPTIONS = [{id:'run',name:'Бег',emoji:'🏃'},{id:'bike',name:'Велосипед',emoji:'🚴'},{id:'row',name:'Гребля',emoji:'🚣'},{id:'walk',name:'Ходьба',emoji:'🚶'},{id:'jump',name:'Скакалка',emoji:'🪢'},{id:'swim',name:'Плавание',emoji:'🏊'}];
-    function loadWorkoutPlan() { try { const p = localStorage.getItem('aura_workout_plan'); return p ? JSON.parse(p) : JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN)); } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN)); } }
+   function loadWorkoutPlan() {
+  try {
+    const raw = localStorage.getItem('aura_workout_plan');
+    if (raw === null) {
+      // Ещё ни разу не синкались — показываем демо-план (для первого запуска)
+      return JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN));
+    }
+    return JSON.parse(raw); // может быть {} — значит, сервер сказал "плана нет"
+  } catch (e) {
+    return JSON.parse(JSON.stringify(DEFAULT_WORKOUT_PLAN));
+  }
+}
     function loadWorkoutLog() { try { return JSON.parse(localStorage.getItem('aura_workout_log')||'[]'); } catch(e) { return []; } }
     function saveWorkoutLog(arr) { try { localStorage.setItem('aura_workout_log', JSON.stringify(arr.slice(0,500))); } catch(e) {} }
     function loadBody() { try { return JSON.parse(localStorage.getItem('aura_body')||'[]'); } catch(e) { return []; } }
@@ -3328,7 +3345,19 @@ function capitalHTML(data) {
       return changed;
     }
     function renderWorkoutToday() {
-      console.log('[workout] renderWorkoutToday start');
+  try {
+    const raw = localStorage.getItem('aura_workout_plan');
+    const synced = localStorage.getItem('aura_workout_plan_synced_at');
+    console.log('[WORKOUT DIAG]', {
+      isoNow: new Date().toISOString(),
+      dow: getTodayDow(),
+      lsRaw: raw ? raw.slice(0, 300) : null,
+      lsKeys: raw ? (function(){ try { return Object.keys(JSON.parse(raw)); } catch(e){ return 'parse error'; } })() : null,
+      syncedAt: synced ? new Date(+synced).toISOString() : null,
+      todayPlan: getTodayWorkoutPlan()
+    });
+  } catch (e) { console.warn('[WORKOUT DIAG] error', e); }
+  console.log('[workout] renderWorkoutToday start');
       const labelEl = document.getElementById('workout-today-label');
       if (labelEl) labelEl.textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
       const el = document.getElementById('workout-today-content');
@@ -3336,9 +3365,26 @@ function capitalHTML(data) {
       const plan = getTodayWorkoutPlan();
       console.log('[workout] plan:', plan ? plan.split + ' ' + plan.exercises.length + ' ex' : null);
       if (!plan || !plan.exercises || !plan.exercises.length) {
-        el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="moon" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">День отдыха</p><p class="text-xs text-tertiary">Восстановление — тоже тренировка</p></div>`;
-        if (typeof lucide !== 'undefined') lucide.createIcons(); return;
-      }
+  const syncedRaw = localStorage.getItem('aura_workout_plan_synced_at');
+  const syncInfo = syncedRaw
+    ? `Синк: ${new Date(parseInt(syncedRaw)).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+    : 'С сервера ещё не синкано';
+  el.innerHTML = `<div class="apple-card p-8 rounded-[28px] text-center">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);">
+      <i data-lucide="moon" class="w-7 h-7 text-tertiary"></i>
+    </div>
+    <p class="text-sm font-medium text-primary mb-1">День отдыха</p>
+    <p class="text-xs text-tertiary mb-4">Восстановление — тоже тренировка</p>
+    <button onclick="refreshWorkoutToday()" class="apple-glass px-4 py-2 rounded-full text-xs font-medium text-primary inline-flex items-center gap-1.5">
+      <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+      <span>Перечитать с сервера</span>
+    </button>
+    <p class="text-[10px] text-tertiary mt-3">${syncInfo}</p>
+    <p class="text-[10px] text-tertiary mt-1">План на другую неделю?<br>🏋️ Тренировки → 📅 План</p>
+  </div>`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  return;
+}
       ensureExerciseIds(plan);
       migrateWorkoutDone();
       const done = getWorkoutDone();
@@ -3416,6 +3462,21 @@ function capitalHTML(data) {
       if (typeof lucide !== 'undefined') lucide.createIcons();
       try { setupExerciseSwipes(); } catch(e) { console.error('[workout] setupExerciseSwipes error:', e); }
       console.log('[workout] renderWorkoutToday done');
+    }
+    async function refreshWorkoutToday() {
+      haptic('medium');
+      toast('Обновляю...');
+      try {
+        await bootstrapFromBackend();
+        renderWorkoutToday();
+        renderHomeWorkoutPreview();
+        renderWorkoutHub();
+        const p = getTodayWorkoutPlan();
+        toast(p && p.exercises && p.exercises.length ? '✓ Найдено' : 'План пуст');
+      } catch (e) {
+        console.warn('[refreshWorkoutToday]', e);
+        toast('⚠️ Ошибка сети');
+      }
     }
 
     function setupExerciseSwipes() {
@@ -4255,8 +4316,12 @@ async function applyPlanPreview() {
     await reloadWorkoutPlanFromServer();
 
     // Если обновили сегодняшний план — обновить и экран "Сегодня"
-    if (res.mode === 'single' && res.targetDate === todayStr()) {
+        if (res.mode === 'single' && res.targetDate === todayStr()) {
       if (currentScreen === 'workout-today') renderWorkoutToday();
+    } else if (res.mode === 'week' && res.weekStart) {
+      // Явно сообщаем, на какую неделю сохранён план
+      const startFmt = res.weekStart.split('-').reverse().slice(0, 2).join('.');
+      toast(`✓ План сохранён на неделю с ${startFmt}`);
     }
   } catch (e) {
     console.error('applyPlan failed:', e);
@@ -4275,8 +4340,9 @@ function cancelPlanPreview() {
 async function reloadWorkoutPlanFromServer() {
   try {
     const fresh = await apiGet('getAll');
-    if (fresh && fresh.workoutPlan && Object.keys(fresh.workoutPlan).length > 0) {
+    if (fresh && fresh.workoutPlan && typeof fresh.workoutPlan === 'object') {
       localStorage.setItem('aura_workout_plan', JSON.stringify(fresh.workoutPlan));
+      localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString());
     }
   } catch (e) { console.warn('reload plan failed:', e); }
 }
