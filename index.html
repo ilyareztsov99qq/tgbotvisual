@@ -88,12 +88,11 @@
       overflow: hidden;
       margin: 0;
     }
-        #screen-workout-coach .coach-wrapper {
+    #screen-workout-coach .coach-wrapper {
       flex: 1;
       min-height: 0;
       display: flex;
       flex-direction: column;
-      /* Увеличили отступ, чтобы не перекрывала кнопка "Назад" */
       padding-top: max(80px, calc(env(safe-area-inset-top, 0px) + 60px)); 
       height: 100%;
     }
@@ -102,19 +101,23 @@
       min-height: 0;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      padding: 8px 4px 16px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
     }
     #screen-workout-coach .coach-input-wrap {
       flex-shrink: 0;
       padding-bottom: max(8px, env(safe-area-inset-bottom));
     }
-        /* Шапка чата — прозрачный оверлей поверх сообщений */
+    /* Шапка чата — прозрачный оверлей поверх сообщений */
     #screen-workout-coach.active > header {
       position: absolute;
       top: env(safe-area-inset-top, 0px);
       left: 0;
       right: 0;
       z-index: 10;
-      padding: 10px 16px 30px; /* Чуть увеличили нижний отступ */
+      padding: 10px 16px 30px;
       padding-right: 92px;
       background: linear-gradient(to bottom, var(--bg) 60%, transparent 100%);
       pointer-events: none;
@@ -317,47 +320,16 @@
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     
     /* === AI Coach Chat === */
-        .coach-bubble {
-      max-width: 90%;
-      padding: 12px 16px;
-      border-radius: 20px;
-      font-size: 15px;
-      line-height: 1.5;
-      word-break: break-word;
-      animation: bubbleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    @keyframes bubbleIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .coach-bubble.user {
-      align-self: flex-end;
-      background: var(--blue);
-      color: #fff;
-      border-bottom-right-radius: 6px;
-    }
-    .coach-bubble.coach {
-      align-self: flex-start;
-      background: var(--card-bg);
-      border: 0.5px solid var(--card-border);
-      color: var(--text-primary);
-      border-bottom-left-radius: 6px;
-    }
-
+    .coach-bubble { max-width: 90%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; word-break: break-word; animation: bubbleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .coach-bubble.user { align-self: flex-end; background: var(--blue); color: #fff; border-bottom-right-radius: 6px; }
+    .coach-bubble.coach { align-self: flex-start; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); border-bottom-left-radius: 6px; }
+    
     /* Умные отступы как в Telegram */
-    .coach-messages { gap: 4px; } /* Базовый маленький отступ */
-    
-    /* Если сообщения от разных авторов — отступ больше */
-    .coach-bubble.user + .coach-bubble.coach,
-    .coach-bubble.coach + .coach-bubble.user {
-      margin-top: 16px;
-    }
-    
-    /* Если сообщения от одного автора подряд — прижимаем их */
-    .coach-bubble.user + .coach-bubble.user,
-    .coach-bubble.coach + .coach-bubble.coach {
-      margin-top: 2px;
-    }
+    .coach-messages { gap: 4px; }
+    .coach-bubble.user + .coach-bubble.coach, .coach-bubble.coach + .coach-bubble.user { margin-top: 16px; }
+    .coach-bubble.user + .coach-bubble.user, .coach-bubble.coach + .coach-bubble.coach { margin-top: 2px; }
+
     .coach-bubble.coach b, .coach-bubble.coach strong { color: var(--text-primary); font-weight: 700; }
     .coach-bubble.coach i, .coach-bubble.coach em { color: var(--text-secondary); }
     .coach-bubble.coach code { background: var(--neutral-fill); padding: 1px 5px; border-radius: 4px; font-size: 13px; font-family: ui-monospace, monospace; }
@@ -375,17 +347,8 @@
     .coach-chip { padding: 7px 12px; font-size: 12px; font-weight: 500; border-radius: 999px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-secondary); transition: all 0.15s ease; white-space: nowrap; }
     .coach-chip:active { transform: scale(0.96); background: var(--neutral-fill-hover); }
     .coach-chip.hidden { display: none; }
-       .coach-input-wrap {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: var(--bg);
-      flex-shrink: 0;
-      border-top: 0.5px solid var(--divider);
-      margin-top: auto;
-      z-index: 20; /* Чтобы инпут всегда был поверх сообщений */
-    }
+    
+    .coach-input-wrap { display: flex; gap: 8px; align-items: center; padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); flex-shrink: 0; border-top: 0.5px solid var(--divider); margin-top: auto; z-index: 20; }
     .coach-input { flex: 1; padding: 12px 16px; border-radius: 22px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s ease; font-family: inherit; }
     .coach-input:focus { border-color: var(--blue); }
     .coach-input::placeholder { color: var(--text-tertiary); }
@@ -427,6 +390,23 @@
   </style>
 </head>
 <body>
+  <!-- ЭКРАН ВХОДА (Только для браузера) -->
+  <div id="auth-screen" style="display: none; position: fixed; inset: 0; z-index: 9999; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+    <div class="apple-card p-8 rounded-[28px] max-w-sm w-full text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: rgba(0,122,255,.15); color: var(--blue);">
+        <i data-lucide="user" class="w-8 h-8"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-primary mb-2">Aura Life</h1>
+      <p class="text-xs text-secondary mb-6">Вход в личный кабинет</p>
+      
+      <input type="text" id="auth-login" class="task-input mb-3" placeholder="Логин" style="text-align: left;">
+      <input type="password" id="auth-password" class="task-input mb-4" placeholder="Пароль" style="text-align: left;">
+      
+      <button onclick="submitAuth()" class="submit-btn" style="margin: 0; background: var(--blue);">Войти</button>
+      <p id="auth-error" class="text-xs mt-3" style="color: var(--red); display: none;">Неверный логин или пароль</p>
+    </div>
+  </div>
+
   <div id="ptr-indicator" class="ptr-indicator">
     <i data-lucide="refresh-cw" class="w-5 h-5"></i>
   </div>
@@ -1093,10 +1073,11 @@
 
   <script>   
     // ============================================================
-    // ⚙️ API-КОНСТАНТЫ — ЗАМЕНИТЬ URL
+    // ⚙️ API-КОНСТАНТЫ
     // ============================================================
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxvajFQFIQdxHSh2s5ePkgF7zIGgsWYMgMFEfeUQyoeN52RxxY5tp3dWi6c_LQcBit1/exec';
     const INIT_DATA = window.Telegram?.WebApp?.initData || '';
+    let AUTH_TOKEN = localStorage.getItem('aura_web_token') || '';
 
     const SERVER_CAT_MAP = {
       '🛒 Супермаркеты/Еда': 'food', '🍷 Вино/Бары/Отдых': 'bars', '🏋️ Спорт/Здоровье': 'sport',
@@ -1114,29 +1095,82 @@
     };
     const ACC_TO_SERVER = { card: 'Основная карта', credit: 'Кредитка', cash: 'Наличные', invest: 'Накопления / Инвест' };
 
+    // ============================================================
+    // AUTHENTICATION
+    // ============================================================
+    async function submitAuth() {
+      const login = document.getElementById('auth-login').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const errorEl = document.getElementById('auth-error');
+      const btn = document.querySelector('#auth-screen button');
+      
+      if (!login || !password) {
+        errorEl.textContent = "Заполните все поля";
+        errorEl.style.display = 'block';
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = "Вход...";
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'login', payload: { username: login, password: password } })
+        });
+        
+        const json = await res.json();
+        
+        if (json.ok && json.data.success) {
+          AUTH_TOKEN = json.data.token;
+          localStorage.setItem('aura_web_token', AUTH_TOKEN);
+          document.getElementById('auth-screen').style.display = 'none';
+          initApp();
+        } else {
+          errorEl.textContent = json.error || "Неверный логин или пароль";
+          errorEl.style.display = 'block';
+        }
+      } catch (e) {
+        errorEl.textContent = "Ошибка сети";
+        errorEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Войти";
+      }
+    }
+
+    function checkAuth() {
+      if (INIT_DATA) return true;
+      if (AUTH_TOKEN) return true;
+      document.getElementById('auth-screen').style.display = 'flex';
+      return false;
+    }
+
+    // ============================================================
+    // API С RETRY, ОЧЕРЕДЬЮ И ЛОГАМИ
+    // ============================================================
     async function apiGet(action, params = {}) {
-      if (!INIT_DATA) throw new Error('Not in Telegram');
-      const q = new URLSearchParams({ action, initData: INIT_DATA, ...params });
+      if (!INIT_DATA && !AUTH_TOKEN) throw new Error('No auth');
+      const q = new URLSearchParams({ action, initData: INIT_DATA, authToken: AUTH_TOKEN, ...params });
       const res = await fetch(`${WEBAPP_URL}?${q}`, { method: 'GET' });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'API error');
       return json.data;
     }
 
-    // ============================================================
-    // API С RETRY, ОЧЕРЕДЬЮ И ЛОГАМИ
-    // ============================================================
     const QUEUE_KEY = 'aura_pending_sync';
     const QUEUEABLE_ACTIONS = ['addTransaction', 'addTask', 'addNote', 'addBody', 'addCardio', 'addHabit', 'toggleHabit', 'toggleShopping', 'addWorkoutSet'];
     const MAX_RETRIES = 3;
     const RETRY_DELAYS = [500, 1500, 3000];
 
     async function _apiPostRaw(action, payload) {
-      if (!INIT_DATA) throw new Error('Not in Telegram');
+      if (!INIT_DATA && !AUTH_TOKEN) throw new Error('No auth');
       const res = await fetch(WEBAPP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action, initData: INIT_DATA, payload })
+        body: JSON.stringify({ action, initData: INIT_DATA, authToken: AUTH_TOKEN, payload })
       });
       const json = await res.json();
       if (!json.ok) {
@@ -1157,7 +1191,7 @@
     }
 
     async function apiPost(action, payload) {
-      if (!INIT_DATA) return null;
+      if (!INIT_DATA && !AUTH_TOKEN) return null;
       let lastErr = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
@@ -1205,7 +1239,7 @@
     let _flushing = false;
     async function flushPendingQueue(showToast = false) {
       if (_flushing) return;
-      if (!INIT_DATA) return;
+      if (!INIT_DATA && !AUTH_TOKEN) return;
       const queue = getPendingQueue();
       if (queue.length === 0) return;
       _flushing = true;
@@ -1394,7 +1428,7 @@
     }
 
     async function refreshFromBackend(silent = false) {
-      if (!INIT_DATA) { setSyncStatus('offline'); return false; }
+      if (!INIT_DATA && !AUTH_TOKEN) { setSyncStatus('offline'); return false; }
       await flushPendingQueue(false);
       setSyncStatus('syncing');
       const ok = await bootstrapFromBackend();
@@ -1453,7 +1487,7 @@
     })();
 
     async function bootstrapFromBackend() {
-      if (!INIT_DATA) return false;
+      if (!INIT_DATA && !AUTH_TOKEN) return false;
       try {
         const data = await apiGet('getAll');
         if (!data) return false;
@@ -1611,7 +1645,8 @@
     function navigate(name, opts = {}) {
       haptic('soft');
       if (opts.title) { const t = document.getElementById('placeholder-title'); if (t) t.textContent = opts.title; }
-      if (opts.tab) history = [name]; else history.push(name);
+      if (opts.tab) { history = [name]; window.history.pushState({ screen: name }, '', `#${name}`); }
+      else { history.push(name); window.history.pushState({ screen: name }, '', `#${name}`); }
       showScreen(name);
     }
 
@@ -1621,8 +1656,15 @@
       else showScreen('home');
     }
 
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.screen) {
+        showScreen(e.state.screen);
+      } else {
+        showScreen('home');
+      }
+    });
+
     if (tg?.BackButton) tg.BackButton.onClick(goBack);
-    window.addEventListener('popstate', goBack);
     
     function updateFabForScreen(name) {
       const fab = document.getElementById('fab'); if (!fab) return;
@@ -2982,15 +3024,13 @@
         hideCoachTyping(); console.error('coach failed:', e);
         const errMsg = (e && e.message && /unauthorized|forbidden/i.test(e.message)) ? 'Ошибка авторизации. Перезапусти Mini App.' : (e && e.message && /quota|limit|too many/i.test(e.message)) ? 'Лимит AI исчерпан. Попробуй позже.' : 'Не удалось получить ответ. Проверь связь и попробуй ещё.';
         appendCoachBubble('coach', errMsg); hapticNotify('error');
-            } finally {
-        sendBtn.disabled = false;
-        // Плавный скролл вниз после ответа
+      } finally { 
+        sendBtn.disabled = false; 
         setTimeout(() => {
           const el = document.getElementById('coach-messages');
           if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
         }, 50);
       }
-    }
     }
     
     function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
@@ -3537,20 +3577,24 @@
     (function setupKeyboardHandling() {
       const tabbar = document.querySelector('nav[data-tabbar]'); if (!tabbar) return;
       let blurTimer = null;
+      
       document.addEventListener('focusin', (e) => {
         if (!e.target.matches('input, textarea, [contenteditable]')) return;
         clearTimeout(blurTimer);
-        // На экране чата таббар уже скрыт, на остальных скрываем принудительно
-        if (!['home', 'finance', 'tasks', 'more'].includes(currentScreen)) return;
         tabbar.style.transform = 'translateY(200%)';
         const fab = document.getElementById('fab'); if (fab) fab.style.display = 'none';
       });
+      
       document.addEventListener('focusout', (e) => {
         if (!e.target.matches('input, textarea, [contenteditable]')) return;
         blurTimer = setTimeout(() => {
           const active = document.activeElement; if (active && active.matches('input, textarea, [contenteditable]')) return;
-          if (!['home', 'finance', 'tasks', 'more'].includes(currentScreen)) return;
-          tabbar.style.transform = 'translateY(0)'; if (typeof updateFabForScreen === 'function') updateFabForScreen(currentScreen);
+          
+          const mainTabs = ['home', 'finance', 'tasks', 'more'];
+          if (mainTabs.includes(currentScreen)) {
+            tabbar.style.transform = 'translateY(0)';
+            if (typeof updateFabForScreen === 'function') updateFabForScreen(currentScreen);
+          }
         }, 100);
       });
     })();
@@ -3561,48 +3605,55 @@
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
     // =========== INIT ===========
-    lucide.createIcons();
-    showScreen('home');
-    renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
-    renderSkeletons();
-    setSyncStatus('syncing');
-    
-    function updateGreeting() {
-      const el = document.getElementById('home-greeting'); if (!el) return;
-      const h = new Date().getHours(); let greeting = 'Доброе утро';
-      if (h >= 12 && h < 18) greeting = 'Добрый день'; else if (h >= 18 && h < 23) greeting = 'Добрый вечер'; else if (h >= 23 || h < 5) greeting = 'Доброй ночи';
-      el.textContent = greeting;
-    }
-    updateGreeting();
+    function initApp() {
+      lucide.createIcons();
+      showScreen('home');
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
+      renderSkeletons();
+      setSyncStatus('syncing');
+      
+      function updateGreeting() {
+        const el = document.getElementById('home-greeting'); if (!el) return;
+        const h = new Date().getHours(); let greeting = 'Доброе утро';
+        if (h >= 12 && h < 18) greeting = 'Добрый день'; else if (h >= 18 && h < 23) greeting = 'Добрый вечер'; else if (h >= 23 || h < 5) greeting = 'Доброй ночи';
+        el.textContent = greeting;
+      }
+      updateGreeting();
 
-    function updateHomeBalance() {
-      const balEl = document.getElementById('balance'); const updEl = document.getElementById('balance-updated'); if (!balEl) return;
-      try {
-        const raw = localStorage.getItem('aura_capital_cache');
-        if (raw) {
-          const cached = JSON.parse(raw);
-          if (cached && typeof cached.total === 'number') {
-            balEl.textContent = '₽ ' + cached.total.toLocaleString('ru-RU');
-            if (updEl) { const n = cached.accounts?.length || 0; updEl.textContent = n === 0 ? 'нет счетов' : n === 1 ? 'из 1 счёта' : n < 5 ? `из ${n} счетов` : `из ${n} счетов`; }
-            return;
+      function updateHomeBalance() {
+        const balEl = document.getElementById('balance'); const updEl = document.getElementById('balance-updated'); if (!balEl) return;
+        try {
+          const raw = localStorage.getItem('aura_capital_cache');
+          if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && typeof cached.total === 'number') {
+              balEl.textContent = '₽ ' + cached.total.toLocaleString('ru-RU');
+              if (updEl) { const n = cached.accounts?.length || 0; updEl.textContent = n === 0 ? 'нет счетов' : n === 1 ? 'из 1 счёта' : n < 5 ? `из ${n} счетов` : `из ${n} счетов`; }
+              return;
+            }
           }
-        }
-      } catch (e) {}
-      balEl.textContent = '—'; if (updEl) updEl.textContent = 'нет данных';
+        } catch (e) {}
+        balEl.textContent = '—'; if (updEl) updEl.textContent = 'нет данных';
+      }
+
+      updateQueueBadge();
+      setSyncStatus('syncing');
+      renderSkeletons();
+      updateHomeBalance();
+
+      flushPendingQueue(false).then(() => {
+        bootstrapFromBackend().then(ok => {
+          setSyncStatus(ok ? 'online' : 'offline');
+          if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
+          apiGet('getAccounts').then(data => { if (data) { localStorage.setItem('aura_capital_cache', JSON.stringify(data)); updateHomeBalance(); } }).catch(e => console.warn('home capital failed:', e));
+        });
+      });
     }
 
-    updateQueueBadge();
-    setSyncStatus('syncing');
-    renderSkeletons();
-    updateHomeBalance();
-
-    flushPendingQueue(false).then(() => {
-      bootstrapFromBackend().then(ok => {
-        setSyncStatus(ok ? 'online' : 'offline');
-        if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
-        apiGet('getAccounts').then(data => { if (data) { localStorage.setItem('aura_capital_cache', JSON.stringify(data)); updateHomeBalance(); } }).catch(e => console.warn('home capital failed:', e));
-      });
-    });
+    // Запуск
+    if (checkAuth()) {
+      initApp();
+    }
   </script>
 </body>
 </html>
