@@ -3381,7 +3381,9 @@ function capitalHTML(data) {
     </button>
     <p class="text-[10px] text-tertiary mt-3">${syncInfo}</p>
     <p class="text-[10px] text-tertiary mt-1">План на другую неделю?<br>🏋️ Тренировки → 📅 План</p>
-  </div>`;
+  <button onclick="showWorkoutDebug()" style="margin-top:12px; font-size:10px; color:var(--text-tertiary); background:transparent; border:1px dashed var(--card-border); padding:6px 12px; border-radius:8px;">
+  🐞 Debug
+</button></div>`;
   if (typeof lucide !== 'undefined') lucide.createIcons();
   return;
 }
@@ -5441,6 +5443,95 @@ function renderReports() {
       toast('Данные очищены');
       setTimeout(()=>{ navigate('home', {tab:true}); }, 500);
     }
+        // ============================================================
+    // 🔧 ВРЕМЕННАЯ ОТЛАДОЧНАЯ ПАНЕЛЬ — убрать после диагностики
+    // ============================================================
+    window.showWorkoutDebug = function() {
+      try {
+        const raw = localStorage.getItem('aura_workout_plan');
+        const synced = localStorage.getItem('aura_workout_plan_synced_at');
+        let parsed = null, parseErr = null;
+        try { parsed = raw ? JSON.parse(raw) : null; } catch(e) { parseErr = e.message; }
+
+        const dow = getTodayDow();
+        const dowNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'};
+        const todayPlan = getTodayWorkoutPlan();
+
+        const lines = [
+          `🕐 Сейчас: ${new Date().toLocaleString('ru-RU')}`,
+          `📅 День недели (dow): ${dow} (${dowNames[dow]})`,
+          ``,
+          `--- localStorage ---`,
+          `aura_workout_plan: ${raw ? raw.slice(0, 300) : '❌ НЕТ КЛЮЧА'}`,
+          parseErr ? `⚠️ parse error: ${parseErr}` : '',
+          `Ключи в плане: ${parsed && typeof parsed === 'object' ? Object.keys(parsed).join(', ') || '(пусто)' : '—'}`,
+          `Синк был: ${synced ? new Date(+synced).toLocaleString('ru-RU') : '❌ НИКОГДА'}`,
+          ``,
+          `--- Сегодня ---`,
+          todayPlan
+            ? `✅ plan[${dow}]: "${todayPlan.split}", упражнений: ${todayPlan.exercises?.length || 0}`
+            : `❌ plan[${dow}] = null`,
+          ``,
+          `--- Проверка бэка ---`,
+          `INIT_DATA: ${INIT_DATA ? '✅ есть (' + INIT_DATA.length + ' симв.)' : '❌ ПУСТО — не в Telegram?'}`,
+          `WEBAPP_URL: ${WEBAPP_URL.slice(0, 60)}...`,
+        ];
+
+        document.getElementById('workout-debug-panel')?.remove();
+
+        const html = `
+          <div id="workout-debug-panel" style="
+            position:fixed; inset:0; z-index:9999;
+            background: rgba(0,0,0,0.92); color:#fff;
+            padding: 20px; font-family: monospace; font-size: 11px;
+            overflow-y: auto; line-height: 1.5; white-space: pre-wrap;
+            word-break: break-all;
+          ">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+              <b style="color:#34C759;">WORKOUT DEBUG</b>
+              <button onclick="document.getElementById('workout-debug-panel').remove();"
+                style="background:#FF2D55; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600;">
+                Закрыть
+              </button>
+            </div>
+            <div style="background:#1c1c1e; padding:12px; border-radius:8px; margin-bottom:12px;">
+              ${lines.map(l => l.replace(/</g,'&lt;').replace(/>/g,'&gt;')).join('\n')}
+            </div>
+            <button onclick="(async()=>{
+              toast('Пробую получить данные с сервера...');
+              try {
+                const fresh = await apiGet('getAll');
+                if (!fresh) throw new Error('пустой ответ');
+                const plan = fresh.workoutPlan || {};
+                alert('Сервер вернул workoutPlan:\\n' + JSON.stringify(plan, null, 2).slice(0, 2000));
+              } catch(e) {
+                alert('Ошибка get(All):\\n' + e.message);
+              }
+            })()"
+              style="background:#007AFF; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; width:100%; margin-bottom:8px;">
+              🔍 Проверить, что вернёт сервер (getAll)
+            </button>
+            <button onclick="(async()=>{
+              toast('Пересинк...');
+              try {
+                await bootstrapFromBackend();
+                renderWorkoutToday();
+                toast('Пересинкано, смотри новые данные');
+                showWorkoutDebug();
+              } catch(e) {
+                alert('Ошибка bootstrap:\\n' + e.message);
+              }
+            })()"
+              style="background:#34C759; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; width:100%; margin-bottom:8px;">
+              🔄 Форс-пересинк и переоткрыть панель
+            </button>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', html);
+      } catch(e) {
+        alert('Debug panel error: ' + e.message);
+      }
+    };
 
     // ============================================================
 // ВЫСОТА ЧАТА: страховка на случай если 100dvh не работает
