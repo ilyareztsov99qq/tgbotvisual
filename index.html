@@ -3626,11 +3626,15 @@ function capitalHTML(data) {
     }
     function forceFinishWorkout() {
   const plan = getTodayWorkoutPlan();
+  if (!plan) { toast('Нет активной тренировки'); return; } // <-- Защита
+  
+  ensureExerciseIds(plan); // <-- На всякий случай проверяем ID
   const done = getWorkoutDone();
-  const doneCount = plan.exercises.filter(ex => done[ex.id]).length;
+  const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length;
   const total = plan.exercises.length;
   
   if (doneCount === total) {
+    // ... (остальной код функции оставляем как есть)
     // Если всё выполнено — показываем красивый финал
     const logs = loadWorkoutLog().filter(l => l.date && l.date.startsWith(todayStr()));
     const totalSets = logs.length;
@@ -3956,7 +3960,6 @@ function saveExerciseSet(keepOpen) {
   lucide.createIcons();
 }
 
-let currentWorkoutDayDow = null;
 let currentWorkoutDayDow = null;
 function openWorkoutDay(dow) {
   haptic('light');
