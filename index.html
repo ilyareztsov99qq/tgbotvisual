@@ -4388,6 +4388,7 @@ function sanitizeCoachHtml(html) {
 let timerMode = 'stopwatch';
 let timerState = {
   running: false,
+  countdown: 0, // <--- ДОБАВИТЬ ЭТО
   // stopwatch
   elapsedMs: 0,
   startTs: 0,
@@ -4418,11 +4419,17 @@ function timerBeep(freq, durationMs, vol) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.frequency.value = freq;
-    osc.type = 'sine';
-    gain.gain.value = vol || 0.15;
+    osc.type = 'square'; // Более резкий звук, пробивает музыку
+    gain.gain.value = vol || 1.0; // Громкость на максимум (было 0.15)
+    
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
+    
+    // Плавное затухание, чтобы не было щелчков в колонках
+    gain.gain.setValueAtTime(gain.gain.value, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (durationMs/1000));
+    
     setTimeout(() => { try { osc.stop(); gain.disconnect(); } catch (e) {} }, durationMs);
   } catch (e) {}
 }
@@ -4569,9 +4576,29 @@ function renderInterval() {
   const el = document.getElementById('timer-content');
   if (!el) return;
 
+  
+ function renderInterval() {
+  const el = document.getElementById('timer-content');
+  if (!el) return;
+
+  // === ЭКРАН 10-СЕКУНДНОГО ОТСЧЕТА ===
+  if (timerState.countdown > 0 && timerState.running) {
+    let html = `<div class="apple-card p-8 rounded-[28px] mb-4 text-center">
+      <div class="timer-phase mb-3" style="color:var(--orange); letter-spacing: 2px;">ПРИГОТОВЬТЕСЬ</div>
+      <div class="text-7xl font-semibold tracking-tight numbers text-primary timer-display">${timerState.countdown}</div>
+      <div class="text-xs text-tertiary mt-3">Секунд до старта</div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="timerReset()" class="col-span-2 py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Отмена</button>
+    </div>`;
+    el.innerHTML = html;
+    lucide.createIcons();
+    return;
+  }
+  // ===================================
+
   // Настройки (idle)
   if (timerState.startTs === 0 && !timerState.running && !timerState.finished) {
-    const totalSec = timerState.rounds * (timerState.workSec + timerState.restSec) - timerState.restSec;
     let html = `<div class="apple-card p-6 rounded-[24px] mb-4">
       <h3 class="text-sm font-semibold text-primary mb-4">Настройки</h3>
 
@@ -4673,20 +4700,43 @@ function applyIntervalPreset(work, rest, rounds) {
 function startTimer() {
   initAudio();
   haptic('medium');
+
   if (timerMode === 'stopwatch') {
     timerState.startTs = Date.now() - timerState.elapsedMs;
-  } else {
-    if (timerState.finished) {
-      timerState.finished = false;
-      timerState.pausedElapsedMs = 0;
-    }
-    timerState.startTs = Date.now() - (timerState.pausedElapsedMs || 0);
-    timerState.lastPhaseKey = '';
+    timerState.running = true;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(timerTick, 50);
+    timerBeep(660, 80);
+    renderTimerScreen();
+    return;
   }
+
+  // === ИНТЕРВАЛЫ ===
+  if (timerState.finished) {
+    timerState.finished = false;
+    timerState.pausedElapsedMs = 0;
+  }
+  
+  // Если таймер на паузе (продолжение) — запускаем сразу, без отсчета
+  if (timerState.pausedElapsedMs > 0) {
+    timerState.startTs = Date.now() - timerState.pausedElapsedMs;
+    timerState.running = true;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(timerTick, 50);
+    timerBeep(660, 80);
+    renderTimerScreen();
+    return;
+  }
+
+  // Новый старт — делаем отсчет 10 секунд
+  timerState.countdown = 10;
   timerState.running = true;
+  timerState.startTs = 0;
+  
   if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(timerTick, 50);
-  timerBeep(660, 80);
+  timerInterval = setInterval(timerTick, 1000); // Секундный интервал для отсчета
+  
+  timerBeep(440, 150);
   renderTimerScreen();
 }
 
@@ -4711,6 +4761,7 @@ function timerResetInternal() {
   timerState.laps = [];
   timerState.lastPhaseKey = '';
   timerState.finished = false;
+  timerState.countdown = 0; // <--- Сброс отсчета
 }
 
 function timerReset() {
@@ -4729,6 +4780,26 @@ function addLap() {
 
 function timerTick() {
   if (!timerState.running) return;
+  
+  // Обработка 10-секундного отсчета перед интервалами
+  if (timerMode === 'interval' && timerState.countdown > 0) {
+    timerState.countdown--;
+    if (timerState.countdown > 0) {
+      timerBeep(440, 100); // Пищим каждую секунду
+      renderInterval();
+    } else {
+      // Отсчет окончен — запускаем сам таймер
+      timerState.countdown = 0;
+      timerState.startTs = Date.now();
+      timerState.lastPhaseKey = '';
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(timerTick, 50); // Переключаем на быстрый тик
+      timerBeep(880, 300); // Звук старта
+      renderInterval();
+    }
+    return;
+  }
+
   if (timerMode === 'stopwatch') {
     updateStopwatchDisplay();
   } else {
