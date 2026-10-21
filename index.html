@@ -2133,6 +2133,18 @@ if (tg) {
       if (name === 'food') renderFoodScreen();
       if (name === 'food-shop') renderShoppingScreen();
       if (name === 'workout') renderWorkoutHub();
+          function getLastExerciseLogLocal(name) {
+      try {
+        const logs = loadWorkoutLog();
+        // Ищем последний подход, который не был сделан сегодня
+        const todayStr_ = todayStr();
+        return logs.find(l => l.exercise === name && (!l.date || !l.date.startsWith(todayStr_))) 
+               || logs.find(l => l.exercise === name) 
+               || null;
+      } catch(e) { return null; }
+    }
+
+    function renderWorkoutToday() {
       if (name === 'workout-today') renderWorkoutToday();
       if (name === 'workout-plan') renderWorkoutPlan();
       if (name === 'workout-progress') renderWorkoutProgress();
@@ -3417,8 +3429,8 @@ function capitalHTML(data) {
   const setCounter = loggedSets > 0 ? `<span class="text-[10px] text-tertiary ml-2">${loggedSets} / ${ex.sets} подх.</span>` : '';
   // RPE точка
   const rpeDot = (isDone && lastRpe[ex.name]) ? `<span class="rpe-dot" style="background:${rpeColor(lastRpe[ex.name])};" title="RPE ${lastRpe[ex.name]}"></span>` : '';
-  // Ищем последний подход для подсказки
-  const lastLog = getLastExerciseLog(ex.name);
+   // Ищем последний подход для подсказки
+  const lastLog = getLastExerciseLogLocal(ex.name);
   const lastHint = lastLog && lastLog.weight > 0
     ? `<span class="text-[10px] text-tertiary ml-1">· прошлый: ${lastLog.weight}кг×${lastLog.sets}×${lastLog.reps}</span>`
     : '';
@@ -3719,8 +3731,8 @@ function openExerciseLogSheet(i) {
   const planStr = `${ex.weight > 0 ? ex.weight + ' кг × ' : ''}${ex.sets} × ${ex.reps}`;
   document.getElementById('ex-sheet-plan').innerHTML = `<b>План:</b> ${planStr}`;
 
-  // Последний результат
-  const lastLog = getLastExerciseLog(ex.name);
+    // Последний результат
+  const lastLog = getLastExerciseLogLocal(ex.name);
   const lastEl = document.getElementById('ex-sheet-last');
   if (lastLog && lastLog.weight > 0) {
     const dd = lastLog.date ? lastLog.date.split('-').reverse().slice(0, 2).join('.') : '';
@@ -3824,9 +3836,9 @@ function saveExerciseSet(keepOpen) {
     notes: notes || ''
   });
 
-  // 4. PR-проверка: если вес больше прошлого рекорда по этому упражнению
+    // 4. PR-проверка: если вес больше прошлого рекорда по этому упражнению
   let prText = '';
-  const lastLog = getLastExerciseLog(ex.name);
+  const lastLog = getLastExerciseLogLocal(ex.name);
   if (lastLog && lastLog.weight > 0 && weight > lastLog.weight) {
     prText = ` 🎉 Новый рекорд! Было ${lastLog.weight}кг, стало ${weight}кг`;
   }
