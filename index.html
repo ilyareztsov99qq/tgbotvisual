@@ -2132,29 +2132,17 @@ if (tg) {
       if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
       if (name === 'food') renderFoodScreen();
       if (name === 'food-shop') renderShoppingScreen();
-      if (name === 'workout') renderWorkoutHub();
-          function getLastExerciseLogLocal(name) {
-      try {
-        const logs = loadWorkoutLog();
-        // Ищем последний подход, который не был сделан сегодня
-        const todayStr_ = todayStr();
-        return logs.find(l => l.exercise === name && (!l.date || !l.date.startsWith(todayStr_))) 
-               || logs.find(l => l.exercise === name) 
-               || null;
-      } catch(e) { return null; }
-    }
-
-    function renderWorkoutToday() {
+            if (name === 'workout') renderWorkoutHub();
       if (name === 'workout-today') renderWorkoutToday();
       if (name === 'workout-plan') renderWorkoutPlan();
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
       if (name === 'workout-coach') {
-  renderCoachMessages();
-  updateCoachChips();
-  applyCoachHeight();
-}
+        renderCoachMessages();
+        updateCoachChips();
+        applyCoachHeight();
+      }
       if (name === 'workout-timer') renderTimerScreen();
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
@@ -2163,13 +2151,14 @@ if (tg) {
       if (name === 'fin-budget') renderBudgetScreen();
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
-      // Если уходим с чата — снимаем JS-высоту (чтобы не сломать другие экраны)
-if (name !== 'workout-coach') {
-  const coachEl = document.getElementById('screen-workout-coach');
-  if (coachEl) coachEl.style.height = '';
-}
+      
+      // Если уходим с чата — снимаем JS-высоту
+      if (name !== 'workout-coach') {
+        const coachEl = document.getElementById('screen-workout-coach');
+        if (coachEl) coachEl.style.height = '';
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    }  // <--- Вот эта скобка закрывает функцию showScreen
     function navigate(name, opts = {}) {
       haptic('soft');
       if (opts.title) { const t = document.getElementById('placeholder-title'); if (t) t.textContent = opts.title; }
@@ -3356,6 +3345,17 @@ function capitalHTML(data) {
       });
       return changed;
     }
+    
+        function getLastExerciseLogLocal(name) {
+      try {
+        const logs = loadWorkoutLog();
+        const todayStr_ = todayStr();
+        return logs.find(l => l.exercise === name && (!l.date || !l.date.startsWith(todayStr_))) 
+               || logs.find(l => l.exercise === name) 
+               || null;
+      } catch(e) { return null; }
+    }
+
     function renderWorkoutToday() {
   try {
     const raw = localStorage.getItem('aura_workout_plan');
