@@ -9,7 +9,34 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- lucide с 3 fallback-CDN -->
+<script>
+  (function loadLucide() {
+    const urls = [
+      'https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js',
+      'https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/lucide/0.469.0/lucide.min.js'
+    ];
+    let i = 0;
+    function tryNext() {
+      if (i >= urls.length) { console.error('lucide: все CDN недоступны'); return; }
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.async = true;
+      s.onload = () => {
+        console.log('lucide загружен с', s.src);
+        // Перерисовать все иконки, которые уже есть в DOM
+        if (window.safeIcons) safeIcons();
+      };
+      s.onerror = () => {
+        console.warn('lucide CDN failed:', s.src);
+        tryNext();
+      };
+      document.head.appendChild(s);
+    }
+    tryNext();
+  })();
+</script>
   <style>
     :root {
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
@@ -1270,14 +1297,25 @@
   try { return localStorage.getItem('aura_web_token') || ''; }
   catch (e) { return ''; }
 })();
-    function safeIcons() {
+    let __iconsRetryTimer = null;
+function safeIcons() {
   try {
     if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-      safeIcons();
+      lucide.createIcons();
+      if (__iconsRetryTimer) { clearTimeout(__iconsRetryTimer); __iconsRetryTimer = null; }
+      return true;
     }
   } catch (e) {
     console.warn('lucide.createIcons failed:', e);
   }
+  // Если lucide ещё не загрузился — попробуем снова через 500мс
+  if (!__iconsRetryTimer) {
+    __iconsRetryTimer = setTimeout(() => {
+      __iconsRetryTimer = null;
+      safeIcons();
+    }, 500);
+  }
+  return false;
 }
 window.addEventListener('error', (e) => {
   console.error('Global JS error:', e.error || e.message, '@', e.filename, e.lineno);
