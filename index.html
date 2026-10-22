@@ -498,7 +498,7 @@
       <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Октябрь 2026</p><h1 class="text-2xl font-semibold text-primary">Финансы</h1></header>
       <div class="apple-card p-6 rounded-[28px] mb-4">
         <div class="flex justify-between items-start mb-5">
-          <div><p class="text-xs text-secondary">Всего на счетах</p><div class="text-3xl font-semibold mt-1 numbers text-primary">₽ 1 842 500</div></div>
+          <div><p class="text-xs text-secondary">Всего на счетах</p><div id="finance-total-accounts" class="text-3xl font-semibold mt-1 numbers text-primary">—</div></div>
           <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium" style="background: rgba(52,199,89,.1); border: .5px solid rgba(52,199,89,.25); color: var(--green);"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i><span>+6.2%</span></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -779,6 +779,7 @@
     </div>
   </nav>
 
+  <!-- TRANSACTION SHEET -->
   <div id="trx-sheet" class="trx-sheet">
     <div class="trx-header">
       <button class="trx-close" onclick="closeTrx()"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -805,6 +806,39 @@
     <button id="trx-submit" class="submit-btn expense" onclick="submitTrx()" disabled>Записать</button>
   </div>
 
+  <!-- TRX DETAIL SHEET (Edit/Delete) -->
+  <div id="trx-detail-overlay" class="task-sheet-overlay" onclick="closeTrxDetail()"></div>
+  <div id="trx-detail-sheet" class="task-sheet" style="top: 30vh;">
+    <div class="task-drag-handle"></div>
+    <div class="task-sheet-header">
+      <button class="trx-close" onclick="closeTrxDetail()"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h2 class="text-base font-semibold text-primary">Транзакция</h2>
+      <button class="back-btn" onclick="deleteTrxDetail()" style="color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+    </div>
+    <div class="task-sheet-body">
+      <div class="task-section" style="margin-top:0;">
+        <div class="task-section-label">Сумма (₽)</div>
+        <input id="trx-edit-amount" type="number" class="task-time-input" step="0.01">
+      </div>
+      <div class="task-section">
+        <div class="task-section-label">Категория</div>
+        <input id="trx-edit-category" type="text" class="task-time-input">
+      </div>
+      <div class="task-section">
+        <div class="task-section-label">Счёт</div>
+        <input id="trx-edit-account" type="text" class="task-time-input">
+      </div>
+      <div class="task-section">
+        <div class="task-section-label">Комментарий</div>
+        <input id="trx-edit-comment" type="text" class="task-time-input">
+      </div>
+    </div>
+    <div class="task-sheet-footer">
+      <button onclick="saveTrxDetail()" class="submit-btn" style="margin:0; background: var(--blue);">Сохранить</button>
+    </div>
+  </div>
+
+  <!-- TASK SHEET -->
   <div id="task-sheet-overlay" class="task-sheet-overlay" onclick="closeTask()"></div>
   <div id="task-sheet" class="task-sheet">
     <div class="task-drag-handle"></div>
@@ -829,6 +863,7 @@
     <div class="task-sheet-footer"><button id="task-submit" class="submit-btn" style="margin:0;" onclick="submitTask()" disabled>Создать</button></div>
   </div>
 
+  <!-- NOTE SHEET -->
   <div id="note-sheet-overlay" class="task-sheet-overlay" onclick="closeNoteForm()"></div>
   <div id="note-sheet" class="task-sheet" style="top: 15vh;">
     <div class="task-drag-handle"></div>
@@ -846,6 +881,7 @@
     </div>
   </div>
 
+  <!-- HABIT SHEET -->
   <div id="habit-sheet-overlay" class="task-sheet-overlay" onclick="closeHabitForm()"></div>
   <div id="habit-sheet" class="task-sheet" style="top: 30vh;">
     <div class="task-drag-handle"></div>
@@ -856,6 +892,7 @@
     <div class="task-sheet-footer"><button id="habit-submit" class="submit-btn" style="margin:0; background: var(--green);" onclick="submitHabit()" disabled>Добавить</button></div>
   </div>
 
+  <!-- BODY SHEET -->
   <div id="body-sheet-overlay" class="task-sheet-overlay" onclick="closeBodyForm()"></div>
   <div id="body-sheet" class="task-sheet" style="top: 20vh;">
     <div class="task-drag-handle"></div>
@@ -870,6 +907,7 @@
     <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--purple);" onclick="submitBodyMeasurement()">Сохранить</button></div>
   </div>
 
+  <!-- EXERCISE LOG SHEET -->
   <div id="ex-sheet-overlay" class="task-sheet-overlay" onclick="closeExerciseLogSheet()"></div>
   <div id="ex-sheet" class="task-sheet" style="top: 18vh;">
     <div class="task-drag-handle"></div>
@@ -895,6 +933,7 @@
     </div>
   </div>
   
+  <!-- CARDIO SHEET -->
   <div id="cardio-sheet-overlay" class="task-sheet-overlay" onclick="closeCardioForm()"></div>
   <div id="cardio-sheet" class="task-sheet" style="top: 30vh;">
     <div class="task-drag-handle"></div>
@@ -913,6 +952,7 @@
 
   <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
 
+  <!-- WORKOUT DAY SHEET -->
   <div id="workout-day-sheet-overlay" class="task-sheet-overlay" onclick="closeWorkoutDay()"></div>
   <div id="workout-day-sheet" class="task-sheet" style="top: auto; max-height: 75vh;">
     <div class="task-drag-handle"></div>
@@ -920,6 +960,7 @@
     <div class="task-sheet-body" id="workout-day-body" style="padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));"></div>
   </div>
 
+  <!-- WORKOUT FINISH OVERLAY -->
   <div id="workout-finish-overlay" class="task-sheet-overlay" onclick="closeWorkoutFinish()"></div>
   <div id="workout-finish" class="task-sheet" style="top: 20vh;">
     <div class="task-drag-handle"></div>
@@ -927,6 +968,7 @@
     <div class="task-sheet-body" id="workout-finish-content"></div>
   </div>
 
+  <!-- REST TIMER OVERLAY -->
   <div id="rest-timer-overlay" class="task-sheet-overlay" onclick="closeRestTimer()"></div>
   <div id="rest-timer" class="task-sheet" style="top: 30vh;">
     <div class="task-drag-handle"></div>
@@ -946,6 +988,7 @@
     </div>
   </div>
 
+  <!-- ADD EXERCISE SHEET -->
   <div id="add-ex-sheet-overlay" class="task-sheet-overlay" onclick="closeAddExerciseSheet()"></div>
   <div id="add-ex-sheet" class="task-sheet" style="top: 20vh;">
     <div class="task-drag-handle"></div>
@@ -1271,6 +1314,7 @@
       const ok = await bootstrapFromBackend(); setSyncStatus(ok ? 'online' : 'offline');
       if (ok) {
         if (currentScreen === 'home') { renderHomeRecent(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
+        else if (currentScreen === 'finance') { renderFinanceRecent(); renderTodayTransactions(); renderFinanceTotal(); }
         else if (currentScreen === 'tasks') renderTasksScreen();
         else if (currentScreen === 'food') renderFoodScreen();
         else if (currentScreen === 'food-shop') renderShoppingScreen();
@@ -1377,6 +1421,7 @@
       
       if (name === 'tasks') renderTasksScreen();
       if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
+      if (name === 'finance') { renderFinanceTotal(); renderFinanceRecent(); renderTodayTransactions(); }
       if (name === 'food') renderFoodScreen();
       if (name === 'food-shop') renderShoppingScreen();
       if (name === 'workout') renderWorkoutHub();
@@ -1457,7 +1502,7 @@
       const catList = trxState.type==='expense'?CATEGORIES:CATEGORIES_INCOME; const cat = catList.find(c => c.id===trxState.categoryId); const acc = ACCOUNTS.find(a => a.id===trxState.accountId);
       const trx = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), type: trxState.type, amount: getAmountNumber(), category: cat?.label||'', categoryId: trxState.categoryId, categoryIcon: cat?.icon||'package', categoryColor: cat?.color||'gray', account: acc?.label||'', accountId: trxState.accountId, comment: document.getElementById('trx-comment').value.trim(), date: new Date().toISOString() };
       const all = loadTrx(); all.unshift(trx); saveTrx(all);
-      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderFinanceTotal();
       closeTrx(); toast(`${trx.type==='income'?'+':'−'}${trx.amount.toLocaleString('ru-RU')} ₽ · ${cat?.label||''}`);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_transaction', payload: trx})); } catch(e) {}
       apiPost('addTransaction', { clientId: trx.id, type: trx.type, amount: trx.amount, category: CAT_TO_SERVER[trx.categoryId] || '📦 Прочее', account: ACC_TO_SERVER[trx.accountId] || 'Основная карта', comment: trx.comment });
@@ -1468,9 +1513,101 @@
     function renderHomeRecent() { const el = document.getElementById('home-recent'); if (!el) return; const trx = loadTrx().slice(0,2); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
     function renderFinanceRecent() { const el = document.getElementById('finance-recent'); if (!el) return; const trx = loadTrx().slice(0,3); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
     function renderTodayTransactions() { const el = document.getElementById('today-transactions'); if (!el) return; const today = new Date().toISOString().slice(0,10); const trx = loadTrx().filter(t=>t.date.slice(0,10)===today); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Сегодня операций не было</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
+    
     function trxItemHTML(t) {
-      const cat = CATEGORIES.concat(CATEGORIES_INCOME).find(c=>c.id===t.categoryId); const color = cat?.color||'gray'; const icon = cat?.icon||'package'; const sign = t.type==='income'?'+':'−'; const amtColor = t.type==='income'?'var(--green)':'var(--text-primary)'; const time = new Date(t.date).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="flex justify-between items-center"><div class="flex items-center space-x-3"><div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: ${BG_MAP[color]}; color: ${COLOR_MAP[color]};"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-sm font-medium text-primary">${escapeHtml(t.comment||cat?.label||'')}</p><p class="text-[11px] text-tertiary">${escapeHtml(cat?.label||'')} · ${time}</p></div></div><span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span></div>`;
+      const cat = CATEGORIES.concat(CATEGORIES_INCOME).find(c=>c.id===t.categoryId); const color = cat?.color||'gray'; const icon = cat?.icon||'package';
+      const sign = t.type==='income'?'+':'−'; const amtColor = t.type==='income'?'var(--green)':'var(--text-primary)';
+      const time = new Date(t.date).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="flex justify-between items-center cursor-pointer" onclick="openTrxDetail('${t.id}')">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: ${BG_MAP[color]}; color: ${COLOR_MAP[color]};"><i data-lucide="${icon}" class="w-4 h-4"></i></div>
+          <div><p class="text-sm font-medium text-primary">${escapeHtml(t.comment||cat?.label||'')}</p><p class="text-[11px] text-tertiary">${escapeHtml(cat?.label||'')} · ${time}</p></div>
+        </div>
+        <span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span>
+      </div>`;
+    }
+
+    let currentTrxId = null;
+    function openTrxDetail(id) {
+      haptic('light');
+      const trx = loadTrx().find(t => t.id === id);
+      if (!trx) return;
+      currentTrxId = id;
+      document.getElementById('trx-edit-amount').value = trx.amount;
+      document.getElementById('trx-edit-category').value = trx.category || '';
+      document.getElementById('trx-edit-account').value = trx.account || '';
+      document.getElementById('trx-edit-comment').value = trx.comment || '';
+      document.getElementById('trx-detail-overlay').classList.add('show');
+      document.getElementById('trx-detail-sheet').classList.add('show');
+    }
+
+    function closeTrxDetail() {
+      haptic('light');
+      document.getElementById('trx-detail-overlay').classList.remove('show');
+      document.getElementById('trx-detail-sheet').classList.remove('show');
+      currentTrxId = null;
+    }
+
+    async function saveTrxDetail() {
+      if (!currentTrxId) return;
+      hapticNotify('success');
+      const newAmount = parseFloat(document.getElementById('trx-edit-amount').value);
+      const newCat = document.getElementById('trx-edit-category').value;
+      const newAcc = document.getElementById('trx-edit-account').value;
+      const newComm = document.getElementById('trx-edit-comment').value;
+      
+      const all = loadTrx();
+      const idx = all.findIndex(t => t.id === currentTrxId);
+      if (idx >= 0) {
+        all[idx].amount = newAmount;
+        all[idx].category = newCat;
+        all[idx].account = newAcc;
+        all[idx].comment = newComm;
+        saveTrx(all);
+      }
+      
+      closeTrxDetail();
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
+      renderFinanceTotal(); 
+      if (currentScreen === 'fin-capital') renderCapital();
+      if (currentScreen === 'fin-budget') renderBudgetScreen();
+      if (currentScreen === 'fin-analytics') renderAnalytics();
+      
+      await apiPost('updateTransaction', { id: currentTrxId, amount: newAmount, category: newCat, account: newAcc, comment: newComm });
+      toast('Сохранено');
+    }
+
+    async function deleteTrxDetail() {
+      if (!currentTrxId || !confirm('Удалить эту транзакцию?')) return;
+      hapticNotify('warning');
+      const id = currentTrxId;
+      
+      saveTrx(loadTrx().filter(t => t.id !== id));
+      closeTrxDetail();
+      renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions();
+      renderFinanceTotal();
+      if (currentScreen === 'fin-capital') renderCapital();
+      if (currentScreen === 'fin-budget') renderBudgetScreen();
+      if (currentScreen === 'fin-analytics') renderAnalytics();
+      
+      await apiPost('deleteTransaction', { id });
+      toast('Удалено');
+    }
+
+    function renderFinanceTotal() {
+      const el = document.getElementById('finance-total-accounts');
+      if (!el) return;
+      try {
+        const raw = localStorage.getItem('aura_capital_cache');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data && typeof data.total === 'number') {
+            el.textContent = '₽ ' + data.total.toLocaleString('ru-RU');
+            return;
+          }
+        }
+      } catch(e) {}
+      el.textContent = '₽ 0';
     }
 
     let analyticsPeriod = 'month'; const MONTHS_RU_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1533,24 +1670,67 @@
     }
     async function refreshBudget() { haptic('light'); const el = document.getElementById('budget-content'); if (el) { el.innerHTML = renderBudgetSkeleton(); safeIcons(); } await renderBudgetScreen(); toast('Обновлено'); }
     function budgetHTML(b) {
-      const plan = b.plan || 0; const spent = b.spentMonth || 0; const subs = b.subs || 0; const free = b.free || 0; const save = b.save || 0; const availableToday = b.availableToday || 0; const spentToday = b.spentToday || 0; const daysLeft = b.daysLeft || 1; const limits = b.limits || [];
-      const pct = plan > 0 ? Math.min(100, Math.round((spent + subs) / plan * 100)) : 0; let barColor = 'linear-gradient(90deg, var(--blue), var(--teal))'; if (pct >= 90) barColor = 'linear-gradient(90deg, #FF9500, var(--red))'; else if (pct >= 60) barColor = 'linear-gradient(90deg, var(--teal), var(--yellow))';
-      const todayEmoji = availableToday <= 0 ? '🔴' : availableToday < 500 ? '🟡' : ''; const todayColor = availableToday <= 0 ? 'var(--red)' : 'var(--text-primary)';
+      const plan = b.plan || 0; const spent = b.spentMonth || 0; const subs = b.subs || 0; const free = b.free || 0; const save = b.save || 0;
+      const availableToday = b.availableToday || 0; const spentToday = b.spentToday || 0; const daysLeft = b.daysLeft || 1; const limits = b.limits || [];
+      const pct = plan > 0 ? Math.min(100, Math.round((spent + subs) / plan * 100)) : 0;
+      
+      const trx = loadTrx().filter(t => {
+        const d = new Date(t.date); const now = new Date();
+        return t.type === 'expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      const catSums = {};
+      trx.forEach(t => { catSums[t.category] = (catSums[t.category] || 0) + t.amount; });
+      
+      const pieData = Object.keys(catSums).sort((a,b) => catSums[b] - catSums[a]).slice(0, 6).map(c => {
+           const catMeta = Object.entries(CAT_TO_SERVER).find(([, name]) => name === c);
+           const color = catMeta ? getCatMeta(catMeta[0]).color : 'gray';
+           return { label: c, value: catSums[c], color: COLOR_MAP[color] || COLOR_MAP.gray };
+      });
+      
+      const totalPie = pieData.reduce((s, d) => s + d.value, 0);
+      const pieChart = pieData.length > 0 ? generatePieChart(pieData, totalPie) : '';
+      
+      let pieLegend = '';
+      if (pieData.length > 0) {
+        pieLegend = `<div class="grid grid-cols-2 gap-2 mt-2">`;
+        pieData.forEach(d => {
+          pieLegend += `<div class="flex items-center gap-1.5 text-[11px]"><span class="w-2 h-2 rounded-full" style="background:${d.color}"></span><span class="text-secondary truncate flex-1">${escapeHtml(d.label.split(' ')[1] || d.label)}</span><span class="font-semibold numbers text-primary">${formatMoneyRu(d.value)}</span></div>`;
+        });
+        pieLegend += `</div>`;
+      }
+
+      let barColor = 'linear-gradient(90deg, var(--blue), var(--teal))';
+      if (pct >= 90) barColor = 'linear-gradient(90deg, #FF9500, var(--red))';
+      else if (pct >= 60) barColor = 'linear-gradient(90deg, var(--teal), var(--yellow))';
+      
+      const todayEmoji = availableToday <= 0 ? '🔴' : availableToday < 500 ? '🟡' : '';
+      const todayColor = availableToday <= 0 ? 'var(--red)' : 'var(--text-primary)';
+      
       let html = '';
       html += `<div class="apple-card p-6 rounded-[28px] mb-4"><div class="flex justify-between items-baseline mb-2"><span class="text-xs text-secondary">Израсходовано</span><span class="text-xs text-tertiary numbers">${formatMoneyRu(spent)} / ${formatMoneyRu(plan)} ₽</span></div><div class="progress-track h-3 rounded-full mb-4"><div class="progress-fill h-full rounded-full" style="width:${pct}%; background:${barColor};"></div></div><div class="text-center mb-4"><p class="text-xs text-secondary mb-1">${pct >= 100 ? 'Перерасход' : 'Осталось на месяц'}</p><p class="text-4xl font-semibold tracking-tight numbers" style="color:${pct >= 100 ? 'var(--red)' : 'var(--text-primary)'};">${pct >= 100 ? '+' + formatMoneyRu(spent + subs - plan) : formatMoneyRu(free)} <span class="text-2xl">₽</span></p><p class="text-xs text-tertiary mt-1">${daysLeft} ${daysLeft === 1 ? 'день' : daysLeft < 5 ? 'дня' : 'дней'} до конца месяца</p></div><div class="grid grid-cols-2 gap-3"><div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase tracking-wide">На сегодня</p><p class="text-lg font-semibold numbers mt-1" style="color:${todayColor};">${todayEmoji}${todayEmoji ? ' ' : ''}${formatMoneyRu(availableToday)} ₽</p></div><div class="p-3 rounded-xl text-center" style="background: var(--neutral-fill);"><p class="text-[10px] text-tertiary uppercase tracking-wide">Потрачено</p><p class="text-lg font-semibold numbers mt-1" style="color: var(--red);">${formatMoneyRu(spentToday)} ₽</p></div></div></div>`;
+
+      if (pieData.length > 0) {
+        html += `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-sm font-semibold text-primary mb-1">Траты за месяц</h3>${pieChart}${pieLegend}</div>`;
+      }
+
       html += `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-sm font-semibold text-primary mb-4">Структура месяца</h3><div class="space-y-3"><div class="flex justify-between items-center"><span class="text-sm text-secondary">План</span><span class="text-sm font-semibold numbers text-primary">${formatMoneyRu(plan)} ₽</span></div><div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-secondary">Отложить</span><span class="text-sm font-semibold numbers text-primary">−${formatMoneyRu(save)} ₽</span></div><div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-secondary">Подписки</span><span class="text-sm font-semibold numbers text-primary">−${formatMoneyRu(subs)} ₽</span></div><div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm text-secondary">Потрачено</span><span class="text-sm font-semibold numbers" style="color: var(--red);">−${formatMoneyRu(spent)} ₽</span></div><div class="flex justify-between items-center border-t divider pt-3"><span class="text-sm font-semibold text-primary">Свободно</span><span class="text-sm font-semibold numbers" style="color: ${free >= 0 ? 'var(--green)' : 'var(--red)'};">${formatMoneyRu(free)} ₽</span></div></div></div>`;
+      
       if (limits.length > 0) {
         html += `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-sm font-semibold text-primary mb-4">Лимиты категорий</h3><div class="space-y-4">`;
         limits.forEach(l => {
-          const catId = Object.entries(CAT_TO_SERVER).find(([, name]) => name === l.category); const catMeta = catId ? getCatMeta(catId[0]) : null; const icon = catMeta ? catMeta.icon : 'package'; const color = catMeta ? catMeta.color : 'gray'; const catLabel = l.category.replace(/^[^\s]+\s/, '');
-          const limitPct = l.limit > 0 ? Math.round(l.spent / l.limit * 100) : 0; const limitBarPct = Math.min(100, limitPct); let limitColor = 'var(--green)'; if (limitPct >= 100) limitColor = 'var(--red)'; else if (limitPct >= 80) limitColor = 'var(--yellow)'; else if (limitPct >= 60) limitColor = 'var(--teal)';
+          const catId = Object.entries(CAT_TO_SERVER).find(([, name]) => name === l.category);
+          const catMeta = catId ? getCatMeta(catId[0]) : null;
+          const icon = catMeta ? catMeta.icon : 'package'; const color = catMeta ? catMeta.color : 'gray';
+          const catLabel = l.category.replace(/^[^\s]+\s/, '');
+          const limitPct = l.limit > 0 ? Math.round(l.spent / l.limit * 100) : 0; const limitBarPct = Math.min(100, limitPct);
+          let limitColor = 'var(--green)';
+          if (limitPct >= 100) limitColor = 'var(--red)'; else if (limitPct >= 80) limitColor = 'var(--yellow)'; else if (limitPct >= 60) limitColor = 'var(--teal)';
           html += `<div><div class="flex justify-between items-center mb-1.5"><div class="flex items-center gap-2 min-w-0 flex-1"><div class="w-5 h-5 rounded flex items-center justify-center flex-shrink-0" style="background:${BG_MAP[color] || BG_MAP.gray}; color:${COLOR_MAP[color] || COLOR_MAP.gray};"><i data-lucide="${icon}" class="w-3 h-3"></i></div><span class="text-xs text-primary truncate">${escapeHtml(catLabel)}</span></div><span class="text-xs font-semibold numbers ${limitPct >= 100 ? '' : 'text-secondary'}" ${limitPct >= 100 ? 'style="color:var(--red);"' : ''}>${formatMoneyRu(l.spent)} / ${formatMoneyRu(l.limit)} ₽</span></div><div class="progress-track h-1.5 rounded-full" style="margin-left:22px;"><div class="progress-fill h-full rounded-full" style="width:${limitBarPct}%; background:${limitColor};"></div></div></div>`;
         });
         html += `</div></div>`;
       } else {
         html += `<div class="apple-card p-6 rounded-[28px] mb-4 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="target" class="w-6 h-6 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Лимитов нет</p><p class="text-xs text-tertiary">Добавь лимиты в лист «Лимиты» Google Sheets</p></div>`;
       }
-      html += `<p class="text-[11px] text-tertiary text-center mt-2 px-4">План и отложить — из листа «Финансы_Настройки». Лимиты — из листа «Лимиты».</p>`;
       return html;
     }
 
@@ -1561,21 +1741,53 @@
       const el = document.getElementById('capital-content'); if (!el) return;
       let cached = null; try { const raw = localStorage.getItem('aura_capital_cache'); if (raw) cached = JSON.parse(raw); } catch (e) {}
       if (cached && cached.accounts && cached.accounts.length > 0) { el.innerHTML = capitalHTML(cached); safeIcons(); } else { el.innerHTML = renderCapitalSkeleton(); safeIcons(); }
-      try { const fresh = await apiGet('getAccounts'); if (fresh && Array.isArray(fresh.accounts)) { localStorage.setItem('aura_capital_cache', JSON.stringify(fresh)); el.innerHTML = capitalHTML(fresh); safeIcons(); } } catch (e) { console.warn('getAccounts failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Не удалось загрузить данные. Потяни вниз для обновления.</p></div>`; safeIcons(); } }
+      try { const fresh = await apiGet('getAccounts'); if (fresh && Array.isArray(fresh.accounts)) { localStorage.setItem('aura_capital_cache', JSON.stringify(fresh)); el.innerHTML = capitalHTML(fresh); safeIcons(); renderFinanceTotal(); } } catch (e) { console.warn('getAccounts failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Не удалось загрузить данные. Потяни вниз для обновления.</p></div>`; safeIcons(); } }
     }
     async function refreshCapital() { haptic('light'); const el = document.getElementById('capital-content'); if (el) { el.innerHTML = renderCapitalSkeleton(); safeIcons(); } await renderCapital(); toast('Обновлено'); }
+    
     function capitalHTML(data) {
       const total = data.total || 0; const accounts = data.accounts || [];
-      if (accounts.length === 0) return `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wallet" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Счетов нет</p><p class="text-xs text-tertiary">Добавь счёт в лист «Счета» Google Sheets</p></div>`;
-      const byType = {}; accounts.forEach(a => { const type = a.type || 'card'; byType[type] = (byType[type] || 0) + Math.max(0, a.balance); }); const totalPositive = Object.values(byType).reduce((s, v) => s + v, 0);
-      let html = `<div class="apple-card p-6 rounded-[28px] mb-4"><div class="flex justify-between items-start"><div><p class="text-xs text-secondary">Всего на счетах</p><div class="text-4xl font-semibold tracking-tight numbers text-primary mt-1">₽ ${formatMoneyRu(total)}</div><p class="text-xs text-tertiary mt-1">${accounts.length} ${accounts.length === 1 ? 'счёт' : accounts.length < 5 ? 'счёта' : 'счетов'}</p></div><div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div></div>`;
-      if (totalPositive > 0 && Object.keys(byType).length > 1) {
-        const colors = { card: 'var(--blue)', credit: 'var(--red)', cash: 'var(--green)', investment: 'var(--purple)' };
-        html += `<div class="h-2 w-full rounded-full flex overflow-hidden mt-4 mb-3 gap-0.5" style="background: var(--neutral-fill);">`; Object.entries(byType).forEach(([type, sum]) => { if (sum <= 0) return; const pct = (sum / totalPositive) * 100; html += `<div style="width:${pct}%; background: ${colors[type] || 'var(--gray)'};" class="h-full rounded-sm"></div>`; }); html += `</div><div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">`; Object.entries(byType).forEach(([type, sum]) => { if (sum <= 0) return; const meta = getAccountMeta(type); html += `<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: ${COLOR_MAP[meta.color]};"></span><span class="text-[10px] text-tertiary">${meta.label}</span></div>`; }); html += `</div>`;
+      
+      const trx = loadTrx(); 
+      let historicalData = [];
+      let currentTotal = total;
+      const today = new Date();
+      
+      for (let i = 30; i >= 0; i--) {
+        const d = new Date(today); d.setDate(today.getDate() - i);
+        const dStr = d.toISOString().slice(0, 10);
+        const dayTrx = trx.filter(t => t.date.slice(0, 10) === dStr);
+        const netDay = dayTrx.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
+        
+        historicalData.unshift({ x: dStr, y: currentTotal });
+        currentTotal -= netDay;
       }
-      html += `</div><div class="space-y-3">`;
-      accounts.forEach(a => { const meta = getAccountMeta(a.type); const isNegative = a.balance < 0; const bg = BG_MAP[meta.color] || BG_MAP.gray; const fg = COLOR_MAP[meta.color] || COLOR_MAP.gray; const balanceColor = isNegative ? 'var(--red)' : 'var(--text-primary)'; html += `<div class="apple-card p-5 rounded-[20px] flex items-center justify-between"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${bg}; color:${fg};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div><div class="min-w-0 flex-1"><p class="text-sm font-medium text-primary truncate">${escapeHtml(a.name)}</p><p class="text-[11px] text-tertiary">${meta.label}</p></div></div><span class="text-sm font-semibold numbers flex-shrink-0 ml-2" style="color:${balanceColor};">${isNegative ? '−' : ''}₽ ${formatMoneyRu(Math.abs(a.balance))}</span></div>`; });
-      html += `</div><p class="text-[11px] text-tertiary text-center mt-4 px-4">Балансы считаются из стартовых сумм и всех транзакций.</p>`;
+
+      const startVal = historicalData[0].y;
+      const trendVal = startVal * (1 + (0.15 / 365 * 30));
+      
+      let chartHtml = '';
+      if (historicalData.length > 1 && startVal > 0) {
+        chartHtml = `<div class="mt-4 pt-4 border-t divider">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-semibold text-primary">Динамика (30 дней)</h3>
+            <div class="flex items-center gap-1 text-[10px] text-tertiary"><span class="w-2 h-2 rounded-full" style="background:var(--green)"></span> Цель +15%</div>
+          </div>
+          ${generateSvgChart(historicalData, 'var(--blue)', { y: trendVal })}
+        </div>`;
+      }
+
+      if (accounts.length === 0) return `<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm font-medium text-primary mb-1">Счетов нет</p></div>`;
+
+      let html = `<div class="apple-card p-6 rounded-[28px] mb-4"><div class="flex justify-between items-start"><div><p class="text-xs text-secondary">Всего на счетах</p><div class="text-4xl font-semibold tracking-tight numbers text-primary mt-1">₽ ${formatMoneyRu(total)}</div></div><div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div></div>${chartHtml}</div><div class="space-y-3">`;
+      
+      accounts.forEach(a => {
+        const meta = getAccountMeta(a.type); const isNegative = a.balance < 0;
+        const bg = BG_MAP[meta.color] || BG_MAP.gray; const fg = COLOR_MAP[meta.color] || COLOR_MAP.gray;
+        const balanceColor = isNegative ? 'var(--red)' : 'var(--text-primary)';
+        html += `<div class="apple-card p-5 rounded-[20px] flex items-center justify-between"><div class="flex items-center gap-3 min-w-0 flex-1"><div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${bg}; color:${fg};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div><div class="min-w-0 flex-1"><p class="text-sm font-medium text-primary truncate">${escapeHtml(a.name)}</p><p class="text-[11px] text-tertiary">${meta.label}</p></div></div><span class="text-sm font-semibold numbers flex-shrink-0 ml-2" style="color:${balanceColor};">${isNegative ? '−' : ''}₽ ${formatMoneyRu(Math.abs(a.balance))}</span></div>`;
+      });
+      html += `</div><p class="text-[11px] text-tertiary text-center mt-4 px-4">График строится на основе твоих транзакций.</p>`;
       return html;
     }
 
@@ -1871,6 +2083,23 @@
       areaD += ` L ${getX(data.length-1)} ${height - padding.bottom} Z`;
       let goalPath = ''; if (goalLine) { const gy = getY(goalLine.y); goalPath = `<line x1="${padding.left}" y1="${gy}" x2="${width - padding.right}" y2="${gy}" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4 4" />`; }
       return `<div class="relative w-full overflow-hidden" style="height: ${height}px;"><svg viewBox="0 0 ${width} ${height}" class="w-full h-full"><defs><linearGradient id="chartGrad-${color.replace(/[^a-z0-9]/gi, '')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${areaD}" fill="url(#chartGrad-${color.replace(/[^a-z0-9]/gi, '')})" /><path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />${goalPath}${points}<text x="${padding.left - 5}" y="${getY(maxVal) + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary)">${Math.round(maxVal)}</text><text x="${padding.left - 5}" y="${getY(minVal) + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary)">${Math.round(minVal)}</text></svg></div>`;
+    }
+    function generatePieChart(data, total) {
+      if (!data || data.length === 0 || total === 0) return '<p class="text-xs text-tertiary text-center py-4">Нет данных</p>';
+      let accumulatedAngle = 0;
+      const radius = 40;
+      const circumference = 2 * Math.PI * radius;
+      let svgContent = '';
+
+      data.forEach(item => {
+        const percentage = item.value / total;
+        const strokeLength = percentage * circumference;
+        const strokeDasharray = `${strokeLength} ${circumference}`;
+        const strokeDashoffset = -accumulatedAngle;
+        accumulatedAngle += strokeLength;
+        svgContent += `<circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${item.color}" stroke-width="20" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`;
+      });
+      return `<div class="relative w-full flex justify-center py-4"><svg viewBox="0 0 100 100" style="width: 140px; height: 140px; transform: rotate(-90deg);"><circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="var(--neutral-fill)" stroke-width="20" />${svgContent}</svg></div>`;
     }
     function openBodyForm() { haptic('medium'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value=''); document.getElementById('body-sheet').classList.add('show'); document.getElementById('body-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('body-weight').focus(),350); }
     function closeBodyForm() { haptic('light'); document.getElementById('body-sheet').classList.remove('show'); document.getElementById('body-sheet-overlay').classList.remove('show'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).blur()); }
@@ -2283,7 +2512,7 @@
       flushPendingQueue(false).then(() => {
         bootstrapFromBackend().then(ok => {
           setSyncStatus(ok ? 'online' : 'offline');
-          if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
+          if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); renderFinanceTotal(); }
           apiGet('getBudget').then(data => { if (data) { localStorage.setItem('aura_budget_cache', JSON.stringify(data)); updateHomeBudget(); renderHomeInsight(); } }).catch(e => console.warn('home budget failed:', e));
         });
       });
