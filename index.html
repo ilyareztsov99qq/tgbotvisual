@@ -1266,8 +1266,33 @@
     // ============================================================
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxvajFQFIQdxHSh2s5ePkgF7zIGgsWYMgMFEfeUQyoeN52RxxY5tp3dWi6c_LQcBit1/exec';
     const INIT_DATA = window.Telegram?.WebApp?.initData || '';
-    let AUTH_TOKEN = localStorage.getItem('aura_web_token') || '';
-
+    let AUTH_TOKEN = (() => {
+  try { return localStorage.getItem('aura_web_token') || ''; }
+  catch (e) { return ''; }
+})();
+    function safeIcons() {
+  try {
+    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+      safeIcons();
+    }
+  } catch (e) {
+    console.warn('lucide.createIcons failed:', e);
+  }
+}
+window.addEventListener('error', (e) => {
+  console.error('Global JS error:', e.error || e.message, '@', e.filename, e.lineno);
+  let b = document.getElementById('__err_banner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = '__err_banner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff2d55;color:#fff;padding:10px 12px;z-index:99999;font-size:11px;font-family:monospace;white-space:pre-wrap;';
+    document.body.appendChild(b);
+  }
+  b.textContent = '⚠️ ' + (e.message || 'Unknown') + '\n' + (e.filename || '') + ':' + (e.lineno || '');
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled promise rejection:', e.reason);
+});
     const SERVER_CAT_MAP = {
       '🛒 Супермаркеты/Еда': 'food', '🍷 Вино/Бары/Отдых': 'bars', '🏋️ Спорт/Здоровье': 'sport',
       '📱 Связь/Подписки': 'subs', '🚕 Такси/Транспорт': 'transport', '🛍️ Шопинг/Одежда': 'shopping',
@@ -1298,7 +1323,7 @@
         input.type = 'password';
         icon.setAttribute('data-lucide', 'eye');
       }
-      lucide.createIcons();
+      safeIcons();
     };
 
     async function submitAuth() {
@@ -1320,7 +1345,7 @@
       
       btn.disabled = true;
       btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
-      lucide.createIcons();
+      safeIcons();
       errorEl.classList.remove('visible');
 
       try {
@@ -1366,7 +1391,7 @@
       document.getElementById('auth-screen').style.display = 'flex';
       
       // ВАЖНО: Рендерим иконки на экране входа сразу
-      setTimeout(() => { lucide.createIcons(); }, 50);
+      setTimeout(() => { safeIcons(); }, 50);
       
       return false;
     }
@@ -1972,7 +1997,7 @@
       document.getElementById('category-grid').innerHTML = list.map(c => `<button class="category-btn ${trxState.categoryId===c.id?'active':''}" onclick="selectCategory('${c.id}')">
         <div class="category-icon" style="background: ${BG_MAP[c.color]}; color: ${COLOR_MAP[c.color]};"><i data-lucide="${c.icon}" class="w-4 h-4"></i></div>
         <span class="category-label">${c.label}</span></button>`).join('');
-      lucide.createIcons();
+      safeIcons();
     }
     
     function renderAccounts() {
@@ -2022,9 +2047,9 @@
     function loadTrx() { try { return JSON.parse(localStorage.getItem('aura_trx_buffer')||'[]'); } catch(e) { return []; } }
     function saveTrx(arr) { try { localStorage.setItem('aura_trx_buffer', JSON.stringify(arr.slice(0,200))); } catch(e) {} }
     
-    function renderHomeRecent() { const el = document.getElementById('home-recent'); if (!el) return; const trx = loadTrx().slice(0,2); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); lucide.createIcons(); }
-    function renderFinanceRecent() { const el = document.getElementById('finance-recent'); if (!el) return; const trx = loadTrx().slice(0,3); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); lucide.createIcons(); }
-    function renderTodayTransactions() { const el = document.getElementById('today-transactions'); if (!el) return; const today = new Date().toISOString().slice(0,10); const trx = loadTrx().filter(t=>t.date.slice(0,10)===today); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Сегодня операций не было</p>' : trx.map(t=>trxItemHTML(t)).join(''); lucide.createIcons(); }
+    function renderHomeRecent() { const el = document.getElementById('home-recent'); if (!el) return; const trx = loadTrx().slice(0,2); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
+    function renderFinanceRecent() { const el = document.getElementById('finance-recent'); if (!el) return; const trx = loadTrx().slice(0,3); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
+    function renderTodayTransactions() { const el = document.getElementById('today-transactions'); if (!el) return; const today = new Date().toISOString().slice(0,10); const trx = loadTrx().filter(t=>t.date.slice(0,10)===today); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Сегодня операций не было</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
     
     function trxItemHTML(t) {
       const cat = CATEGORIES.concat(CATEGORIES_INCOME).find(c=>c.id===t.categoryId); const color = cat?.color||'gray'; const icon = cat?.icon||'package';
@@ -2084,7 +2109,7 @@
       const prevIncome = inPrev.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
       if (expense === 0 && income === 0) {
         el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="pie-chart" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет операций за период</p><p class="text-xs text-tertiary">Добавь транзакцию — здесь появится статистика</p></div>`;
-        lucide.createIcons(); return;
+        safeIcons(); return;
       }
       const byCat = {};
       inRange.filter(t => t.type === 'expense').forEach(t => {
@@ -2131,7 +2156,7 @@
         }
         html += `</div><div class="flex justify-between mt-2 text-[10px] text-tertiary"><span>1</span><span>${Math.round(daysInMonth / 2)}</span><span>${daysInMonth}</span></div></div>`;
       }
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
 
     // =========== BUDGET ===========
@@ -2143,21 +2168,21 @@
       const el = document.getElementById('budget-content'); if (!el) return;
       let cached = null;
       try { const raw = localStorage.getItem('aura_budget_cache'); if (raw) cached = JSON.parse(raw); } catch (e) {}
-      if (cached) { const labelEl = document.getElementById('budget-month-label'); if (labelEl) labelEl.textContent = cached.monthLabel || 'Месяц'; el.innerHTML = budgetHTML(cached); lucide.createIcons(); }
-      else { el.innerHTML = renderBudgetSkeleton(); lucide.createIcons(); }
+      if (cached) { const labelEl = document.getElementById('budget-month-label'); if (labelEl) labelEl.textContent = cached.monthLabel || 'Месяц'; el.innerHTML = budgetHTML(cached); safeIcons(); }
+      else { el.innerHTML = renderBudgetSkeleton(); safeIcons(); }
       try {
         const fresh = await apiGet('getBudget');
         if (fresh) {
           localStorage.setItem('aura_budget_cache', JSON.stringify(fresh));
           const labelEl = document.getElementById('budget-month-label'); if (labelEl) labelEl.textContent = fresh.monthLabel || 'Месяц';
-          el.innerHTML = budgetHTML(fresh); lucide.createIcons();
+          el.innerHTML = budgetHTML(fresh); safeIcons();
         }
-      } catch (e) { console.warn('getBudget failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Потяни вниз для обновления.</p></div>`; lucide.createIcons(); } }
+      } catch (e) { console.warn('getBudget failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Потяни вниз для обновления.</p></div>`; safeIcons(); } }
     }
     
     async function refreshBudget() {
       haptic('light'); const el = document.getElementById('budget-content');
-      if (el) { el.innerHTML = renderBudgetSkeleton(); lucide.createIcons(); }
+      if (el) { el.innerHTML = renderBudgetSkeleton(); safeIcons(); }
       await renderBudgetScreen(); toast('Обновлено');
     }
     
@@ -2203,15 +2228,15 @@
     async function renderCapital() {
       const el = document.getElementById('capital-content'); if (!el) return;
       let cached = null; try { const raw = localStorage.getItem('aura_capital_cache'); if (raw) cached = JSON.parse(raw); } catch (e) {}
-      if (cached && cached.accounts && cached.accounts.length > 0) { el.innerHTML = capitalHTML(cached); lucide.createIcons(); }
-      else { el.innerHTML = renderCapitalSkeleton(); lucide.createIcons(); }
+      if (cached && cached.accounts && cached.accounts.length > 0) { el.innerHTML = capitalHTML(cached); safeIcons(); }
+      else { el.innerHTML = renderCapitalSkeleton(); safeIcons(); }
       try {
         const fresh = await apiGet('getAccounts');
-        if (fresh && Array.isArray(fresh.accounts)) { localStorage.setItem('aura_capital_cache', JSON.stringify(fresh)); el.innerHTML = capitalHTML(fresh); lucide.createIcons(); }
-      } catch (e) { console.warn('getAccounts failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Не удалось загрузить данные. Потяни вниз для обновления.</p></div>`; lucide.createIcons(); } }
+        if (fresh && Array.isArray(fresh.accounts)) { localStorage.setItem('aura_capital_cache', JSON.stringify(fresh)); el.innerHTML = capitalHTML(fresh); safeIcons(); }
+      } catch (e) { console.warn('getAccounts failed:', e); if (!cached) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="wifi-off" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет связи</p><p class="text-xs text-tertiary">Не удалось загрузить данные. Потяни вниз для обновления.</p></div>`; safeIcons(); } }
     }
     
-    async function refreshCapital() { haptic('light'); const el = document.getElementById('capital-content'); if (el) { el.innerHTML = renderCapitalSkeleton(); lucide.createIcons(); } await renderCapital(); toast('Обновлено'); }
+    async function refreshCapital() { haptic('light'); const el = document.getElementById('capital-content'); if (el) { el.innerHTML = renderCapitalSkeleton(); safeIcons(); } await renderCapital(); toast('Обновлено'); }
     
     function capitalHTML(data) {
       const total = data.total || 0; const accounts = data.accounts || [];
@@ -2343,7 +2368,7 @@
         if (!filtered.length) html = emptyTasksHTML('Активных задач нет','Нажми + чтобы добавить');
         else html = `<div class="apple-card p-5 rounded-[24px] mb-4"><div>${filtered.map(t=>taskItemHTML(t)).join('')}</div></div>`;
       }
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function emptyTasksHTML(title,sub) {
@@ -2378,7 +2403,7 @@
         const fc = t.priority==='!!!'?'var(--red)':t.priority==='!!'?'var(--yellow)':'';
         return `<div class="flex items-center space-x-3 py-2" onclick="openTaskDetail('${t.id}')">${fc?`<span class="w-1 self-stretch rounded-full" style="background:${fc};"></span>`:''}<button class="task-check" style="width:18px;height:18px;" onclick="event.stopPropagation();toggleTaskDone('${t.id}')"></button><span class="text-sm text-primary flex-1">${escapeHtml(t.text)}</span></div>`;
       }).join('')}</div>`;
-      lucide.createIcons();
+      safeIcons();
     }
 
     let currentTaskId = null;
@@ -2422,7 +2447,7 @@
           <button class="apple-card tappable p-4 rounded-2xl text-sm font-medium" style="color:var(--red);" onclick="deleteTaskFromDetail()"><i data-lucide="trash-2" class="w-4 h-4"></i>Удалить</button>
         </div>
         <div class="h-4"></div>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function updateTaskField(id, field, value) {
@@ -2472,7 +2497,7 @@
     function postponeTaskDetail(id) {
       haptic('light'); const options = [1, 3, 7, 30]; const el = document.getElementById('task-detail-content');
       const html = `<div class="apple-card p-6 rounded-[24px] mb-4"><h3 class="text-sm font-semibold text-primary mb-4">Отложить на сколько?</h3><div class="grid grid-cols-2 gap-3">${options.map(d => `<button onclick="doPostpone('${id}', ${d})" class="apple-card tappable p-4 rounded-2xl text-sm font-medium text-primary">${d} ${d===1?'день':d<5?'дня':'дней'}</button>`).join('')}</div><button onclick="openTaskDetail('${id}')" class="mt-3 w-full apple-glass p-3 rounded-2xl text-sm font-medium text-primary">Отмена</button></div>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function doPostpone(id, days) {
@@ -2528,7 +2553,7 @@
         <div class="meal-body" onclick="openFoodDish('${k}')"><div class="meal-type">${MEAL_LABELS[k]}</div><div class="meal-name">${m.emoji} ${escapeHtml(m.name)}</div><div class="meal-kbju">${m.kcal} ккал · Б${m.p} · Ж${m.f} · У${m.c}</div></div>
         <button class="meal-check ${isE?'active':''}" onclick="event.stopPropagation();toggleMealEaten('${k}')">${isE?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button></div>`;
       }).join('');
-      lucide.createIcons();
+      safeIcons();
     }
     
     function toggleMealEaten(k) { haptic('medium'); const e = loadEaten(); e[k] = !e[k]; saveEaten(e); if (e[k]) hapticNotify('success'); renderFoodScreen(); renderHomeMenuPreview(); }
@@ -2540,7 +2565,7 @@
       const ing = d.ingredients.map(i => `<div class="ingredient-item"><span class="ingredient-name">${escapeHtml(i.name)}</span><span class="ingredient-qty">${escapeHtml(i.qty)}</span></div>`).join('');
       const rec = d.recipe.map((s,i) => `<div class="recipe-step"><div class="recipe-num">${i+1}</div><div class="recipe-text">${escapeHtml(s)}</div></div>`).join('');
       document.getElementById('dish-content').innerHTML = `<div class="dish-hero"><div class="dish-emoji">${d.emoji}</div><div class="dish-name">${escapeHtml(d.name)}</div><div class="dish-type">${MEAL_LABELS[k]}</div></div>${kbju}<div class="section-title">📦 Ингредиенты</div>${ing}<div class="section-title">👨‍🍳 Рецепт</div>${rec}<div class="h-8"></div>`;
-      lucide.createIcons(); navigate('food-dish');
+      safeIcons(); navigate('food-dish');
     }
     
     function renderShoppingScreen() {
@@ -2552,7 +2577,7 @@
         html += `<div class="shop-category">${escapeHtml(cat)}</div>`;
         byCat[cat].forEach(it => { html += `<div class="shop-item ${it.checked?'checked':''}"><button class="shop-check ${it.checked?'active':''}" onclick="toggleShopping('${it.id}')">${it.checked?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button><span class="shop-name" onclick="toggleShopping('${it.id}')">${escapeHtml(it.name)}</span><span class="shop-qty">${escapeHtml(it.qty)}</span></div>`; });
       });
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function toggleShopping(id) {
@@ -2679,7 +2704,7 @@
           <p class="text-[10px] text-tertiary mt-1">План на другую неделю?<br>🏋️ Тренировки → 📅 План</p>
           <button onclick="showWorkoutDebug()" style="margin-top:12px; font-size:10px; color:var(--text-tertiary); background:transparent; border:1px dashed var(--card-border); padding:6px 12px; border-radius:8px;">🐞 Debug</button>
         </div>`;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        if (typeof lucide !== 'undefined') safeIcons();
         return;
       }
       
@@ -2770,7 +2795,7 @@
       
       el.innerHTML = html;
       console.log('[workout] renderWorkoutToday html set, length:', html.length);
-      if (typeof lucide !== 'undefined') lucide.createIcons();
+      if (typeof lucide !== 'undefined') safeIcons();
     }
 
     async function refreshWorkoutToday() {
@@ -3034,7 +3059,7 @@
         </div>`;
       }
       document.getElementById('workout-plan-content').innerHTML = html;
-      lucide.createIcons();
+      safeIcons();
     }
 
     let currentWorkoutDayDow = null;
@@ -3063,7 +3088,7 @@
       addBtn.onclick = () => openAddExerciseSheet(dow);
       addBtn.innerHTML = `<i data-lucide="plus" class="w-4 h-4 text-secondary"></i><span class="text-sm font-medium text-primary">+ Добавить упражнение</span>`;
       body.appendChild(addBtn);
-      lucide.createIcons();
+      safeIcons();
       document.getElementById('workout-day-sheet').classList.add('show');
       document.getElementById('workout-day-sheet-overlay').classList.add('show');
     }
@@ -3167,7 +3192,7 @@
         }
       }
       document.getElementById('workout-progress-content').innerHTML = html;
-      lucide.createIcons();
+      safeIcons();
     }
 
         function renderWorkoutBody() {
@@ -3176,7 +3201,7 @@
       
       if (!body.length) { 
         el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет замеров</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; 
-        lucide.createIcons(); return; 
+        safeIcons(); return; 
       }
       
       const last = body[body.length-1]; 
@@ -3240,7 +3265,7 @@
         html += `</div>`;
       }
       el.innerHTML = html; 
-      lucide.createIcons();
+      safeIcons();
     }
         // Универсальный генератор SVG-графиков
     function generateSvgChart(data, color, goalLine = null) {
@@ -3327,7 +3352,7 @@
       html += `<div class="section-title">Выбери активность</div><div class="grid grid-cols-3 gap-3">`;
       CARDIO_OPTIONS.forEach(o => { html += `<button class="cardio-btn" onclick="openCardioForm('${o.id}')"><div class="cardio-emoji">${o.emoji}</div><div class="cardio-name">${o.name}</div></button>`; });
       html += `</div>`;
-      document.getElementById('workout-cardio-content').innerHTML = html; lucide.createIcons();
+      document.getElementById('workout-cardio-content').innerHTML = html; safeIcons();
     }
     
     function openCardioForm(type) { haptic('medium'); currentCardioType = type; const opt = CARDIO_OPTIONS.find(o => o.id===type); document.getElementById('cardio-sheet-title').textContent = opt ? opt.name : 'Кардио'; document.getElementById('cardio-minutes').value = ''; document.getElementById('cardio-sheet').classList.add('show'); document.getElementById('cardio-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('cardio-minutes').focus(),350); }
@@ -3371,7 +3396,7 @@
         el.innerHTML = history.map(m => `<div class="coach-bubble ${m.role === 'user' ? 'user' : 'coach'}">${m.html || escapeHtml(m.content)}</div>`).join('');
       }
       requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-      lucide.createIcons();
+      safeIcons();
     }
     
     function appendCoachBubble(role, content, html) {
@@ -3476,7 +3501,7 @@
       const card = document.createElement('div'); card.className = 'coach-bubble coach plan-preview';
       card.style.maxWidth = '95%'; card.style.background = 'var(--bg)'; card.style.border = '1px solid var(--purple)';
       card.innerHTML = `<div class="flex items-center gap-2 mb-2"><i data-lucide="calendar" class="w-4 h-4" style="color: var(--purple);"></i><span class="text-xs font-semibold text-primary">${escapeHtml(headerTitle)}</span></div>${planHtml}<div class="flex gap-2 mt-3"><button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">✓ Применить</button><button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">Отмена</button></div>`;
-      el.appendChild(card); requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; }); lucide.createIcons();
+      el.appendChild(card); requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; }); safeIcons();
     }
     
     async function applyPlanPreview() {
@@ -3552,7 +3577,7 @@
         timerState.laps.forEach((lapMs, i) => { const lapDuration = i === 0 ? lapMs : lapMs - timerState.laps[i - 1]; html += `<div class="flex justify-between items-center text-sm py-1 border-b divider last:border-0"><span class="text-tertiary text-xs w-8">#${i + 1}</span><span class="numbers font-semibold text-primary">${formatStopwatch(lapDuration)}</span><span class="numbers text-tertiary text-xs">${formatStopwatch(lapMs)}</span></div>`; });
         html += `</div></div>`;
       }
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function updateStopwatchDisplay() { const el = document.getElementById('stopwatch-display'); if (!el) return; el.textContent = formatStopwatch(Date.now() - timerState.startTs); }
@@ -3582,13 +3607,13 @@
       const el = document.getElementById('timer-content'); if (!el) return;
       if (timerState.countdown > 0 && timerState.running) {
         let html = `<div class="apple-card p-8 rounded-[28px] mb-4 text-center"><div class="timer-phase mb-3" style="color:var(--orange); letter-spacing: 2px;">ПРИГОТОВЬТЕСЬ</div><div class="text-7xl font-semibold tracking-tight numbers text-primary timer-display">${timerState.countdown}</div><div class="text-xs text-tertiary mt-3">Секунд до старта</div></div><div class="grid grid-cols-2 gap-3"><button onclick="timerReset()" class="col-span-2 py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Отмена</button></div>`;
-        el.innerHTML = html; lucide.createIcons(); return;
+        el.innerHTML = html; safeIcons(); return;
       }
       if (timerState.startTs === 0 && !timerState.running && !timerState.finished) {
         const totalSec = timerState.rounds * (timerState.workSec + timerState.restSec) - timerState.restSec;
         const totalMin = Math.floor(totalSec / 60); const totalSecs = totalSec % 60; const totalTimeStr = `${totalMin > 0 ? totalMin + ' мин ' : ''}${totalSecs > 0 ? totalSecs + ' сек' : ''}`;
         let html = `<div class="apple-card p-6 rounded-[24px] mb-4"><h3 class="text-sm font-semibold text-primary mb-4">Настройки интервалов</h3><div class="flex gap-3 mb-4"><div class="flex-1"><p class="text-[11px] text-secondary uppercase tracking-wide mb-1">Работа (сек)</p><input type="number" id="tm-input-work" class="task-input" style="font-size: 24px; font-weight: 700; text-align: center;" value="${timerState.workSec}" onchange="setIntervalParam('workSec', parseInt(this.value) || 40)"></div><div class="flex-1"><p class="text-[11px] text-secondary uppercase tracking-wide mb-1">Отдых (сек)</p><input type="number" id="tm-input-rest" class="task-input" style="font-size: 24px; font-weight: 700; text-align: center;" value="${timerState.restSec}" onchange="setIntervalParam('restSec', parseInt(this.value) || 0)"></div><div class="flex-1"><p class="text-[11px] text-secondary uppercase tracking-wide mb-1">Раунды</p><input type="number" id="tm-input-rounds" class="task-input" style="font-size: 24px; font-weight: 700; text-align: center;" value="${timerState.rounds}" onchange="setIntervalParam('rounds', parseInt(this.value) || 1)"></div></div><div class="flex flex-wrap gap-2 mb-6"><button onclick="applyIntervalPreset(20,10,8)" class="task-chip">Табата (20/10×8)</button><button onclick="applyIntervalPreset(40,20,8)" class="task-chip">40/20×8</button><button onclick="applyIntervalPreset(60,0,10)" class="task-chip">EMOM (60×10)</button><button onclick="applyIntervalPreset(30,30,10)" class="task-chip">30/30×10</button></div><div class="bg-neutral-fill rounded-xl p-4 text-center"><p class="text-xs text-secondary mb-1">Общее время</p><p class="text-2xl font-semibold text-primary numbers">${totalTimeStr}</p></div></div><button onclick="startTimer()" class="w-full py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">▶ Старт</button>`;
-        el.innerHTML = html; lucide.createIcons(); return;
+        el.innerHTML = html; safeIcons(); return;
       }
       const state = computeIntervalState();
       let phaseLabel, phaseColor, remainMs, roundNum;
@@ -3596,7 +3621,7 @@
       else if (!timerState.running && timerState.pausedElapsedMs > 0) { phaseLabel = state.phase === 'work' ? 'РАБОТА · ПАУЗА' : 'ОТДЫХ · ПАУЗА'; phaseColor = 'var(--orange)'; remainMs = state.remainMs; roundNum = state.round; }
       else { phaseLabel = state.phase === 'work' ? 'РАБОТА' : 'ОТДЫХ'; phaseColor = state.phase === 'work' ? 'var(--green)' : 'var(--blue)'; remainMs = state.remainMs; roundNum = state.round; }
       let html = `<div class="apple-card p-8 rounded-[28px] mb-4 text-center"><div class="timer-phase mb-3" id="timer-phase" style="color:${phaseColor};">${phaseLabel}</div><div class="text-6xl font-semibold tracking-tight numbers text-primary timer-display" id="timer-remain">${formatSec(remainMs)}</div><div class="text-xs text-tertiary mt-3" id="timer-round">Раунд ${roundNum} / ${timerState.rounds}</div></div><div class="grid grid-cols-2 gap-3">${state.done || timerState.finished ? `<button onclick="timerReset()" class="col-span-2 py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">↺ Заново</button>` : timerState.running ? `<button onclick="pauseTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--orange); color:#000;">⏸ Пауза</button><button onclick="timerReset()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Сброс</button>` : `<button onclick="startTimer()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--green); color:#fff;">▶ Продолжить</button><button onclick="timerReset()" class="py-4 rounded-2xl text-base font-semibold" style="background:var(--card-bg); border:0.5px solid var(--card-border); color:var(--text-primary);">↺ Сброс</button>`}</div>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function setIntervalParam(key, value) { haptic('light'); timerState[key] = value; renderInterval(); }
@@ -3740,14 +3765,14 @@
       const titleEl = document.getElementById('notes-title'); if (titleEl) titleEl.textContent = all.length ? `Заметки · ${all.length}` : 'Заметки';
       const searchWrap = document.getElementById('notes-search-wrap'); if (searchWrap) searchWrap.style.display = all.length > 0 ? 'flex' : 'none';
       const el = document.getElementById('notes-content'); if (!el) return;
-      if (!all.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
-      if (!filtered.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] notes-empty-search"><div class="notes-empty-search-icon"><i data-lucide="search-x" class="w-7 h-7"></i></div><p class="text-sm font-medium text-primary mb-1">Ничего не найдено</p><p class="text-xs text-tertiary">По запросу «${escapeHtml(q)}»</p></div>`; lucide.createIcons(); return; }
+      if (!all.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="notebook" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Заметок нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; safeIcons(); return; }
+      if (!filtered.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] notes-empty-search"><div class="notes-empty-search-icon"><i data-lucide="search-x" class="w-7 h-7"></i></div><p class="text-sm font-medium text-primary mb-1">Ничего не найдено</p><p class="text-xs text-tertiary">По запросу «${escapeHtml(q)}»</p></div>`; safeIcons(); return; }
       el.innerHTML = filtered.map(n => {
         const d = new Date(n.createdAt); const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}) + ', ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
         const edited = n.updatedAt ? `<span class="text-[10px] text-tertiary ml-2">· изменено ${new Date(n.updatedAt).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'})}</span>` : '';
         return `<div class="swipeable-wrapper"><div class="swipeable note-item" data-swipe-id="${n.id}" data-swipe-type="note" onclick="openNoteForm('${n.id}')"><div class="note-date">${ds}${edited}</div><div class="note-text">${highlightMatch(n.text, q)}</div></div></div>`;
       }).join('');
-      lucide.createIcons();
+      safeIcons();
     }
 
     // =========== HABITS ===========
@@ -3785,7 +3810,7 @@
     function renderHabits() {
       const habits = loadHabits(); const log = loadHabitLog(); const today = todayStr();
       const el = document.getElementById('habits-content'); if (!el) return;
-      if (!habits.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="check-circle" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Привычек нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
+      if (!habits.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="check-circle" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Привычек нет</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; safeIcons(); return; }
       const weekDays = []; for (let i = 6; i >= 0; i--) weekDays.push(addDays(today, -i));
       const totalPossible = habits.length * 7; let totalDone = 0;
       weekDays.forEach(d => { const day = log[d] || {}; habits.forEach(h => { if (day[h.id]) totalDone++; }); });
@@ -3803,7 +3828,7 @@
         html += `<div class="flex-1 flex flex-col items-center gap-1"><div style="flex:1;display:flex;align-items:flex-end;width:100%;"><div style="width:100%;height:${Math.max(4,p)}%;background:${isToday?'var(--green)':'rgba(52,199,89,.5)'};border-radius:3px;"></div></div><span class="text-[9px] ${isToday?'text-primary font-semibold':'text-tertiary'}">${new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{weekday:'narrow'})}</span></div>`;
       });
       html += `</div></div>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
 
     // =========== REPORTS ===========
@@ -3935,7 +3960,7 @@
         html += reportsCardHTML({ icon: 'activity', color: 'purple', title: 'Вес', onTap: "navigate('workout-body')", rows: [], emptyText: 'Нет замеров за период' });
       }
       html += `<p class="text-[11px] text-tertiary text-center mt-4 px-4">Сводка строится из ваших данных. Смена периода пересчитывает цифры автоматически.</p>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
 
     // =========== SETTINGS ===========
@@ -3945,7 +3970,7 @@
     function renderSettings() {
       const p = loadProfile(); const el = document.getElementById('settings-content');
       let html = `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">Профиль</h3><div class="settings-row"><span class="settings-label">Целевой вес</span><input class="settings-input" type="number" step="0.1" value="${p.targetWeight}" onblur="updateProfile('targetWeight', this.value)"></div><div class="settings-row"><span class="settings-label">Калории/день</span><input class="settings-input" type="number" value="${p.dailyKcal}" onblur="updateProfile('dailyKcal', this.value)"></div><div class="settings-row"><span class="settings-label">Белок/день</span><input class="settings-input" type="number" value="${p.dailyProtein}" onblur="updateProfile('dailyProtein', this.value)"></div></div><div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">О приложении</h3><div class="settings-row"><span class="settings-label">Версия</span><span class="text-xs text-tertiary">0.7.0 · Mini App</span></div><div class="settings-row"><span class="settings-label">Синхронизация</span><span class="text-xs text-tertiary">${INIT_DATA ? 'Google Sheets ✓' : 'Только локально'}</span></div></div><button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255,45,85,.2);"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Удалит всё локально</p></div></button>`;
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; safeIcons();
     }
     
     function updateProfile(key, value) { const p = loadProfile(); p[key] = parseFloat(value) || 0; saveProfile(p); toast('Сохранено'); }
@@ -4005,8 +4030,8 @@
 
     // =========== INIT ===========
     function initApp() {
-      lucide.createIcons();
-      showScreen('home');
+  showScreen('home');   // сначала экран
+  safeIcons();          // потом иконки (безопасно)
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
       renderSkeletons();
       setSyncStatus('syncing');
