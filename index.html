@@ -427,18 +427,7 @@
     .coach-typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .coach-typing-dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
-    .coach-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0 10px; flex-shrink: 0; }
-    .coach-chip { padding: 7px 12px; font-size: 12px; font-weight: 500; border-radius: 999px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-secondary); transition: all 0.15s ease; white-space: nowrap; }
-    .coach-chip:active { transform: scale(0.96); background: var(--neutral-fill-hover); }
-    .coach-chip.hidden { display: none; }
-    
-    .coach-input-wrap { display: flex; gap: 8px; align-items: center; padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); flex-shrink: 0; border-top: 0.5px solid var(--divider); margin-top: auto; z-index: 20; }
-    .coach-input { flex: 1; padding: 12px 16px; border-radius: 22px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s ease; font-family: inherit; }
-    .coach-input:focus { border-color: var(--blue); }
-    .coach-input::placeholder { color: var(--text-tertiary); }
-    .coach-send { width: 42px; height: 42px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s ease; }
-    .coach-send:active { transform: scale(0.92); }
-    .coach-send:disabled { opacity: 0.4; }
+   
     .coach-empty { text-align: center; padding: 40px 20px; color: var(--text-tertiary); }
 
     /* === Notes: поиск, подсветка, счётчик === */
@@ -4087,8 +4076,7 @@ window.addEventListener('unhandledrejection', (e) => {
       });
     })();
 
-    const coachInputEl = document.getElementById('coach-input');
-    if (coachInputEl) { coachInputEl.addEventListener('focus', () => { setTimeout(() => { const el = document.getElementById('coach-messages'); if (el) el.scrollTop = el.scrollHeight; }, 300); }); }
+    
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
@@ -4100,16 +4088,7 @@ window.addEventListener('unhandledrejection', (e) => {
       renderSkeletons();
       setSyncStatus('syncing');
       
-          // Авто-скролл при фокусе на клавиатуру
-    const coachInputElem = document.getElementById('coach-input');
-    if (coachInputElem) {
-      coachInputElem.addEventListener('focus', () => {
-        setTimeout(() => {
-          const el = document.getElementById('coach-messages');
-          if (el) el.scrollTop = el.scrollHeight;
-        }, 300); // Ждем, пока выедет клавиатура
-      });
-    }
+          
       
       function updateGreeting() {
         const el = document.getElementById('home-greeting'); if (!el) return;
@@ -4156,11 +4135,10 @@ window.addEventListener('unhandledrejection', (e) => {
       // Применяем фикс только если мы на экране чата
       if (!chatScreen || !chatScreen.classList.contains('active')) return;
 
-      const vv = window.visualViewport;
+            const vv = window.visualViewport;
       if (vv) {
-        // Подстраиваем высоту и позицию под клавиатуру
         chatScreen.style.height = vv.height + 'px';
-        chatScreen.style.top = vv.offsetTop + 'px';
+        chatScreen.style.top = '0px'; // Жестко прибиваем к верху
         chatScreen.style.bottom = 'auto'; 
       } else {
         chatScreen.style.height = '100dvh';
