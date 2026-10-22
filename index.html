@@ -1809,7 +1809,7 @@ body.chat-open {
       }, { passive: true });
     })();
 
-    async function bootstrapFromBackend() {
+        async function bootstrapFromBackend() {
       if (!INIT_DATA && !AUTH_TOKEN) return false;
       try {
         const data = await apiGet('getAll');
@@ -1846,15 +1846,19 @@ body.chat-open {
           }
           localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString());
         }
-                if (data.foodMenu) {
+        if (data.foodMenu) {
           const all = JSON.parse(localStorage.getItem('aura_food_menu') || '{}');
           all[todayStr()] = data.foodMenu;
           localStorage.setItem('aura_food_menu', JSON.stringify(all));
         }
         if (Array.isArray(data.shopping) && data.shopping.length > 0) localStorage.setItem('aura_shopping', JSON.stringify(data.shopping));
         if (data.profile) localStorage.setItem('aura_profile', JSON.stringify(data.profile));
-        if (data.budget) localStorage.setItem('aura_budget_cache', JSON.stringify(data.budget)); // <--- ДОБАВИТЬ ЭТО
+        if (data.budget) localStorage.setItem('aura_budget_cache', JSON.stringify(data.budget));
         return true;
+      } catch (e) {
+        console.warn('bootstrap failed', e);
+        return false;
+      }
     }
     
 
