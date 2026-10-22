@@ -36,11 +36,14 @@
     })();
   </script>
   <style>
-    body.chat-open {
+    bbody.chat-open {
       overflow: hidden !important;
       position: fixed !important;
-      width: 100% !important;
+      width: 100vw !important;
       height: 100% !important;
+      top: 0 !important;
+      left: 0 !important;
+      overscroll-behavior: none !important;
     }
     :root {
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
@@ -99,9 +102,11 @@
        ========================================================================== */
     #screen-workout-coach.active {
       position: fixed !important;
-      inset: 0 !important;
+      top: 0px !important;
+      left: 0px !important;
+      right: 0px !important;
       width: 100vw !important;
-      height: 100% !important;
+      height: 100dvh; /* fallback для браузеров без visualViewport */
       background: var(--bg) !important;
       z-index: 1000 !important;
       display: flex !important;
@@ -109,8 +114,21 @@
       overflow: hidden !important;
       margin: 0 !important;
       padding: 0 !important;
+      overscroll-behavior: none !important;
+      touch-action: none; /* Запрещает Safari тянуть экран */
     }
 
+    /* Разрешаем скролл ТОЛЬКО внутри списка сообщений */
+    #screen-workout-coach .coach-messages {
+      flex: 1 1 auto;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      touch-action: pan-y !important; /* Разрешает вертикальный скролл сообщений */
+    }
     #screen-workout-coach .coach-header {
       flex-shrink: 0;
       display: flex;
@@ -131,16 +149,6 @@
       min-height: 0;
       overflow: hidden;
       position: relative;
-    }
-
-    #screen-workout-coach .coach-messages {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 16px 16px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
     }
 
     .coach-bubble {
@@ -2425,20 +2433,28 @@
       }
     });
 
-    // Связка высоты чата строго с клавиатурой Safari iOS
+    // Фиксация экрана чата под размер клавиатуры в iOS Safari
     function syncChatViewport() {
       const chatScreen = document.getElementById('screen-workout-coach');
       if (!chatScreen || !chatScreen.classList.contains('active')) return;
 
       const vv = window.visualViewport;
       if (vv) {
+        // Устанавливаем высоту видимой области (без учета клавиатуры)
         chatScreen.style.height = `${vv.height}px`;
-        chatScreen.style.top = `${vv.offsetTop}px`;
+        // ВСЕГДА 0px сверху! Никаких offsetTop, иначе весь чат улетает вверх!
+        chatScreen.style.top = '0px';
+        chatScreen.style.bottom = 'auto';
+
+        // Принудительно гасим паразитный скролл страницы Safari
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
       } else {
-        chatScreen.style.height = '100%';
+        chatScreen.style.height = '100dvh';
         chatScreen.style.top = '0px';
       }
 
+      // Прокручиваем только список сообщений вниз
       const messages = document.getElementById('coach-messages');
       if (messages) {
         messages.scrollTop = messages.scrollHeight;
@@ -2448,9 +2464,14 @@
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
         syncChatViewport();
-        setTimeout(syncChatViewport, 100);
+        // Двойной вызов с задержкой, пока iOS анимирует клавиатуру
+        setTimeout(syncChatViewport, 50);
+        setTimeout(syncChatViewport, 150);
       });
-      window.visualViewport.addEventListener('scroll', syncChatViewport);
+      window.visualViewport.addEventListener('scroll', () => {
+        // Запрещаем скролл самого окна браузера
+        window.scrollTo(0, 0);
+      });
     }
 
     // Функция отправки сообщения
@@ -2791,8 +2812,24 @@
 
     if (window.visualViewport) { window.visualViewport.addEventListener('resize', syncChatViewport); window.visualViewport.addEventListener('scroll', syncChatViewport); }
     if (tg) { tg.onEvent('viewportChanged', syncChatViewport); }
-    const coachInputEl = document.getElementById('coach-input');
-    if (coachInputEl) { coachInputEl.addEventListener('focus', () => { setTimeout(syncChatViewport, 100); }); }
+    document.addEventListener('focusin', (e) => {
+      if (e.target && e.target.id === 'coach-input') {
+        // Safari пытается прокрутить страницу к элементу — сбрасываем это мгновенно
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          syncChatViewport();
+        }, 100);
+      }
+    });
+
+    document.addEventListener('focusout', (e) => {
+      if (e.target && e.target.id === 'coach-input') {
+        setTimeout(() => {
+          syncChatViewport();
+        }, 100);
+      }
+    });
 
     if (checkAuth()) { initApp(); }
   </script>
