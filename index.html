@@ -97,21 +97,24 @@
     .sync-dot.online { background: var(--green); }
     .sync-dot.offline { background: var(--red); }
 
-       /* ==========================================
-       ЧАТ: ПРАВИЛЬНЫЙ FLEX-ЛЕЙАУТ (БЕЗ АБСОЛЮТОВ)
+           /* ==========================================
+       ЧАТ: ЕДИНЫЙ ЛЕЙАУТ (БЕЗ АБСОЛЮТОВ)
        ========================================== */
     #screen-workout-coach.active {
-      position: fixed;
-      inset: 0;
-      height: 100dvh; /* Динамическая высота для iOS/Android */
+      position: fixed !important;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100vw;
+      height: 100dvh;
       background: var(--bg);
       z-index: 100;
-      display: flex;
+      display: flex !important;
       flex-direction: column;
       overflow: hidden;
+      overscroll-behavior: none;
+      margin: 0;
     }
 
-    /* Шапка чата теперь обычный flex-элемент, она не перекрывает сообщения */
+    /* Шапка чата */
     #screen-workout-coach.active > header {
       flex-shrink: 0;
       padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
@@ -127,7 +130,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-height: 0; /* Важно для скролла */
+      min-height: 0;
     }
 
     #screen-workout-coach .coach-messages {
@@ -137,14 +140,13 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      scroll-behavior: smooth;
     }
 
-    /* Нижняя панель: объединяем чипсы и инпут в один блок */
+    /* Нижняя панель (Чипсы + Инпут) */
     #screen-workout-coach .coach-bottom-panel {
       flex-shrink: 0;
       background: var(--bg);
-      padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
       border-top: 0.5px solid var(--divider);
       display: flex;
       flex-direction: column;
@@ -156,7 +158,7 @@
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      scrollbar-width: none; /* Скрываем скроллбар */
+      scrollbar-width: none;
       padding-bottom: 4px;
     }
     .coach-chips::-webkit-scrollbar { display: none; }
@@ -188,10 +190,11 @@
       background: var(--card-bg);
       border: 0.5px solid var(--card-border);
       color: var(--text-primary);
-      font-size: 16px; /* 16px предотвращает автозум на iOS */
+      font-size: 16px;
       outline: none;
     }
     .coach-input:focus { border-color: var(--blue); }
+    .coach-input::placeholder { color: var(--text-tertiary); }
 
     .coach-send {
       width: 44px;
@@ -205,6 +208,7 @@
       flex-shrink: 0;
     }
     .coach-send:active { transform: scale(0.92); }
+    .coach-send:disabled { opacity: 0.4; }
     .coach-send:disabled { opacity: 0.4; }
 
     /* === Exercise log sheet: квадраты для ввода === */
@@ -872,7 +876,7 @@
       </button>
     </section>
     
-        <!-- WORKOUT COACH -->
+            <!-- WORKOUT COACH -->
     <section id="screen-workout-coach" class="screen">
       <header>
         <div class="flex items-center">
@@ -1926,7 +1930,12 @@ window.addEventListener('unhandledrejection', (e) => {
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
-      if (name === 'workout-coach') { renderCoachMessages(); updateCoachChips(); }
+           if (name === 'workout-coach') { 
+        renderCoachMessages(); 
+        updateCoachChips(); 
+        // Синхронизируем размеры с реальным экраном
+        setTimeout(syncChatViewport, 50); 
+      }
       if (name === 'workout-timer') renderTimerScreen();
       if (name === 'notes') renderNotes();
       if (name === 'habits') renderHabits();
@@ -1936,12 +1945,14 @@ window.addEventListener('unhandledrejection', (e) => {
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
       
-      if (name !== 'workout-coach') {
+            if (name !== 'workout-coach') {
         const coachEl = document.getElementById('screen-workout-coach');
-        if (coachEl) coachEl.style.height = '';
+        if (coachEl) {
+          coachEl.style.height = '';
+          coachEl.style.top = '';
+          coachEl.style.bottom = '';
+        }
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
 
         function navigate(name, opts = {}) {
       haptic('soft');
@@ -4135,6 +4146,45 @@ window.addEventListener('unhandledrejection', (e) => {
           if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
           apiGet('getAccounts').then(data => { if (data) { localStorage.setItem('aura_capital_cache', JSON.stringify(data)); updateHomeBalance(); } }).catch(e => console.warn('home capital failed:', e));
         });
+      });
+    }
+        // ============================================================
+    // ФИКС КЛАВИАТУРЫ В ЧАТЕ (Visual Viewport)
+    // ============================================================
+    function syncChatViewport() {
+      const chatScreen = document.getElementById('screen-workout-coach');
+      // Применяем фикс только если мы на экране чата
+      if (!chatScreen || !chatScreen.classList.contains('active')) return;
+
+      const vv = window.visualViewport;
+      if (vv) {
+        // Подстраиваем высоту и позицию под клавиатуру
+        chatScreen.style.height = vv.height + 'px';
+        chatScreen.style.top = vv.offsetTop + 'px';
+        chatScreen.style.bottom = 'auto'; 
+      } else {
+        chatScreen.style.height = '100dvh';
+        chatScreen.style.top = '0';
+      }
+
+      // Принудительно скроллим сообщения вниз при открытии клавиатуры
+      const messages = document.getElementById('coach-messages');
+      if (messages) {
+        setTimeout(() => { messages.scrollTop = messages.scrollHeight; }, 100);
+      }
+    }
+
+    // Слушатели
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncChatViewport);
+      window.visualViewport.addEventListener('scroll', syncChatViewport);
+    }
+
+    // Также вызываем при фокусе на инпут (для надежности)
+    const coachInputEl = document.getElementById('coach-input');
+    if (coachInputEl) {
+      coachInputEl.addEventListener('focus', () => {
+        setTimeout(syncChatViewport, 100);
       });
     }
 
