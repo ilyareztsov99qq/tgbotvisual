@@ -657,16 +657,26 @@ body.chat-open {
       </header>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
-          <div class="apple-card p-6 sm:p-8 rounded-[28px] relative overflow-hidden">
-            <div>
-              <p class="text-xs font-medium text-secondary">Общий капитал</p>
-              <div id="balance" class="text-4xl sm:text-5xl font-semibold tracking-tight mt-2 numbers text-primary">—</div>
-              <p class="text-xs text-tertiary mt-2" id="balance-updated">загрузка...</p>
+                   <div class="apple-card p-6 sm:p-8 rounded-[28px] relative overflow-hidden">
+            <div class="grid grid-cols-3 gap-3 sm:gap-6">
+              <div>
+                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">Свободно на месяц</p>
+                <div id="home-free-month" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers text-primary">—</div>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">На сегодня</p>
+                <div id="home-today-avail" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers text-primary">—</div>
+              </div>
+              <div>
+                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">Потрачено</p>
+                <div id="home-spent-today" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers" style="color: var(--red);">—</div>
+              </div>
             </div>
+            <p class="text-xs text-tertiary mt-4" id="home-budget-updated">загрузка...</p>
           </div>
-          <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175,82,222,.2);">
+                    <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175,82,222,.2);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
-            <div><h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--purple);">Умный инсайт</h4><p class="text-xs sm:text-sm text-primary mt-0.5">В этом месяце траты на кафе снизились на 12%.</p></div>
+            <div class="flex-1 min-w-0"><h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--purple);">Умный инсайт</h4><p class="text-xs sm:text-sm text-primary mt-0.5" id="home-insight-text">Анализирую...</p></div>
           </div>
           <div class="apple-card p-6 rounded-[28px]">
             <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-semibold text-primary">Задачи на сегодня</h3><button onclick="navigate('tasks', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Все →</button></div>
@@ -1736,7 +1746,7 @@ body.chat-open {
       const ok = await bootstrapFromBackend();
       setSyncStatus(ok ? 'online' : 'offline');
       if (ok) {
-        if (currentScreen === 'home') { renderHomeRecent(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
+        if (currentScreen === 'home') { renderHomeRecent(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
         else if (currentScreen === 'tasks') renderTasksScreen();
         else if (currentScreen === 'food') renderFoodScreen();
         else if (currentScreen === 'food-shop') renderShoppingScreen();
@@ -1916,7 +1926,7 @@ body.chat-open {
       updateFabForScreen(name);
       
       if (name === 'tasks') renderTasksScreen();
-      if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
+      if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
       if (name === 'food') renderFoodScreen();
       if (name === 'food-shop') renderShoppingScreen();
       if (name === 'workout') renderWorkoutHub();
@@ -3436,6 +3446,116 @@ body.chat-open {
       } catch(e) { console.error('renderHomeWorkoutPreview error:', e); }
     }
 
+        // =========== HOME DASHBOARD ===========
+    function updateHomeBudget() {
+      const elFree = document.getElementById('home-free-month');
+      const elToday = document.getElementById('home-today-avail');
+      const elSpent = document.getElementById('home-spent-today');
+      const elUpdated = document.getElementById('home-budget-updated');
+      if (!elFree) return;
+      
+      try {
+        const raw = localStorage.getItem('aura_budget_cache');
+        if (raw) {
+          const b = JSON.parse(raw);
+          elFree.textContent = (b.free || 0).toLocaleString('ru-RU') + ' ₽';
+          elToday.textContent = (b.availableToday || 0).toLocaleString('ru-RU') + ' ₽';
+          elSpent.textContent = (b.spentToday || 0).toLocaleString('ru-RU') + ' ₽';
+          
+          if (b.availableToday < 0) {
+            elToday.style.color = 'var(--red)';
+          } else {
+            elToday.style.color = 'var(--text-primary)';
+          }
+          
+          if (elUpdated) elUpdated.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+          return;
+        }
+      } catch(e) {}
+      
+      elFree.textContent = '—';
+      elToday.textContent = '—';
+      elSpent.textContent = '—';
+      if (elUpdated) elUpdated.textContent = 'нет данных';
+    }
+
+    function renderHomeInsight() {
+      const el = document.getElementById('home-insight-text');
+      if (!el) return;
+      
+      try {
+        const today = todayStr();
+        const tasks = loadTasks();
+        const overdue = tasks.filter(t => !t.done && t.date && t.date < today);
+        const urgentToday = tasks.filter(t => !t.done && t.date === today && t.priority === '!!!');
+        const normalToday = tasks.filter(t => !t.done && t.date === today);
+        
+        const budgetRaw = localStorage.getItem('aura_budget_cache');
+        const budget = budgetRaw ? JSON.parse(budgetRaw) : null;
+        
+        const menu = loadFoodMenu();
+        const eaten = loadEaten();
+        let proteinEaten = 0, proteinTarget = 0;
+        MEAL_ORDER.forEach(k => {
+          if (menu[k]) {
+            proteinTarget += menu[k].p;
+            if (eaten[k]) proteinEaten += menu[k].p;
+          }
+        });
+        
+        const plan = getTodayWorkoutPlan();
+        const done = getWorkoutDone();
+        let workoutDone = 0, workoutTotal = 0;
+        if (plan && plan.exercises) {
+          workoutTotal = plan.exercises.length;
+          workoutDone = plan.exercises.filter(ex => done[ex.id] === true).length;
+        }
+        
+        let insight = '';
+        let colorName = 'purple';
+        
+        // Логика приоритетов
+        if (overdue.length > 0) {
+          insight = `🔴 <b>У вас ${overdue.length} просроченных задач.</b> Стоит разобраться с ними.`;
+          colorName = 'red';
+        } else if (urgentToday.length > 0) {
+          insight = `🔥 <b>${urgentToday.length} срочных задач на сегодня.</b> Не забудьте их выполнить.`;
+          colorName = 'red';
+        } else if (workoutTotal > 0 && workoutDone < workoutTotal) {
+          insight = `🏋️ По плану тренировка: <b>${escapeHtml(plan.split)}</b>. Выполнено ${workoutDone} из ${workoutTotal} упр.`;
+          colorName = 'blue';
+        } else if (budget && budget.availableToday < 0) {
+          insight = `⚠️ Вы превысили дневной лимит трат на <b>${Math.abs(budget.availableToday).toLocaleString('ru-RU')} ₽</b>.`;
+          colorName = 'orange';
+        } else if (proteinTarget > 0 && proteinEaten < proteinTarget * 0.7) {
+          insight = `🍽 До нормы белка осталось <b>${Math.round(proteinTarget - proteinEaten)} г</b>. Добавьте творог или мясо.`;
+          colorName = 'teal';
+        } else if (normalToday.length > 0) {
+          insight = `📋 На сегодня осталось <b>${normalToday.length} задач</b>. Всё под контролем.`;
+          colorName = 'green';
+        } else {
+          insight = `✨ <b>Отличный день!</b> Все задачи выполнены, бюджет в норме.`;
+          colorName = 'green';
+        }
+        
+        el.innerHTML = insight;
+        
+        const card = el.closest('.apple-card');
+        if (card) {
+          const iconBox = card.querySelector('.w-10');
+          const title = card.querySelector('h4');
+          const color = COLOR_MAP[colorName] || COLOR_MAP.purple;
+          const bg = BG_MAP[colorName] || BG_MAP.purple;
+          if (iconBox) { iconBox.style.color = color; iconBox.style.background = bg; }
+          if (title) { title.style.color = color; }
+          card.style.borderColor = bg;
+        }
+      } catch(e) {
+        console.warn('Insight generation failed', e);
+        el.textContent = 'Сделайте первый шаг — запишите трату или задачу!';
+      }
+    }
+    
     // =========== AI COACH ===========
     const COACH_HISTORY_KEY = 'aura_coach_history';
     const COACH_GREETING = 'Привет! Я твой AI-тренер. Вижу твои тренировки, план и замеры — могу анализировать прогресс, предлагать корректировки и отвечать на вопросы. О чём поговорим?';
@@ -4119,11 +4239,21 @@ body.chat-open {
       renderSkeletons();
       updateHomeBalance();
 
-      flushPendingQueue(false).then(() => {
+            flushPendingQueue(false).then(() => {
         bootstrapFromBackend().then(ok => {
           setSyncStatus(ok ? 'online' : 'offline');
-          if (ok) { renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); }
-          apiGet('getAccounts').then(data => { if (data) { localStorage.setItem('aura_capital_cache', JSON.stringify(data)); updateHomeBalance(); } }).catch(e => console.warn('home capital failed:', e));
+          if (ok) { 
+            renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); 
+            renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); 
+            updateHomeBudget(); renderHomeInsight(); 
+          }
+          apiGet('getBudget').then(data => { 
+            if (data) { 
+              localStorage.setItem('aura_budget_cache', JSON.stringify(data)); 
+              updateHomeBudget(); 
+              renderHomeInsight(); 
+            } 
+          }).catch(e => console.warn('home budget failed:', e));
         });
       });
     }
