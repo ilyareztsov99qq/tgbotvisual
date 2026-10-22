@@ -37,6 +37,13 @@
     })();
   </script>
   <style>
+    /* Когда чат открыт, мы полностью блокируем скролл главной страницы */
+body.chat-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
     :root {
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
       --bg: #000; --text-primary: #FFF; --text-secondary: #A1A1A6; --text-tertiary: #6B7280;
@@ -1932,7 +1939,11 @@
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
       
-      if (name !== 'workout-coach') {
+            if (name === 'workout-coach') {
+        document.body.classList.add('chat-open'); // Блокируем скролл body
+        setTimeout(syncChatViewport, 50);
+      } else {
+        document.body.classList.remove('chat-open'); // Возвращаем скролл
         const coachEl = document.getElementById('screen-workout-coach');
         if (coachEl) {
           coachEl.style.height = '';
@@ -4120,22 +4131,28 @@
     // ============================================================
     // ФИКС КЛАВИАТУРЫ В ЧАТЕ (Visual Viewport)
     // ============================================================
+        // ============================================================
+    // ФИКС КЛАВИАТУРЫ В ЧАТЕ (Visual Viewport)
+    // ============================================================
     function syncChatViewport() {
       const chatScreen = document.getElementById('screen-workout-coach');
-      // Применяем фикс только если мы на экране чата
       if (!chatScreen || !chatScreen.classList.contains('active')) return;
 
       const vv = window.visualViewport;
       if (vv) {
+        // Принудительно ставим высоту и позицию по Visual Viewport
         chatScreen.style.height = vv.height + 'px';
-        chatScreen.style.top = '0px'; // Жестко прибиваем к верху
+        chatScreen.style.top = vv.offsetTop + 'px';
         chatScreen.style.bottom = 'auto'; 
+        
+        // Блокируем скролл body, чтобы браузер не сдвигал весь экран
+        window.scrollTo(0, 0);
       } else {
         chatScreen.style.height = '100dvh';
-        chatScreen.style.top = '0';
+        chatScreen.style.top = '0px';
       }
 
-      // Принудительно скроллим сообщения вниз при открытии клавиатуры
+      // Скроллим сообщения вниз при открытии клавиатуры
       const messages = document.getElementById('coach-messages');
       if (messages) {
         setTimeout(() => { messages.scrollTop = messages.scrollHeight; }, 100);
@@ -4147,8 +4164,13 @@
       window.visualViewport.addEventListener('resize', syncChatViewport);
       window.visualViewport.addEventListener('scroll', syncChatViewport);
     }
+    
+    // Слушаем клавиатуру в Telegram API (для iOS это часто надежнее)
+    if (tg) {
+      tg.onEvent('viewportChanged', syncChatViewport);
+    }
 
-    // Также вызываем при фокусе на инпут (для надежности)
+    // Также вызываем при фокусе на инпут
     const coachInputEl = document.getElementById('coach-input');
     if (coachInputEl) {
       coachInputEl.addEventListener('focus', () => {
