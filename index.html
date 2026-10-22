@@ -10,33 +10,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- lucide с 3 fallback-CDN -->
-<script>
-  (function loadLucide() {
-    const urls = [
-      'https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js',
-      'https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/lucide/0.469.0/lucide.min.js'
-    ];
-    let i = 0;
-    function tryNext() {
-      if (i >= urls.length) { console.error('lucide: все CDN недоступны'); return; }
-      const s = document.createElement('script');
-      s.src = urls[i++];
-      s.async = true;
-      s.onload = () => {
-        console.log('lucide загружен с', s.src);
-        // Перерисовать все иконки, которые уже есть в DOM
-        if (window.safeIcons) safeIcons();
-      };
-      s.onerror = () => {
-        console.warn('lucide CDN failed:', s.src);
-        tryNext();
-      };
-      document.head.appendChild(s);
-    }
-    tryNext();
-  })();
-</script>
+  <script>
+    (function loadLucide() {
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js',
+        'https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/lucide/0.469.0/lucide.min.js'
+      ];
+      let i = 0;
+      function tryNext() {
+        if (i >= urls.length) { console.error('lucide: все CDN недоступны'); return; }
+        const s = document.createElement('script');
+        s.src = urls[i++];
+        s.async = true;
+        s.onload = () => {
+          console.log('lucide загружен с', s.src);
+          if (window.safeIcons) safeIcons();
+        };
+        s.onerror = () => {
+          console.warn('lucide CDN failed:', s.src);
+          tryNext();
+        };
+        document.head.appendChild(s);
+      }
+      tryNext();
+    })();
+  </script>
   <style>
     :root {
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
@@ -97,7 +96,7 @@
     .sync-dot.online { background: var(--green); }
     .sync-dot.offline { background: var(--red); }
 
-           /* ==========================================
+    /* ==========================================
        ЧАТ: ЕДИНЫЙ ЛЕЙАУТ (БЕЗ АБСОЛЮТОВ)
        ========================================== */
     #screen-workout-coach.active {
@@ -208,7 +207,6 @@
       flex-shrink: 0;
     }
     .coach-send:active { transform: scale(0.92); }
-    .coach-send:disabled { opacity: 0.4; }
     .coach-send:disabled { opacity: 0.4; }
 
     /* === Exercise log sheet: квадраты для ввода === */
@@ -460,7 +458,8 @@
     .swipeable.swiping { transition: none; }
     .swipeable-wrapper { position: relative; overflow: hidden; }
     .swipe-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 90px; background: var(--red); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; border-radius: 12px; }
-            /* === AUTH SCREEN (Премиальный вход) === */
+    
+    /* === AUTH SCREEN (Премиальный вход) === */
     .auth-wrapper {
       position: fixed;
       inset: 0;
@@ -592,7 +591,7 @@
   </style>
 </head>
 <body>
-      <!-- ЭКРАН ВХОДА (Только для браузера) -->
+  <!-- ЭКРАН ВХОДА (Только для браузера) -->
   <div id="auth-screen" class="auth-wrapper">
     <div class="fixed top-[-100px] left-1/4 w-[500px] h-[500px] spotlight-1 rounded-full blur-[140px] pointer-events-none"></div>
     <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
@@ -865,7 +864,7 @@
       </button>
     </section>
     
-            <!-- WORKOUT COACH -->
+    <!-- WORKOUT COACH -->
     <section id="screen-workout-coach" class="screen">
       <header>
         <div class="flex items-center">
@@ -1302,43 +1301,46 @@
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxvajFQFIQdxHSh2s5ePkgF7zIGgsWYMgMFEfeUQyoeN52RxxY5tp3dWi6c_LQcBit1/exec';
     const INIT_DATA = window.Telegram?.WebApp?.initData || '';
     let AUTH_TOKEN = (() => {
-  try { return localStorage.getItem('aura_web_token') || ''; }
-  catch (e) { return ''; }
-})();
+      try { return localStorage.getItem('aura_web_token') || ''; }
+      catch (e) { return ''; }
+    })();
+
     let __iconsRetryTimer = null;
-function safeIcons() {
-  try {
-    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-      lucide.createIcons();
-      if (__iconsRetryTimer) { clearTimeout(__iconsRetryTimer); __iconsRetryTimer = null; }
-      return true;
+    function safeIcons() {
+      try {
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+          if (__iconsRetryTimer) { clearTimeout(__iconsRetryTimer); __iconsRetryTimer = null; }
+          return true;
+        }
+      } catch (e) {
+        console.warn('lucide.createIcons failed:', e);
+      }
+      // Если lucide ещё не загрузился — попробуем снова через 500мс
+      if (!__iconsRetryTimer) {
+        __iconsRetryTimer = setTimeout(() => {
+          __iconsRetryTimer = null;
+          safeIcons();
+        }, 500);
+      }
+      return false;
     }
-  } catch (e) {
-    console.warn('lucide.createIcons failed:', e);
-  }
-  // Если lucide ещё не загрузился — попробуем снова через 500мс
-  if (!__iconsRetryTimer) {
-    __iconsRetryTimer = setTimeout(() => {
-      __iconsRetryTimer = null;
-      safeIcons();
-    }, 500);
-  }
-  return false;
-}
-window.addEventListener('error', (e) => {
-  console.error('Global JS error:', e.error || e.message, '@', e.filename, e.lineno);
-  let b = document.getElementById('__err_banner');
-  if (!b) {
-    b = document.createElement('div');
-    b.id = '__err_banner';
-    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff2d55;color:#fff;padding:10px 12px;z-index:99999;font-size:11px;font-family:monospace;white-space:pre-wrap;';
-    document.body.appendChild(b);
-  }
-  b.textContent = '⚠️ ' + (e.message || 'Unknown') + '\n' + (e.filename || '') + ':' + (e.lineno || '');
-});
-window.addEventListener('unhandledrejection', (e) => {
-  console.error('Unhandled promise rejection:', e.reason);
-});
+
+    window.addEventListener('error', (e) => {
+      console.error('Global JS error:', e.error || e.message, '@', e.filename, e.lineno);
+      let b = document.getElementById('__err_banner');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = '__err_banner';
+        b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff2d55;color:#fff;padding:10px 12px;z-index:99999;font-size:11px;font-family:monospace;white-space:pre-wrap;';
+        document.body.appendChild(b);
+      }
+      b.textContent = '⚠️ ' + (e.message || 'Unknown') + '\n' + (e.filename || '') + ':' + (e.lineno || '');
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      console.error('Unhandled promise rejection:', e.reason);
+    });
+
     const SERVER_CAT_MAP = {
       '🛒 Супермаркеты/Еда': 'food', '🍷 Вино/Бары/Отдых': 'bars', '🏋️ Спорт/Здоровье': 'sport',
       '📱 Связь/Подписки': 'subs', '🚕 Такси/Транспорт': 'transport', '🛍️ Шопинг/Одежда': 'shopping',
@@ -1358,7 +1360,6 @@ window.addEventListener('unhandledrejection', (e) => {
     // ============================================================
     // AUTHENTICATION
     // ============================================================
-            // Функция показа/скрытия пароля
     window.togglePasswordVisibility = function() {
       const input = document.getElementById('auth-password');
       const icon = document.getElementById('auth-eye-icon');
@@ -1429,7 +1430,7 @@ window.addEventListener('unhandledrejection', (e) => {
       }
     }
 
-        function checkAuth() {
+    function checkAuth() {
       if (INIT_DATA) return true;
       if (AUTH_TOKEN) return true;
       
@@ -1880,14 +1881,12 @@ window.addEventListener('unhandledrejection', (e) => {
       currentScreen = name;
       document.body.dataset.screen = name;
       
-      // === СКРЫВАЕМ ТАББАР НА ВСЕХ ЭКРАНАХ, КРОМЕ ОСНОВНЫХ ВКЛАДОК ===
       const mainTabs = ['home', 'finance', 'tasks', 'more'];
       const tabbar = document.querySelector('nav[data-tabbar]');
       if (tabbar) {
         tabbar.style.transform = mainTabs.includes(name) ? 'translateY(0)' : 'translateY(200%)';
       }
-      // ==========================================================
-
+      
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const target = document.getElementById('screen-' + name);
       if (target) target.classList.add('active');
@@ -1919,10 +1918,9 @@ window.addEventListener('unhandledrejection', (e) => {
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
-           if (name === 'workout-coach') { 
+      if (name === 'workout-coach') { 
         renderCoachMessages(); 
         updateCoachChips(); 
-        // Синхронизируем размеры с реальным экраном
         setTimeout(syncChatViewport, 50); 
       }
       if (name === 'workout-timer') renderTimerScreen();
@@ -1934,7 +1932,7 @@ window.addEventListener('unhandledrejection', (e) => {
       if (name === 'settings') renderSettings();
       if (name === 'fin-analytics') renderAnalytics();
       
-            if (name !== 'workout-coach') {
+      if (name !== 'workout-coach') {
         const coachEl = document.getElementById('screen-workout-coach');
         if (coachEl) {
           coachEl.style.height = '';
@@ -1942,12 +1940,12 @@ window.addEventListener('unhandledrejection', (e) => {
           coachEl.style.bottom = '';
         }
       }
+    } // <--- ИСПРАВЛЕНО: Добавлена закрывающая скобка функции showScreen
 
-        function navigate(name, opts = {}) {
+    function navigate(name, opts = {}) {
       haptic('soft');
       if (opts.title) { const t = document.getElementById('placeholder-title'); if (t) t.textContent = opts.title; }
       
-      // Записываем состояние в историю браузера, чтобы свайп назад работал
       if (opts.tab) {
         history = [name];
         window.history.pushState({ screen: name }, '', `#${name}`);
@@ -1959,14 +1957,11 @@ window.addEventListener('unhandledrejection', (e) => {
       showScreen(name);
     }
 
-            function goBack() {
+    function goBack() {
       haptic('light');
-      
-      // Главные экраны, с которых назад уже некуда
       const rootTabs = ['home', 'finance', 'tasks', 'more'];
       if (rootTabs.includes(currentScreen)) return;
 
-      // Карта: куда возвращать из подразделов
       const parents = {
         'fin-budget': 'finance', 'fin-capital': 'finance', 'fin-analytics': 'finance', 'fin-history': 'finance', 'fin-goals': 'finance',
         'task-detail': 'tasks',
@@ -1980,18 +1975,15 @@ window.addEventListener('unhandledrejection', (e) => {
       navigate(parent, {tab: true});
     }
 
-    // Перехватываем системную кнопку "Назад" и свайпы браузера/Safari
     window.addEventListener('popstate', (e) => {
-      // Если мы на главном экране, даем браузеру закрыть вкладку, если нет - возвращаем в меню
       const rootTabs = ['home', 'finance', 'tasks', 'more'];
       if (rootTabs.includes(currentScreen)) {
-        return; // Позволяем браузеру уйти назад (или закрыть приложение)
+        return;
       } else {
-        goBack(); // Перехватываем и возвращаем в меню
+        goBack();
       }
     });
     
-    // Для Telegram
     if (tg?.BackButton) tg.BackButton.onClick(goBack);
     
     function updateFabForScreen(name) {
@@ -4076,19 +4068,16 @@ window.addEventListener('unhandledrejection', (e) => {
       });
     })();
 
-    
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
     // =========== INIT ===========
     function initApp() {
-  showScreen('home');   // сначала экран
-  safeIcons();          // потом иконки (безопасно)
+      showScreen('home');
+      safeIcons();
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
       renderSkeletons();
       setSyncStatus('syncing');
-      
-          
       
       function updateGreeting() {
         const el = document.getElementById('home-greeting'); if (!el) return;
@@ -4127,7 +4116,8 @@ window.addEventListener('unhandledrejection', (e) => {
         });
       });
     }
-        // ============================================================
+
+    // ============================================================
     // ФИКС КЛАВИАТУРЫ В ЧАТЕ (Visual Viewport)
     // ============================================================
     function syncChatViewport() {
@@ -4135,7 +4125,7 @@ window.addEventListener('unhandledrejection', (e) => {
       // Применяем фикс только если мы на экране чата
       if (!chatScreen || !chatScreen.classList.contains('active')) return;
 
-            const vv = window.visualViewport;
+      const vv = window.visualViewport;
       if (vv) {
         chatScreen.style.height = vv.height + 'px';
         chatScreen.style.top = '0px'; // Жестко прибиваем к верху
