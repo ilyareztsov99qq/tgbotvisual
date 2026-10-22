@@ -657,22 +657,33 @@ body.chat-open {
       </header>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-2 space-y-6">
-                   <div class="apple-card p-6 sm:p-8 rounded-[28px] relative overflow-hidden">
-            <div class="grid grid-cols-3 gap-3 sm:gap-6">
+                             <div class="apple-card p-6 rounded-[28px] relative overflow-hidden">
+            <!-- Шапка блока с временем обновления -->
+            <div class="flex justify-between items-center mb-5">
+              <p class="text-xs font-medium text-secondary">Доступно средств</p>
+              <span id="home-budget-updated" class="text-[10px] font-medium text-tertiary">загрузка...</span>
+            </div>
+
+            <!-- Сетка с цифрами -->
+            <div class="grid grid-cols-3 gap-2">
+              <!-- Свободно на месяц -->
               <div>
-                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">Свободно на месяц</p>
-                <div id="home-free-month" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers text-primary">—</div>
+                <p class="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1 whitespace-nowrap">На месяц</p>
+                <div id="home-free-month" class="text-lg sm:text-2xl font-semibold tracking-tight numbers text-primary whitespace-nowrap">—</div>
               </div>
+              
+              <!-- На сегодня -->
               <div>
-                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">На сегодня</p>
-                <div id="home-today-avail" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers text-primary">—</div>
+                <p class="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1 whitespace-nowrap">На сегодня</p>
+                <div id="home-today-avail" class="text-lg sm:text-2xl font-semibold tracking-tight numbers text-primary whitespace-nowrap">—</div>
               </div>
+              
+              <!-- Потрачено -->
               <div>
-                <p class="text-[10px] sm:text-xs font-medium text-secondary uppercase tracking-wide">Потрачено</p>
-                <div id="home-spent-today" class="text-xl sm:text-3xl font-semibold tracking-tight mt-1 numbers" style="color: var(--red);">—</div>
+                <p class="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1 whitespace-nowrap">Потрачено</p>
+                <div id="home-spent-today" class="text-lg sm:text-2xl font-semibold tracking-tight numbers whitespace-nowrap" style="color: var(--red);">—</div>
               </div>
             </div>
-            <p class="text-xs text-tertiary mt-4" id="home-budget-updated">загрузка...</p>
           </div>
                     <div class="apple-card p-5 rounded-2xl flex items-center space-x-4" style="border-color: rgba(175,82,222,.2);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
@@ -3448,50 +3459,63 @@ body.chat-open {
     }
 
         // =========== HOME DASHBOARD ===========
-        function updateHomeBudget() {
+            function updateHomeBudget() {
       const elFree = document.getElementById('home-free-month');
       const elToday = document.getElementById('home-today-avail');
       const elSpent = document.getElementById('home-spent-today');
       const elUpdated = document.getElementById('home-budget-updated');
       if (!elFree) return;
+
+      // Вспомогательная функция для красивого вывода
+      function formatMoney(val, colorize = false) {
+        const num = Math.round(val || 0);
+        const formatted = num.toLocaleString('ru-RU').replace(/\s/g, ' ') + ' ₽';
+        // Оборачиваем в span, чтобы рубль не переносился на новую строку
+        return `<span class="whitespace-nowrap">${formatted}</span>`;
+      }
       
       try {
         const raw = localStorage.getItem('aura_budget_cache');
         if (raw) {
           const b = JSON.parse(raw);
           if (b && typeof b.free === 'number') {
-            elFree.textContent = (b.free || 0).toLocaleString('ru-RU') + ' ₽';
-            elToday.textContent = (b.availableToday || 0).toLocaleString('ru-RU') + ' ₽';
-            elSpent.textContent = (b.spentToday || 0).toLocaleString('ru-RU') + ' ₽';
-            
+            elFree.innerHTML = formatMoney(b.free);
+            elToday.innerHTML = formatMoney(b.availableToday);
+            elSpent.innerHTML = formatMoney(b.spentToday);
+
+            // Умные цвета для "На сегодня"
             if (b.availableToday < 0) {
               elToday.style.color = 'var(--red)';
+            } else if (b.availableToday < 500) {
+              elToday.style.color = 'var(--orange)';
             } else {
               elToday.style.color = 'var(--text-primary)';
             }
             
-            if (elUpdated) elUpdated.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            if (elUpdated) {
+              elUpdated.textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            }
             return;
           }
         }
       } catch(e) {}
-      
-      // Если кэша нет (или он пустой) — считаем траты локально из транзакций
+
+      // Фолбэк, если нет кэша
       try {
         const trx = loadTrx();
         const today = todayStr();
         let spentToday = 0;
         trx.forEach(t => {
-          if (t.type === 'expense' && t.date.slice(0, 10) === today) {
-            spentToday += t.amount;
-          }
+          if (t.type === 'expense' && t.date.slice(0, 10) === today) spentToday += t.amount;
         });
-        elFree.textContent = '—';
-        elToday.textContent = '—';
-        elSpent.textContent = spentToday.toLocaleString('ru-RU') + ' ₽';
-        if (elUpdated) elUpdated.textContent = 'Локальные данные (нет связи с сервером)';
+        elFree.innerHTML = '—';
+        elToday.innerHTML = '—';
+        elSpent.innerHTML = formatMoney(spentToday);
+        if (elUpdated) elUpdated.textContent = 'локально';
       } catch(e) {
-        elFree.textContent = '—'; elToday.textContent = '—'; elSpent.textContent = '—';
+        elFree.innerHTML = '—'; 
+        elToday.innerHTML = '—'; 
+        elSpent.innerHTML = '—';
       }
     }
 
