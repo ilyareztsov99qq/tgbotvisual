@@ -387,23 +387,139 @@
     .swipeable.swiping { transition: none; }
     .swipeable-wrapper { position: relative; overflow: hidden; }
     .swipe-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 90px; background: var(--red); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; border-radius: 12px; }
+        /* === AUTH SCREEN (Красивый вход) === */
+    .auth-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: none; /* Будет flex при показе */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+    .auth-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 340px;
+      background: var(--card-bg);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 0.5px solid var(--card-border);
+      border-radius: 36px;
+      padding: 40px 24px 32px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+      animation: authSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes authSlideUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .auth-icon {
+      width: 72px; height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(0,122,255,0.3);
+    }
+    .auth-input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .auth-input-group svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      width: 20px; height: 20px;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+    .auth-input-group:focus-within svg {
+      color: var(--blue);
+    }
+    .auth-input {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      border-radius: 16px;
+      background: var(--field-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .auth-input:focus {
+      border-color: var(--blue);
+      background: rgba(0, 122, 255, 0.05);
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    }
+    .auth-input::placeholder { color: var(--text-tertiary); }
+    .auth-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px rgba(0,122,255,0.3);
+    }
+    .auth-btn:active { transform: scale(0.97); }
+    .auth-btn:disabled { opacity: 0.6; pointer-events: none; box-shadow: none; }
+    .auth-error {
+      color: var(--red);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 16px;
+      display: none;
+      font-weight: 500;
+      animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
   </style>
 </head>
 <body>
-  <!-- ЭКРАН ВХОДА (Только для браузера) -->
-  <div id="auth-screen" style="display: none; position: fixed; inset: 0; z-index: 9999; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-    <div class="apple-card p-8 rounded-[28px] max-w-sm w-full text-center">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: rgba(0,122,255,.15); color: var(--blue);">
-        <i data-lucide="user" class="w-8 h-8"></i>
+    <!-- ЭКРАН ВХОДА (Только для браузера) -->
+  <div id="auth-screen" class="auth-wrapper">
+    <!-- Фоновые свечения -->
+    <div class="fixed top-[-100px] left-1/4 w-[500px] h-[500px] spotlight-1 rounded-full blur-[140px] pointer-events-none"></div>
+    <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="auth-card">
+      <div class="auth-icon">
+        <i data-lucide="fingerprint" class="w-10 h-10"></i>
       </div>
-      <h1 class="text-2xl font-bold text-primary mb-2">Aura Life</h1>
-      <p class="text-xs text-secondary mb-6">Вход в личный кабинет</p>
       
-      <input type="text" id="auth-login" class="task-input mb-3" placeholder="Логин" style="text-align: left;">
-      <input type="password" id="auth-password" class="task-input mb-4" placeholder="Пароль" style="text-align: left;">
+      <h1 class="text-2xl font-bold text-center text-primary tracking-tight mb-1">Aura Life</h1>
+      <p class="text-[13px] text-secondary text-center mb-8">Безопасный вход в систему</p>
+
+      <div class="auth-input-group">
+        <i data-lucide="user"></i>
+        <input type="text" id="auth-login" class="auth-input" placeholder="Логин" autocomplete="username">
+      </div>
+
+      <div class="auth-input-group">
+        <i data-lucide="lock"></i>
+        <input type="password" id="auth-password" class="auth-input" placeholder="Пароль" autocomplete="current-password" onkeypress="if(event.key==='Enter'){event.preventDefault();submitAuth();}">
+      </div>
+
+      <button onclick="submitAuth()" class="auth-btn" id="auth-submit-btn">Войти</button>
       
-      <button onclick="submitAuth()" class="submit-btn" style="margin: 0; background: var(--blue);">Войти</button>
-      <p id="auth-error" class="text-xs mt-3" style="color: var(--red); display: none;">Неверный логин или пароль</p>
+      <p id="auth-error" class="auth-error">Неверный логин или пароль</p>
     </div>
   </div>
 
@@ -1098,20 +1214,25 @@
     // ============================================================
     // AUTHENTICATION
     // ============================================================
-    async function submitAuth() {
+        async function submitAuth() {
       const login = document.getElementById('auth-login').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const errorEl = document.getElementById('auth-error');
-      const btn = document.querySelector('#auth-screen button');
+      const btn = document.getElementById('auth-submit-btn');
+      const screen = document.getElementById('auth-screen');
       
       if (!login || !password) {
         errorEl.textContent = "Заполните все поля";
         errorEl.style.display = 'block';
+        // Перезапуск анимации
+        errorEl.style.animation = 'none';
+        errorEl.offsetHeight; 
+        errorEl.style.animation = null;
         return;
       }
       
       btn.disabled = true;
-      btn.textContent = "Вход...";
+      btn.textContent = "Проверка...";
       errorEl.style.display = 'none';
 
       try {
@@ -1126,14 +1247,24 @@
         if (json.ok && json.data.success) {
           AUTH_TOKEN = json.data.token;
           localStorage.setItem('aura_web_token', AUTH_TOKEN);
-          document.getElementById('auth-screen').style.display = 'none';
-          initApp();
+          
+          // Плавно скрываем экран входа
+          screen.style.transition = 'opacity 0.3s ease';
+          screen.style.opacity = '0';
+          setTimeout(() => {
+            screen.style.display = 'none';
+            initApp(); // Запускаем приложение
+          }, 300);
         } else {
           errorEl.textContent = json.error || "Неверный логин или пароль";
           errorEl.style.display = 'block';
+          // Перезапуск анимации встряски
+          errorEl.style.animation = 'none';
+          errorEl.offsetHeight;
+          errorEl.style.animation = null;
         }
       } catch (e) {
-        errorEl.textContent = "Ошибка сети";
+        errorEl.textContent = "Ошибка сети. Проверьте соединение.";
         errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
