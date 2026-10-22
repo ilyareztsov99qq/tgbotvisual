@@ -1316,10 +1316,16 @@
       }
     }
 
-    function checkAuth() {
+        function checkAuth() {
       if (INIT_DATA) return true;
       if (AUTH_TOKEN) return true;
+      
+      // Показываем экран входа
       document.getElementById('auth-screen').style.display = 'flex';
+      
+      // ВАЖНО: Рендерим иконки на экране входа сразу
+      setTimeout(() => { lucide.createIcons(); }, 50);
+      
       return false;
     }
 
