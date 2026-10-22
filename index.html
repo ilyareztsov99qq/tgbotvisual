@@ -1835,16 +1835,17 @@ body.chat-open {
           }
           localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString());
         }
-        if (data.foodMenu) {
+                if (data.foodMenu) {
           const all = JSON.parse(localStorage.getItem('aura_food_menu') || '{}');
           all[todayStr()] = data.foodMenu;
           localStorage.setItem('aura_food_menu', JSON.stringify(all));
         }
         if (Array.isArray(data.shopping) && data.shopping.length > 0) localStorage.setItem('aura_shopping', JSON.stringify(data.shopping));
         if (data.profile) localStorage.setItem('aura_profile', JSON.stringify(data.profile));
+        if (data.budget) localStorage.setItem('aura_budget_cache', JSON.stringify(data.budget)); // <--- ДОБАВИТЬ ЭТО
         return true;
-      } catch (e) { console.warn('bootstrap failed', e); return false; }
     }
+    
 
     // =========== TELEGRAM INIT ===========
     const tg = window.Telegram?.WebApp;
@@ -3447,7 +3448,7 @@ body.chat-open {
     }
 
         // =========== HOME DASHBOARD ===========
-    function updateHomeBudget() {
+        function updateHomeBudget() {
       const elFree = document.getElementById('home-free-month');
       const elToday = document.getElementById('home-today-avail');
       const elSpent = document.getElementById('home-spent-today');
@@ -3458,25 +3459,40 @@ body.chat-open {
         const raw = localStorage.getItem('aura_budget_cache');
         if (raw) {
           const b = JSON.parse(raw);
-          elFree.textContent = (b.free || 0).toLocaleString('ru-RU') + ' ₽';
-          elToday.textContent = (b.availableToday || 0).toLocaleString('ru-RU') + ' ₽';
-          elSpent.textContent = (b.spentToday || 0).toLocaleString('ru-RU') + ' ₽';
-          
-          if (b.availableToday < 0) {
-            elToday.style.color = 'var(--red)';
-          } else {
-            elToday.style.color = 'var(--text-primary)';
+          if (b && typeof b.free === 'number') {
+            elFree.textContent = (b.free || 0).toLocaleString('ru-RU') + ' ₽';
+            elToday.textContent = (b.availableToday || 0).toLocaleString('ru-RU') + ' ₽';
+            elSpent.textContent = (b.spentToday || 0).toLocaleString('ru-RU') + ' ₽';
+            
+            if (b.availableToday < 0) {
+              elToday.style.color = 'var(--red)';
+            } else {
+              elToday.style.color = 'var(--text-primary)';
+            }
+            
+            if (elUpdated) elUpdated.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return;
           }
-          
-          if (elUpdated) elUpdated.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-          return;
         }
       } catch(e) {}
       
-      elFree.textContent = '—';
-      elToday.textContent = '—';
-      elSpent.textContent = '—';
-      if (elUpdated) elUpdated.textContent = 'нет данных';
+      // Если кэша нет (или он пустой) — считаем траты локально из транзакций
+      try {
+        const trx = loadTrx();
+        const today = todayStr();
+        let spentToday = 0;
+        trx.forEach(t => {
+          if (t.type === 'expense' && t.date.slice(0, 10) === today) {
+            spentToday += t.amount;
+          }
+        });
+        elFree.textContent = '—';
+        elToday.textContent = '—';
+        elSpent.textContent = spentToday.toLocaleString('ru-RU') + ' ₽';
+        if (elUpdated) elUpdated.textContent = 'Локальные данные (нет связи с сервером)';
+      } catch(e) {
+        elFree.textContent = '—'; elToday.textContent = '—'; elSpent.textContent = '—';
+      }
     }
 
     function renderHomeInsight() {
