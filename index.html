@@ -110,14 +110,47 @@
       flex-shrink: 0;
       padding-bottom: max(8px, env(safe-area-inset-bottom));
     }
-    /* Шапка чата — прозрачный оверлей поверх сообщений */
+        /* === Чат: fixed, не уезжает при клавиатуре === */
+    #screen-workout-coach.active {
+      position: fixed !important;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100vw;
+      height: 100%;
+      background: var(--bg);
+      z-index: 100;
+      display: flex !important;
+      flex-direction: column;
+      padding-top: 0; /* Убрали лишние отступы */
+      padding-bottom: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    #screen-workout-coach .coach-wrapper {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    #screen-workout-coach .coach-messages {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 80px 16px 16px; /* Отступ сверху под шапку */
+    }
+
+    /* Шапка чата — прозрачный оверлей */
     #screen-workout-coach.active > header {
       position: absolute;
       top: env(safe-area-inset-top, 0px);
       left: 0;
       right: 0;
       z-index: 10;
-      padding: 10px 16px 30px;
+      padding: 10px 16px 20px;
       padding-right: 92px;
       background: linear-gradient(to bottom, var(--bg) 60%, transparent 100%);
       pointer-events: none;
@@ -126,6 +159,15 @@
       justify-content: space-between;
     }
     #screen-workout-coach.active > header > * { pointer-events: auto; }
+
+    /* Поле ввода */
+    #screen-workout-coach .coach-input-wrap {
+      flex-shrink: 0;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: var(--bg);
+      border-top: 0.5px solid var(--divider);
+      z-index: 20;
+    }
 
     /* === Exercise log sheet: квадраты для ввода === */
     .ex-inputs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -1823,28 +1865,55 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function navigate(name, opts = {}) {
+        function navigate(name, opts = {}) {
       haptic('soft');
       if (opts.title) { const t = document.getElementById('placeholder-title'); if (t) t.textContent = opts.title; }
-      if (opts.tab) { history = [name]; window.history.pushState({ screen: name }, '', `#${name}`); }
-      else { history.push(name); window.history.pushState({ screen: name }, '', `#${name}`); }
+      
+      // Записываем состояние в историю браузера, чтобы свайп назад работал
+      if (opts.tab) {
+        history = [name];
+        window.history.pushState({ screen: name }, '', `#${name}`);
+      } else {
+        history.push(name);
+        window.history.pushState({ screen: name }, '', `#${name}`);
+      }
+      
       showScreen(name);
     }
 
-    function goBack() {
+            function goBack() {
       haptic('light');
-      if (history.length > 1) { history.pop(); showScreen(history[history.length-1]); }
-      else showScreen('home');
+      
+      // Главные экраны, с которых назад уже некуда
+      const rootTabs = ['home', 'finance', 'tasks', 'more'];
+      if (rootTabs.includes(currentScreen)) return;
+
+      // Карта: куда возвращать из подразделов
+      const parents = {
+        'fin-budget': 'finance', 'fin-capital': 'finance', 'fin-analytics': 'finance', 'fin-history': 'finance', 'fin-goals': 'finance',
+        'task-detail': 'tasks',
+        'food-dish': 'food', 'food-shop': 'food',
+        'workout-today': 'workout', 'workout-plan': 'workout', 'workout-progress': 'workout', 
+        'workout-body': 'workout', 'workout-cardio': 'workout', 'workout-coach': 'workout', 'workout-timer': 'workout',
+        'notes': 'more', 'habits': 'more', 'reports': 'more', 'settings': 'more'
+      };
+
+      const parent = parents[currentScreen] || 'more';
+      navigate(parent, {tab: true});
     }
 
+    // Перехватываем системную кнопку "Назад" и свайпы браузера/Safari
     window.addEventListener('popstate', (e) => {
-      if (e.state && e.state.screen) {
-        showScreen(e.state.screen);
+      // Если мы на главном экране, даем браузеру закрыть вкладку, если нет - возвращаем в меню
+      const rootTabs = ['home', 'finance', 'tasks', 'more'];
+      if (rootTabs.includes(currentScreen)) {
+        return; // Позволяем браузеру уйти назад (или закрыть приложение)
       } else {
-        showScreen('home');
+        goBack(); // Перехватываем и возвращаем в меню
       }
     });
-
+    
+    // Для Telegram
     if (tg?.BackButton) tg.BackButton.onClick(goBack);
     
     function updateFabForScreen(name) {
@@ -3015,26 +3084,66 @@
     let progressTab = 'history';
     function setProgressTab(tab) { progressTab = tab; renderWorkoutProgress(); }
     
+        let progressTab = 'history';
+    function setProgressTab(tab) { progressTab = tab; renderWorkoutProgress(); }
+    
     function renderWorkoutProgress() {
       const logs = loadWorkoutLog(); 
       const prs = {};
       logs.forEach(l => { if (l.weight > 0) { if (!prs[l.exercise] || l.weight > prs[l.exercise].weight) prs[l.exercise] = l; } });
       const prList = Object.values(prs).sort((a,b) => b.weight - a.weight).slice(0, 15);
+      
       let html = `<div class="apple-glass p-1 rounded-full flex space-x-1 mb-4">
         <button onclick="setProgressTab('history')" class="segmented-btn ${progressTab === 'history' ? 'active' : ''} flex-1 py-2 text-xs font-medium rounded-full">История</button>
         <button onclick="setProgressTab('prs')" class="segmented-btn ${progressTab === 'prs' ? 'active' : ''} flex-1 py-2 text-xs font-medium rounded-full">Рекорды</button>
       </div>`;
+
       if (!logs.length) {
         html += `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет истории</p><p class="text-xs text-tertiary">Запиши первый подход — здесь появится статистика</p></div>`;
       } else if (progressTab === 'history') {
+        
+        // === ГРАФИК ТОННАЖА ===
         const byDate = {};
-        logs.forEach(l => { const d = l.date.slice(0, 10); if (!byDate[d]) byDate[d] = { logs: [], tonnage: 0, exercises: new Set() }; byDate[d].logs.push(l); byDate[d].tonnage += (l.tonnage || 0); byDate[d].exercises.add(l.exercise); });
-        const dates = Object.keys(byDate).sort().reverse();
+        logs.forEach(l => { 
+          const d = l.date.slice(0, 10); 
+          if (!byDate[d]) byDate[d] = { logs: [], tonnage: 0, exercises: new Set() }; 
+          byDate[d].logs.push(l); 
+          byDate[d].tonnage += (l.tonnage || 0); 
+          byDate[d].exercises.add(l.exercise); 
+        });
+        const dates = Object.keys(byDate).sort();
+        
+        // Рисуем график, если есть хотя бы 2 дня
+        if (dates.length > 1) {
+          html += `<div class="apple-card p-5 rounded-[24px] mb-4">
+            <h3 class="text-sm font-semibold text-primary mb-4">Объем (Тоннаж)</h3>
+            ${generateSvgChart(dates.map(d => ({ x: d, y: byDate[d].tonnage })), 'var(--blue)')}
+          </div>`;
+        }
+
         html += `<div class="space-y-3">`;
-        dates.forEach(dateStr => {
+        dates.sort().reverse().forEach(dateStr => {
           const dayData = byDate[dateStr]; const dObj = new Date(dateStr + 'T00:00:00');
           const dateLabel = dObj.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
-          html += `<div class="apple-card p-5 rounded-[24px]"><div class="flex justify-between items-center mb-3"><div><p class="text-sm font-semibold text-primary">${dateLabel}</p><p class="text-[11px] text-tertiary mt-0.5">${dayData.exercises.size} упражнений · ${dayData.logs.length} подходов</p></div><div class="text-right"><p class="text-xs text-tertiary">Тоннаж</p><p class="text-sm font-semibold numbers text-primary">${Math.round(dayData.tonnage).toLocaleString('ru-RU')} кг</p></div></div><div class="space-y-2 mt-3 pt-3 border-t divider">${dayData.logs.slice().reverse().map(l => `<div class="flex justify-between items-center text-xs"><span class="text-primary truncate max-w-[60%]">${escapeHtml(l.exercise)}</span><span class="text-secondary numbers">${l.weight > 0 ? l.weight + ' кг' : 'собств.'} × ${l.sets || 3}×${l.reps || 8}</span></div>`).join('')}</div></div>`;
+          
+          html += `<div class="apple-card p-5 rounded-[24px]">
+            <div class="flex justify-between items-center mb-3">
+              <div><p class="text-sm font-semibold text-primary">${dateLabel}</p>
+              <p class="text-[11px] text-tertiary mt-0.5">${dayData.exercises.size} упражнений · ${dayData.logs.length} подходов</p></div>
+              <div class="text-right">
+                <p class="text-xs text-tertiary">Тоннаж</p>
+                <p class="text-sm font-semibold numbers text-primary whitespace-nowrap">${Math.round(dayData.tonnage).toLocaleString('ru-RU')} кг</p>
+              </div>
+            </div>
+            <div class="space-y-2 mt-3 pt-3 border-t divider">
+              ${dayData.logs.slice().reverse().map(l => `
+                <div class="flex justify-between items-center text-xs gap-3">
+                  <span class="text-primary truncate">${escapeHtml(l.exercise)}</span>
+                  <span class="text-secondary numbers whitespace-nowrap">${l.weight > 0 ? l.weight + ' кг' : 'собств.'} × ${l.sets || 3}×${l.reps || 8}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
         });
         html += `</div>`;
       } else if (progressTab === 'prs') {
@@ -3046,7 +3155,16 @@
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅';
             let dd = '—';
             if (p.date) { const d = new Date(p.date); if (!isNaN(d.getTime())) dd = d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }); }
-            html += `<div class="pr-item py-3 border-b divider last:border-0 flex justify-between items-center"><div class="flex items-center gap-2"><span class="text-lg">${medal}</span><div><span class="pr-name block text-sm font-medium text-primary">${escapeHtml(p.exercise)}</span><span class="text-[10px] text-tertiary">${dd}</span></div></div><span class="pr-value text-base numbers text-primary">${p.weight} кг</span></div>`;
+            html += `<div class="pr-item py-3 border-b divider last:border-0 flex justify-between items-center">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="text-lg flex-shrink-0">${medal}</span>
+                <div class="truncate">
+                  <span class="pr-name block text-sm font-medium text-primary truncate">${escapeHtml(p.exercise)}</span>
+                  <span class="text-[10px] text-tertiary">${dd}</span>
+                </div>
+              </div>
+              <span class="pr-value text-base numbers text-primary whitespace-nowrap ml-2">${p.weight} кг</span>
+            </div>`;
           });
           html += `</div></div>`;
         }
@@ -3055,12 +3173,48 @@
       lucide.createIcons();
     }
 
-    function renderWorkoutBody() {
-      const body = loadBody(); const el = document.getElementById('workout-body-content');
-      if (!body.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет замеров</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; lucide.createIcons(); return; }
-      const last = body[body.length-1]; const prev = body.length > 1 ? body[body.length-2] : null;
-      const fields = [{key:'weight',label:'Вес',unit:'кг',icon:'scale'},{key:'fat',label:'% жира',unit:'%',icon:'percent'},{key:'waist',label:'Талия',unit:'см',icon:'ruler'},{key:'chest',label:'Грудь',unit:'см',icon:'ruler'},{key:'hips',label:'Бёдра',unit:'см',icon:'ruler'}];
+        function renderWorkoutBody() {
+      const body = loadBody().sort((a, b) => new Date(a.date) - new Date(b.date)); 
+      const el = document.getElementById('workout-body-content');
+      
+      if (!body.length) { 
+        el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="activity" class="w-7 h-7 text-tertiary"></i></div><p class="text-sm font-medium text-primary mb-1">Нет замеров</p><p class="text-xs text-tertiary">Нажми + чтобы добавить</p></div>`; 
+        lucide.createIcons(); return; 
+      }
+      
+      const last = body[body.length-1]; 
+      const prev = body.length > 1 ? body[body.length-2] : null;
+      
+      // Фильтруем только те замеры, где есть вес (для графика)
+      const weightData = body.filter(b => b.weight != null).map(b => ({ x: b.date, y: b.weight }));
+      
       let html = '';
+      
+      // === ГРАФИК ВЕСА ===
+      if (weightData.length > 1) {
+        // Строим линию тренда (цель: плавное снижение на 0.5 кг в неделю)
+        const profile = loadProfile();
+        const startWeight = weightData[0].y;
+        // Предполагаем, что идеальный темп - это снижение на 0.5 кг в неделю
+        const daysBetween = (new Date(weightData[weightData.length-1].x) - new Date(weightData[0].x)) / 86400000;
+        const expectedLoss = Math.max(0, (daysBetween / 7) * 0.5);
+        const trendGoal = Math.max(startWeight - expectedLoss, profile.targetWeight);
+
+        html += `<div class="apple-card p-5 rounded-[24px] mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-semibold text-primary">Динамика веса</h3>
+            <div class="flex items-center gap-1 text-[10px] text-tertiary"><span class="w-2 h-2 rounded-full" style="background:var(--green)"></span> Идеальный темп</div>
+          </div>
+          ${generateSvgChart(weightData, 'var(--blue)', { y: trendGoal })}
+          <div class="flex justify-between text-[10px] text-tertiary mt-2">
+            <span>Старт: ${weightData[0].y} кг</span>
+            <span>Сейчас: ${last.weight} кг</span>
+          </div>
+        </div>`;
+      }
+
+      const fields = [{key:'weight',label:'Вес',unit:'кг',icon:'scale'},{key:'fat',label:'% жира',unit:'%',icon:'percent'},{key:'waist',label:'Талия',unit:'см',icon:'ruler'},{key:'chest',label:'Грудь',unit:'см',icon:'ruler'},{key:'hips',label:'Бёдра',unit:'см',icon:'ruler'}];
+      
       fields.forEach(f => {
         if (last[f.key] == null) return;
         let diff = '';
@@ -3075,12 +3229,79 @@
         }
         html += `<div class="body-field"><div class="body-field-label"><i data-lucide="${f.icon}" class="w-4 h-4 text-secondary"></i>${f.label}</div><div><span class="body-field-value numbers">${last[f.key]} ${f.unit}</span>${diff}</div></div>`;
       });
+
       if (body.length > 1) {
         html += `<div class="apple-card p-5 rounded-[24px] mt-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-3">История</h3>`;
-        body.slice().reverse().slice(0,10).forEach(b => { const d = new Date(b.date); const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0"><span class="text-xs text-tertiary">${ds}</span><span class="text-sm font-semibold text-primary numbers">${b.weight||'—'} кг${b.fat?' · '+b.fat+'%':''}</span></div>`; });
+        body.slice().reverse().slice(0,10).forEach(b => { 
+          const d = new Date(b.date); 
+          const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); 
+          html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0">
+            <span class="text-xs text-tertiary">${ds}</span>
+            <span class="text-sm font-semibold text-primary numbers whitespace-nowrap">${b.weight||'—'} кг${b.fat?' · '+b.fat+'%':''}</span>
+          </div>`; 
+        });
         html += `</div>`;
       }
-      el.innerHTML = html; lucide.createIcons();
+      el.innerHTML = html; 
+      lucide.createIcons();
+    }
+        // Универсальный генератор SVG-графиков
+    function generateSvgChart(data, color, goalLine = null) {
+      if (!data || data.length < 2) return `<p class="text-xs text-tertiary text-center py-4">Мало данных для графика</p>`;
+      
+      const width = 300, height = 120;
+      const padding = { top: 10, right: 10, bottom: 20, left: 30 };
+      
+      const values = data.map(d => d.y);
+      if (goalLine) values.push(goalLine.y);
+      
+      let minVal = Math.min(...values);
+      let maxVal = Math.max(...values);
+      // Добавляем отступ сверху и снизу
+      const diff = maxVal - minVal || 1;
+      minVal -= diff * 0.1;
+      maxVal += diff * 0.1;
+      
+      const getX = (index) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
+      const getY = (val) => height - padding.bottom - ((val - minVal) / (maxVal - minVal)) * (height - padding.top - padding.bottom);
+
+      let pathD = '';
+      let areaD = '';
+      let points = '';
+      
+      data.forEach((d, i) => {
+        const x = getX(i);
+        const y = getY(d.y);
+        if (i === 0) { pathD += `M ${x} ${y}`; areaD += `M ${x} ${height - padding.bottom} L ${x} ${y}`; }
+        else { pathD += ` L ${x} ${y}`; areaD += ` L ${x} ${y}`; }
+        points += `<circle cx="${x}" cy="${y}" r="3" fill="${color}" />`;
+      });
+      areaD += ` L ${getX(data.length-1)} ${height - padding.bottom} Z`;
+
+      let goalPath = '';
+      if (goalLine) {
+        const gy = getY(goalLine.y);
+        goalPath = `<line x1="${padding.left}" y1="${gy}" x2="${width - padding.right}" y2="${gy}" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4 4" />`;
+      }
+
+      return `
+        <div class="relative w-full overflow-hidden" style="height: ${height}px;">
+          <svg viewBox="0 0 ${width} ${height}" class="w-full h-full">
+            <defs>
+              <linearGradient id="chartGrad-${color.replace(/[^a-z0-9]/gi, '')}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${color}" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="${areaD}" fill="url(#chartGrad-${color.replace(/[^a-z0-9]/gi, '')})" />
+            <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            ${goalPath}
+            ${points}
+            <text x="${padding.left - 5}" y="${getY(maxVal) + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary)">${Math.round(maxVal)}</text>
+            <text x="${padding.left - 5}" y="${getY(minVal) + 4}" text-anchor="end" font-size="9" fill="var(--text-tertiary)">${Math.round(minVal)}</text>
+          </svg>
+        </div>
+      `;
     }
     
     function openBodyForm() { haptic('medium'); ['body-weight','body-fat','body-waist','body-chest','body-hips'].forEach(id => document.getElementById(id).value=''); document.getElementById('body-sheet').classList.add('show'); document.getElementById('body-sheet-overlay').classList.add('show'); setTimeout(()=>document.getElementById('body-weight').focus(),350); }
