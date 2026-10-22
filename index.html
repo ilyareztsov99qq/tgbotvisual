@@ -94,39 +94,211 @@
     .sync-dot.online { background: var(--green); }
     .sync-dot.offline { background: var(--red); }
 
+    /* ==========================================================================
+       ПОЛНОЭКРАННЫЙ ЧАТ ТРЕНЕРА (iOS Safari Telegram-style)
+       ========================================================================== */
     #screen-workout-coach.active {
       position: fixed !important;
-      top: 0; right: 0; bottom: 0; left: 0;
-      width: 100vw; height: 100dvh;
-      background: var(--bg); z-index: 100;
-      display: flex !important; flex-direction: column;
-      overflow: hidden; overscroll-behavior: none; margin: 0;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100% !important;
+      background: var(--bg) !important;
+      z-index: 1000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
-    #screen-workout-coach.active > header {
+
+    #screen-workout-coach .coach-header {
       flex-shrink: 0;
-      padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-      background: var(--bg); border-bottom: 0.5px solid var(--divider);
-      display: flex; align-items: center; justify-content: space-between; z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 10px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-bottom: 0.5px solid var(--divider);
+      z-index: 10;
     }
-    #screen-workout-coach .coach-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-    #screen-workout-coach .coach-messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; display: flex; flex-direction: column; }
+
+    #screen-workout-coach .coach-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #screen-workout-coach .coach-messages {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .coach-bubble {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.45;
+      word-break: break-word;
+      animation: bubbleSlideIn 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    @keyframes bubbleSlideIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .coach-bubble.user {
+      align-self: flex-end;
+      background: var(--blue);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .coach-bubble.coach {
+      align-self: flex-start;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      border: 0.5px solid var(--card-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .coach-bubble.coach p { margin: 6px 0; }
+    .coach-bubble.coach p:first-child { margin-top: 0; }
+    .coach-bubble.coach p:last-child { margin-bottom: 0; }
+    .coach-bubble.coach ul, .coach-bubble.coach ol { margin: 4px 0; padding-left: 20px; }
+    .coach-bubble.coach code {
+      background: var(--neutral-fill);
+      padding: 2px 5px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .coach-typing {
+      align-self: flex-start;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .coach-typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+      animation: typingBounce 1.3s infinite ease-in-out;
+    }
+    .coach-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .coach-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+
     #screen-workout-coach .coach-bottom-panel {
-      flex-shrink: 0; background: var(--bg);
-      padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-      border-top: 0.5px solid var(--divider); display: flex; flex-direction: column; gap: 8px; z-index: 20;
+      flex-shrink: 0;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-top: 0.5px solid var(--divider);
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 20;
     }
-    .coach-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+
+    .coach-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
     .coach-chips::-webkit-scrollbar { display: none; }
-    .coach-chip { flex-shrink: 0; padding: 8px 14px; font-size: 13px; font-weight: 500; border-radius: 999px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-secondary); white-space: nowrap; }
+
+    .coach-chip {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
     .coach-chip:active { transform: scale(0.96); }
-    .coach-chip.hidden { display: none; }
-    .coach-input-wrap { display: flex; gap: 8px; align-items: center; }
-    .coach-input { flex: 1; padding: 12px 16px; border-radius: 22px; background: var(--card-bg); border: 0.5px solid var(--card-border); color: var(--text-primary); font-size: 16px; outline: none; }
-    .coach-input:focus { border-color: var(--blue); }
-    .coach-input::placeholder { color: var(--text-tertiary); }
-    .coach-send { width: 44px; height: 44px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .coach-input-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: var(--field-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 4px 6px 4px 14px;
+      transition: border-color 0.2s ease;
+    }
+    .coach-input-wrap:focus-within {
+      border-color: var(--blue);
+      background: var(--card-bg);
+    }
+
+    .coach-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 16px;
+      line-height: 1.35;
+      outline: none;
+      resize: none;
+      max-height: 100px;
+      min-height: 24px;
+      padding: 6px 0;
+      margin: 0;
+    }
+    .coach-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .coach-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      border: none;
+      margin-bottom: 1px;
+    }
     .coach-send:active { transform: scale(0.92); }
-    .coach-send:disabled { opacity: 0.4; }
+    .coach-send:disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
 
     .ex-inputs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .ex-input-box { position: relative; aspect-ratio: 1; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; transition: border-color 0.2s ease, background-color 0.2s ease; }
@@ -640,24 +812,42 @@
     </section>
     
     <section id="screen-workout-coach" class="screen">
-      <header>
+      <header class="coach-header">
         <div class="flex items-center">
           <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-          <div><p class="text-[11px] text-secondary uppercase font-medium flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3" style="color: var(--purple);"></i> AI</p><h1 class="text-xl font-semibold text-primary">Тренер</h1></div>
+          <div>
+            <h1 class="text-base font-semibold text-primary leading-tight">AI-Тренер</h1>
+            <p class="text-[11px] text-secondary flex items-center gap-1.5 font-medium">
+              <span class="w-2 h-2 rounded-full" style="background: var(--green);"></span> В сети
+            </p>
+          </div>
         </div>
-        <button onclick="clearCoachHistory()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5" title="Очистить историю"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        <button onclick="clearCoachHistory()" class="back-btn p-2" title="Очистить диалог">
+          <i data-lucide="trash-2" class="w-4 h-4 text-secondary"></i>
+        </button>
       </header>
+
       <div class="coach-wrapper">
         <div id="coach-messages" class="coach-messages"></div>
-        <div class="coach-bottom-panel">
+        
+        <div class="coach-bottom-panel" id="coach-bottom-panel">
           <div id="coach-chips" class="coach-chips">
-            <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
-            <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
+            <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за месяц?')">📊 Прогресс</button>
+            <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в плане тренировок?')">🎯 План</button>
             <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
           </div>
+          
           <div class="coach-input-wrap">
-            <input id="coach-input" class="coach-input" type="text" placeholder="Спроси тренера..." maxlength="500" onkeypress="if(event.key==='Enter'){event.preventDefault();sendCoachMessage();}" />
-            <button id="coach-send" class="coach-send" onclick="sendCoachMessage()"><i data-lucide="send" class="w-5 h-5"></i></button>
+            <textarea 
+              id="coach-input" 
+              class="coach-input" 
+              rows="1" 
+              placeholder="Сообщение..." 
+              maxlength="1000"
+              oninput="autoResizeCoachInput(this)"></textarea>
+            <button id="coach-send" class="coach-send" onclick="sendCoachMessage()" disabled>
+              <i data-lucide="arrow-up" class="w-5 h-5"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -2215,22 +2405,103 @@
     function hideCoachTyping() { const t = document.getElementById('coach-typing'); if (t) t.remove(); }
     function updateCoachChips() { const chips = document.getElementById('coach-chips'); if (!chips) return; const visible = loadCoachHistory().length < 4; chips.querySelectorAll('.coach-chip').forEach(c => { if (c.dataset.alwaysVisible === 'true') return; c.classList.toggle('hidden', !visible); }); }
     function looksLikePlanRequest(text) { const lower = String(text || "").toLowerCase().trim(); return /(состав|сгенерир|сделай|сдела|распиши|распиш|напиши|напиш|обнови|обнов|построй|постро)\w*[^.]{0,20}(план|тренировк|программ)/i.test(lower); }
+    // Автоматическое расширение textarea по высоте текста
+    function autoResizeCoachInput(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+      const sendBtn = document.getElementById('coach-send');
+      if (sendBtn) {
+        sendBtn.disabled = !el.value.trim();
+      }
+    }
+
+    // Отправка по Enter на ПК (на телефоне Enter переносит строку)
+    document.addEventListener('keydown', (e) => {
+      if (e.target && e.target.id === 'coach-input') {
+        if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) {
+          e.preventDefault();
+          sendCoachMessage();
+        }
+      }
+    });
+
+    // Связка высоты чата строго с клавиатурой Safari iOS
+    function syncChatViewport() {
+      const chatScreen = document.getElementById('screen-workout-coach');
+      if (!chatScreen || !chatScreen.classList.contains('active')) return;
+
+      const vv = window.visualViewport;
+      if (vv) {
+        chatScreen.style.height = `${vv.height}px`;
+        chatScreen.style.top = `${vv.offsetTop}px`;
+      } else {
+        chatScreen.style.height = '100%';
+        chatScreen.style.top = '0px';
+      }
+
+      const messages = document.getElementById('coach-messages');
+      if (messages) {
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        syncChatViewport();
+        setTimeout(syncChatViewport, 100);
+      });
+      window.visualViewport.addEventListener('scroll', syncChatViewport);
+    }
+
+    // Функция отправки сообщения
     async function sendCoachMessage() {
-      const input = document.getElementById('coach-input'); const sendBtn = document.getElementById('coach-send'); if (!input || !sendBtn) return; const text = input.value.trim(); if (!text) return;
-      if (looksLikePlanRequest(text)) { generatePlanFlow(text); return; }
-      haptic('light'); input.value = ''; sendBtn.disabled = true; appendCoachBubble('user', text);
-      const history = loadCoachHistory(); history.push({ role: 'user', content: text, ts: new Date().toISOString() }); saveCoachHistory(history); updateCoachChips(); showCoachTyping();
+      const input = document.getElementById('coach-input');
+      const sendBtn = document.getElementById('coach-send');
+      if (!input || !sendBtn) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      if (looksLikePlanRequest(text)) {
+        generatePlanFlow(text);
+        input.value = '';
+        autoResizeCoachInput(input);
+        return;
+      }
+
+      haptic('light');
+      input.value = '';
+      autoResizeCoachInput(input);
+      sendBtn.disabled = true;
+
+      appendCoachBubble('user', text);
+
+      const history = loadCoachHistory();
+      history.push({ role: 'user', content: text, ts: new Date().toISOString() });
+      saveCoachHistory(history);
+      updateCoachChips();
+      showCoachTyping();
+
       const historyForApi = history.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+
       try {
         const res = await apiPost('coachMessage', { history: historyForApi, message: text });
-        hideCoachTyping(); if (!res || !res.reply) throw new Error('Пустой ответ');
-        const replyHtml = sanitizeCoachHtml(res.reply); appendCoachBubble('coach', res.reply, replyHtml);
-        history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() }); saveCoachHistory(history); hapticNotify('success');
+        hideCoachTyping();
+        if (!res || !res.reply) throw new Error('Пустой ответ');
+
+        const replyHtml = sanitizeCoachHtml(res.reply);
+        appendCoachBubble('coach', res.reply, replyHtml);
+        history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() });
+        saveCoachHistory(history);
+        hapticNotify('success');
       } catch (e) {
-        hideCoachTyping(); console.error('coach failed:', e);
-        const errMsg = (e && e.message && /unauthorized|forbidden/i.test(e.message)) ? 'Ошибка авторизации. Перезапусти Mini App.' : (e && e.message && /quota|limit|too many/i.test(e.message)) ? 'Лимит AI исчерпан. Попробуй позже.' : 'Не удалось получить ответ. Проверь связь и попробуй ещё.';
-        appendCoachBubble('coach', errMsg); hapticNotify('error');
-      } finally { sendBtn.disabled = false; setTimeout(() => { const el = document.getElementById('coach-messages'); if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }, 50); }
+        hideCoachTyping();
+        console.error('coach failed:', e);
+        appendCoachBubble('coach', 'Не удалось связаться с сервером. Попробуйте еще раз.');
+        hapticNotify('error');
+      } finally {
+        const el = document.getElementById('coach-messages');
+        if (el) el.scrollTop = el.scrollHeight;
+      }
     }
     function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
     let pendingPlan = null;
@@ -2516,14 +2787,6 @@
           apiGet('getBudget').then(data => { if (data) { localStorage.setItem('aura_budget_cache', JSON.stringify(data)); updateHomeBudget(); renderHomeInsight(); } }).catch(e => console.warn('home budget failed:', e));
         });
       });
-    }
-
-    function syncChatViewport() {
-      const chatScreen = document.getElementById('screen-workout-coach'); if (!chatScreen || !chatScreen.classList.contains('active')) return;
-      const vv = window.visualViewport;
-      if (vv) { chatScreen.style.height = vv.height + 'px'; chatScreen.style.top = vv.offsetTop + 'px'; chatScreen.style.bottom = 'auto'; window.scrollTo(0, 0); }
-      else { chatScreen.style.height = '100dvh'; chatScreen.style.top = '0px'; }
-      const messages = document.getElementById('coach-messages'); if (messages) { setTimeout(() => { messages.scrollTop = messages.scrollHeight; }, 100); }
     }
 
     if (window.visualViewport) { window.visualViewport.addEventListener('resize', syncChatViewport); window.visualViewport.addEventListener('scroll', syncChatViewport); }
