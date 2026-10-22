@@ -387,51 +387,60 @@
     .swipeable.swiping { transition: none; }
     .swipeable-wrapper { position: relative; overflow: hidden; }
     .swipe-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 90px; background: var(--red); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; border-radius: 12px; }
-        /* === AUTH SCREEN (Красивый вход) === */
+            /* === AUTH SCREEN (Премиальный вход) === */
     .auth-wrapper {
       position: fixed;
       inset: 0;
       z-index: 9999;
       background: var(--bg);
-      display: none; /* Будет flex при показе */
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
       overflow: hidden;
     }
     .auth-card {
       position: relative;
       z-index: 10;
       width: 100%;
-      max-width: 340px;
+      max-width: 360px;
       background: var(--card-bg);
       backdrop-filter: blur(40px);
       -webkit-backdrop-filter: blur(40px);
       border: 0.5px solid var(--card-border);
-      border-radius: 36px;
-      padding: 40px 24px 32px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
-      animation: authSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      animation: authSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
     @keyframes authSlideUp {
-      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .auth-icon {
-      width: 72px; height: 72px;
-      margin: 0 auto 20px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, var(--blue), var(--teal));
+    
+    .auth-icon-box {
+      width: 64px; height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #007AFF, #5AC8FA);
       display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      box-shadow: 0 12px 24px rgba(0,122,255,0.3);
+      box-shadow: 0 8px 16px rgba(0, 122, 255, 0.25);
     }
+    
     .auth-input-group {
       position: relative;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
+      background: var(--field-bg);
+      border-radius: 12px;
+      transition: background 0.2s, box-shadow 0.2s;
     }
-    .auth-input-group svg {
+    .auth-input-group:focus-within {
+      background: var(--card-bg);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+    }
+    
+    .auth-input-icon {
       position: absolute;
       left: 16px;
       top: 50%;
@@ -439,51 +448,68 @@
       color: var(--text-tertiary);
       width: 20px; height: 20px;
       pointer-events: none;
-      transition: color 0.2s ease;
+      transition: color 0.2s;
     }
-    .auth-input-group:focus-within svg {
+    .auth-input-group:focus-within .auth-input-icon {
       color: var(--blue);
     }
+    
     .auth-input {
       width: 100%;
-      padding: 16px 16px 16px 48px;
-      border-radius: 16px;
-      background: var(--field-bg);
-      border: 1px solid var(--card-border);
+      height: 52px;
+      padding: 0 16px 0 46px;
+      background: transparent;
+      border: none;
       color: var(--text-primary);
       font-size: 16px;
+      font-weight: 500;
       outline: none;
-      transition: all 0.2s ease;
+      border-radius: 12px;
     }
-    .auth-input:focus {
-      border-color: var(--blue);
-      background: rgba(0, 122, 255, 0.05);
-      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    .auth-input::placeholder { color: var(--text-tertiary); font-weight: 400; }
+    
+    /* Кнопка показа пароля */
+    .auth-eye-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      padding: 8px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .auth-input::placeholder { color: var(--text-tertiary); }
+    
     .auth-btn {
       width: 100%;
-      padding: 16px;
-      border-radius: 16px;
+      height: 52px;
+      border-radius: 14px;
       background: var(--blue);
       color: #fff;
       font-size: 16px;
       font-weight: 600;
-      margin-top: 8px;
-      transition: all 0.2s ease;
-      box-shadow: 0 8px 20px rgba(0,122,255,0.3);
+      margin-top: 12px;
+      transition: transform 0.1s, opacity 0.2s;
+      display: flex; align-items: center; justify-content: center;
     }
     .auth-btn:active { transform: scale(0.97); }
-    .auth-btn:disabled { opacity: 0.6; pointer-events: none; box-shadow: none; }
-    .auth-error {
-      color: var(--red);
-      font-size: 13px;
-      text-align: center;
-      margin-top: 16px;
+    .auth-btn:disabled { opacity: 0.5; pointer-events: none; }
+    
+    /* Красивая плашка ошибки */
+    .auth-error-banner {
       display: none;
-      font-weight: 500;
+      background: rgba(255, 45, 85, 0.1);
+      border: 0.5px solid rgba(255, 45, 85, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 16px;
+      align-items: center;
+      gap: 10px;
       animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
+    .auth-error-banner.visible { display: flex; }
+    .auth-error-banner svg { color: var(--red); width: 18px; height: 18px; flex-shrink: 0; }
+    .auth-error-banner span { color: var(--red); font-size: 13px; font-weight: 500; line-height: 1.3; }
+    
     @keyframes shake {
       10%, 90% { transform: translate3d(-1px, 0, 0); }
       20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -493,33 +519,38 @@
   </style>
 </head>
 <body>
-    <!-- ЭКРАН ВХОДА (Только для браузера) -->
+      <!-- ЭКРАН ВХОДА (Только для браузера) -->
   <div id="auth-screen" class="auth-wrapper">
-    <!-- Фоновые свечения -->
     <div class="fixed top-[-100px] left-1/4 w-[500px] h-[500px] spotlight-1 rounded-full blur-[140px] pointer-events-none"></div>
     <div class="fixed top-1/3 -right-20 w-[400px] h-[400px] spotlight-2 rounded-full blur-[120px] pointer-events-none"></div>
 
     <div class="auth-card">
-      <div class="auth-icon">
-        <i data-lucide="fingerprint" class="w-10 h-10"></i>
+      <div class="auth-icon-box">
+        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
       </div>
       
-      <h1 class="text-2xl font-bold text-center text-primary tracking-tight mb-1">Aura Life</h1>
-      <p class="text-[13px] text-secondary text-center mb-8">Безопасный вход в систему</p>
+      <h1 class="text-[22px] font-bold text-center text-primary tracking-tight mb-1">Aura Life</h1>
+      <p class="text-[13px] text-secondary text-center mb-8">Вход в личный кабинет</p>
 
       <div class="auth-input-group">
-        <i data-lucide="user"></i>
-        <input type="text" id="auth-login" class="auth-input" placeholder="Логин" autocomplete="username">
+        <i data-lucide="user" class="auth-input-icon"></i>
+        <input type="text" id="auth-login" class="auth-input" placeholder="Логин или Email" autocomplete="username">
       </div>
 
       <div class="auth-input-group">
-        <i data-lucide="lock"></i>
+        <i data-lucide="lock" class="auth-input-icon"></i>
         <input type="password" id="auth-password" class="auth-input" placeholder="Пароль" autocomplete="current-password" onkeypress="if(event.key==='Enter'){event.preventDefault();submitAuth();}">
+        <button class="auth-eye-btn" onclick="togglePasswordVisibility()" type="button">
+          <i data-lucide="eye" id="auth-eye-icon" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="auth-error" class="auth-error-banner">
+        <i data-lucide="alert-circle"></i>
+        <span id="auth-error-text">Неверный логин или пароль</span>
       </div>
 
       <button onclick="submitAuth()" class="auth-btn" id="auth-submit-btn">Войти</button>
-      
-      <p id="auth-error" class="auth-error">Неверный логин или пароль</p>
     </div>
   </div>
 
@@ -1214,17 +1245,31 @@
     // ============================================================
     // AUTHENTICATION
     // ============================================================
-        async function submitAuth() {
+            // Функция показа/скрытия пароля
+    window.togglePasswordVisibility = function() {
+      const input = document.getElementById('auth-password');
+      const icon = document.getElementById('auth-eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    };
+
+    async function submitAuth() {
       const login = document.getElementById('auth-login').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const errorEl = document.getElementById('auth-error');
+      const errorText = document.getElementById('auth-error-text');
       const btn = document.getElementById('auth-submit-btn');
       const screen = document.getElementById('auth-screen');
       
       if (!login || !password) {
-        errorEl.textContent = "Заполните все поля";
-        errorEl.style.display = 'block';
-        // Перезапуск анимации
+        errorText.textContent = "Заполните все поля";
+        errorEl.classList.add('visible');
         errorEl.style.animation = 'none';
         errorEl.offsetHeight; 
         errorEl.style.animation = null;
@@ -1232,8 +1277,9 @@
       }
       
       btn.disabled = true;
-      btn.textContent = "Проверка...";
-      errorEl.style.display = 'none';
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+      lucide.createIcons();
+      errorEl.classList.remove('visible');
 
       try {
         const res = await fetch(WEBAPP_URL, {
@@ -1248,27 +1294,25 @@
           AUTH_TOKEN = json.data.token;
           localStorage.setItem('aura_web_token', AUTH_TOKEN);
           
-          // Плавно скрываем экран входа
           screen.style.transition = 'opacity 0.3s ease';
           screen.style.opacity = '0';
           setTimeout(() => {
             screen.style.display = 'none';
-            initApp(); // Запускаем приложение
+            initApp();
           }, 300);
         } else {
-          errorEl.textContent = json.error || "Неверный логин или пароль";
-          errorEl.style.display = 'block';
-          // Перезапуск анимации встряски
+          errorText.textContent = json.error || "Неверный логин или пароль";
+          errorEl.classList.add('visible');
           errorEl.style.animation = 'none';
           errorEl.offsetHeight;
           errorEl.style.animation = null;
         }
       } catch (e) {
-        errorEl.textContent = "Ошибка сети. Проверьте соединение.";
-        errorEl.style.display = 'block';
+        errorText.textContent = "Ошибка сети. Сервер недоступен.";
+        errorEl.classList.add('visible');
       } finally {
         btn.disabled = false;
-        btn.textContent = "Войти";
+        btn.innerHTML = 'Войти';
       }
     }
 
