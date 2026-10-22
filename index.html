@@ -97,104 +97,115 @@
     .sync-dot.online { background: var(--green); }
     .sync-dot.offline { background: var(--red); }
 
-    /* === Чат: fixed, не уезжает при клавиатуре === */
+       /* ==========================================
+       ЧАТ: ПРАВИЛЬНЫЙ FLEX-ЛЕЙАУТ (БЕЗ АБСОЛЮТОВ)
+       ========================================== */
     #screen-workout-coach.active {
-      position: fixed !important;
-      top: 0; right: 0; bottom: 0; left: 0;
-      width: 100vw;
-      height: 100dvh;
+      position: fixed;
+      inset: 0;
+      height: 100dvh; /* Динамическая высота для iOS/Android */
       background: var(--bg);
       z-index: 100;
-      display: flex !important;
-      flex-direction: column;
-      padding-top: env(safe-area-inset-top, 0px);
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      padding-left: 16px;
-      padding-right: 16px;
-      box-sizing: border-box;
-      overflow: hidden;
-      margin: 0;
-    }
-    #screen-workout-coach .coach-wrapper {
-      flex: 1;
-      min-height: 0;
       display: flex;
       flex-direction: column;
-      padding-top: max(80px, calc(env(safe-area-inset-top, 0px) + 60px)); 
-      height: 100%;
+      overflow: hidden;
     }
+
+    /* Шапка чата теперь обычный flex-элемент, она не перекрывает сообщения */
+    #screen-workout-coach.active > header {
+      flex-shrink: 0;
+      padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--divider);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    #screen-workout-coach .coach-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0; /* Важно для скролла */
+    }
+
     #screen-workout-coach .coach-messages {
       flex: 1;
-      min-height: 0;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 8px 4px 16px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       scroll-behavior: smooth;
     }
-    #screen-workout-coach .coach-input-wrap {
+
+    /* Нижняя панель: объединяем чипсы и инпут в один блок */
+    #screen-workout-coach .coach-bottom-panel {
       flex-shrink: 0;
-      padding-bottom: max(8px, env(safe-area-inset-bottom));
-    }
-        /* === Чат: fixed, не уезжает при клавиатуре === */
-    #screen-workout-coach.active {
-      position: fixed !important;
-      top: 0; right: 0; bottom: 0; left: 0;
-      width: 100vw;
-      height: 100%;
       background: var(--bg);
-      z-index: 100;
-      display: flex !important;
-      flex-direction: column;
-      padding-top: 0; /* Убрали лишние отступы */
-      padding-bottom: 0;
-      box-sizing: border-box;
-      overflow: hidden;
-      margin: 0;
-    }
-
-    #screen-workout-coach .coach-wrapper {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    #screen-workout-coach .coach-messages {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 80px 16px 16px; /* Отступ сверху под шапку */
-    }
-
-    /* Шапка чата — прозрачный оверлей */
-    #screen-workout-coach.active > header {
-      position: absolute;
-      top: env(safe-area-inset-top, 0px);
-      left: 0;
-      right: 0;
-      z-index: 10;
-      padding: 10px 16px 20px;
-      padding-right: 92px;
-      background: linear-gradient(to bottom, var(--bg) 60%, transparent 100%);
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    #screen-workout-coach.active > header > * { pointer-events: auto; }
-
-    /* Поле ввода */
-    #screen-workout-coach .coach-input-wrap {
-      flex-shrink: 0;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: var(--bg);
+      padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
       border-top: 0.5px solid var(--divider);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       z-index: 20;
     }
+
+    .coach-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none; /* Скрываем скроллбар */
+      padding-bottom: 4px;
+    }
+    .coach-chips::-webkit-scrollbar { display: none; }
+
+    .coach-chip {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .coach-chip:active { transform: scale(0.96); }
+    .coach-chip.hidden { display: none; }
+
+    .coach-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .coach-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 22px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      color: var(--text-primary);
+      font-size: 16px; /* 16px предотвращает автозум на iOS */
+      outline: none;
+    }
+    .coach-input:focus { border-color: var(--blue); }
+
+    .coach-send {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .coach-send:active { transform: scale(0.92); }
+    .coach-send:disabled { opacity: 0.4; }
 
     /* === Exercise log sheet: квадраты для ввода === */
     .ex-inputs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -861,15 +872,14 @@
       </button>
     </section>
     
-    <!-- WORKOUT COACH -->
+        <!-- WORKOUT COACH -->
     <section id="screen-workout-coach" class="screen">
-      <header class="flex items-center justify-between mb-4">
+      <header>
         <div class="flex items-center">
           <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
           <div>
             <p class="text-[11px] text-secondary uppercase font-medium flex items-center gap-1">
-              <i data-lucide="sparkles" class="w-3 h-3" style="color: var(--purple);"></i>
-              AI
+              <i data-lucide="sparkles" class="w-3 h-3" style="color: var(--purple);"></i> AI
             </p>
             <h1 class="text-xl font-semibold text-primary">Тренер</h1>
           </div>
@@ -881,16 +891,21 @@
 
       <div class="coach-wrapper">
         <div id="coach-messages" class="coach-messages"></div>
-        <div id="coach-chips" class="coach-chips">
-          <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
-          <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
-          <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
-        </div>
-        <div class="coach-input-wrap">
-          <input id="coach-input" class="coach-input" type="text" placeholder="Спроси тренера..." maxlength="500" onkeypress="if(event.key==='Enter'){event.preventDefault();sendCoachMessage();}" />
-          <button id="coach-send" class="coach-send" onclick="sendCoachMessage()">
-            <i data-lucide="send" class="w-4 h-4"></i>
-          </button>
+        
+        <!-- Объединенная нижняя панель -->
+        <div class="coach-bottom-panel">
+          <div id="coach-chips" class="coach-chips">
+            <button class="coach-chip" onclick="sendCoachQuick('Как мой прогресс за последний месяц?')">📊 Прогресс за месяц</button>
+            <button class="coach-chip" onclick="sendCoachQuick('Что улучшить в моём плане тренировок?')">🎯 Что улучшить</button>
+            <button class="coach-chip" onclick="sendCoachQuick('Почему вес стоит на месте?')">⚖️ Вес стоит</button>
+          </div>
+          
+          <div class="coach-input-wrap">
+            <input id="coach-input" class="coach-input" type="text" placeholder="Спроси тренера..." maxlength="500" onkeypress="if(event.key==='Enter'){event.preventDefault();sendCoachMessage();}" />
+            <button id="coach-send" class="coach-send" onclick="sendCoachMessage()">
+              <i data-lucide="send" class="w-5 h-5"></i>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -4073,6 +4088,17 @@ window.addEventListener('unhandledrejection', (e) => {
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
       renderSkeletons();
       setSyncStatus('syncing');
+      
+          // Авто-скролл при фокусе на клавиатуру
+    const coachInputElem = document.getElementById('coach-input');
+    if (coachInputElem) {
+      coachInputElem.addEventListener('focus', () => {
+        setTimeout(() => {
+          const el = document.getElementById('coach-messages');
+          if (el) el.scrollTop = el.scrollHeight;
+        }, 300); // Ждем, пока выедет клавиатура
+      });
+    }
       
       function updateGreeting() {
         const el = document.getElementById('home-greeting'); if (!el) return;
