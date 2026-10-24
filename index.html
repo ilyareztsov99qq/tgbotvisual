@@ -131,7 +131,8 @@
     .trx-type-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 999px; color: var(--text-secondary); }
     .trx-type-btn.active { background: var(--card-bg); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
     .trx-amount { padding: 12px 20px 16px; flex-shrink: 0; text-align: center; }
-    .trx-amount-value { font-size: 44px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--text-primary); line-height: 1.1; }
+    /* FIX: overflow protection for long amounts */
+    .trx-amount-value { font-size: 44px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--text-primary); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
     .trx-amount-value.income { color: var(--green); } .trx-amount-cur { font-size: 24px; font-weight: 500; color: var(--text-tertiary); margin-left: 4px; }
     .trx-scroll { flex: 1; overflow-y: auto; padding: 0 16px; }
     .trx-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; color: var(--text-tertiary); margin: 4px 0 10px; }
@@ -144,7 +145,8 @@
     .account-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
     .account-chip { flex-shrink: 0; padding: 8px 14px; font-size: 12px; font-weight: 500; border-radius: 999px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-secondary); white-space: nowrap; }
     .account-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-    .trx-comment { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; margin-bottom: 8px; }
+    /* FIX: 16px to prevent iOS zoom */
+    .trx-comment { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 16px; outline: none; margin-bottom: 8px; }
     .trx-keypad-wrap { flex-shrink: 0; padding: 8px 16px; }
     .keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
     .key { height: 56px; border-radius: 12px; background: var(--key-bg); color: var(--text-primary); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; }
@@ -169,7 +171,8 @@
     .task-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
     .task-chip.active-red { background: var(--red); color: #fff; border-color: var(--red); }
     .task-chip.active-yellow { background: var(--yellow); color: #000; border-color: var(--yellow); }
-    .task-time-input { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 14px; outline: none; }
+    /* FIX: 16px to prevent iOS zoom */
+    .task-time-input { width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--field-bg); border: 1px solid var(--card-border); color: var(--text-primary); font-size: 16px; outline: none; }
     .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--divider); }
     .task-item:last-child { border-bottom: none; } .task-item.done { opacity: .5; }
     .task-item.done .task-text { text-decoration: line-through; color: var(--text-tertiary); }
@@ -239,7 +242,8 @@
     .habit-check.active { background: var(--green); border-color: var(--green); color: #fff; }
     .habit-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); }
     .settings-row { padding: 14px 16px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 14px; font-weight: 600; outline: none; text-align: right; width: 120px; }
+    /* FIX: 16px to prevent iOS zoom */
+    .settings-input { background: transparent; border: none; color: var(--text-primary); font-size: 16px; font-weight: 600; outline: none; text-align: right; width: 120px; }
     .settings-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
     .food-day-tabs { display: flex; gap: 4px; padding: 3px; background: var(--neutral-fill); border-radius: 999px; margin-bottom: 16px; }
     .food-day-tab { flex: 1; padding: 8px 4px; border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--text-secondary); background: transparent; text-align: center; line-height: 1.2; }
@@ -369,7 +373,7 @@
             <div id="home-tasks-list"></div>
           </div>
           <div class="apple-card p-6 rounded-[28px]">
-            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Меню</h3><button onclick="navigate('food', {tab:true})" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
+            <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-semibold text-primary">Меню</h3><button onclick="navigate('food')" class="text-xs font-medium" style="color: var(--blue);">Открыть →</button></div>
             <div id="home-menu-preview" class="text-xs text-tertiary">Загрузка...</div>
           </div>
           <div class="apple-card p-6 rounded-[28px]">
@@ -474,9 +478,13 @@
       <div id="task-detail-content"></div>
     </section>
 
+    <!-- FIX: добавлена кнопка goBack в шапку Питания -->
     <section id="screen-food" class="screen">
       <header class="flex items-center justify-between mb-4">
-        <div><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="food-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Питание</h1></div>
+        <div class="flex items-center">
+          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+          <div><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="food-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Питание</h1></div>
+        </div>
         <button onclick="navigate('food-shop')" class="apple-glass px-3 py-2 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Покупки</span></button>
       </header>
       <div id="food-day-tabs" class="food-day-tabs"></div>
@@ -659,7 +667,8 @@
     <section id="screen-more" class="screen">
       <header class="mb-6"><p class="text-[11px] text-secondary uppercase font-medium mb-1">Разделы</p><h1 class="text-2xl font-semibold text-primary">Ещё</h1></header>
       <div class="space-y-3">
-        <button onclick="navigate('food', {tab:true})" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="utensils" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Питание</p><p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
+        <!-- FIX: убран {tab:true} -->
+        <button onclick="navigate('food')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="utensils" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Питание</p><p class="text-[11px] text-tertiary">Меню, покупки, рецепты</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('workout')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Тренировки</p><p class="text-[11px] text-tertiary">План, прогресс, замеры</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('notes')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(90,200,250,.15); color: var(--teal);"><i data-lucide="notebook" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Заметки</p><p class="text-[11px] text-tertiary">Быстрые записи</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
         <button onclick="navigate('reports')" class="hub-tile w-full"><div class="hub-icon" style="background: rgba(88,86,214,.15); color: var(--indigo);"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium text-primary">Отчёты</p><p class="text-[11px] text-tertiary">Итоги и статистика</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-tertiary"></i></button>
@@ -890,12 +899,16 @@
     </div>
   </div>
 
+  <!-- FIX: Добавление упражнения — текстовый input вместо квадрата -->
   <div id="add-ex-sheet-overlay" class="task-sheet-overlay" onclick="closeAddExerciseSheet()"></div>
   <div id="add-ex-sheet" class="task-sheet" style="top: 20vh;">
     <div class="task-drag-handle"></div>
     <div class="task-sheet-header"><button class="trx-close" onclick="closeAddExerciseSheet()"><i data-lucide="x" class="w-5 h-5"></i></button><h2 class="text-base font-semibold text-primary">Добавить упражнение</h2><div class="w-9"></div></div>
     <div class="task-sheet-body">
-      <div class="ex-input-box" style="margin-bottom: 14px;"><div class="ex-input-label">Название</div><input id="add-ex-name" class="ex-input-field" type="text" placeholder="Напр. Жим лёжа"></div>
+      <div class="task-section" style="margin-top:0;">
+        <div class="task-section-label">Название</div>
+        <input id="add-ex-name" class="task-time-input" type="text" placeholder="Напр. Жим лёжа" style="font-size: 17px; font-weight: 500; padding: 14px 16px;">
+      </div>
       <div class="ex-inputs-grid" style="margin-bottom: 14px;">
         <div class="ex-input-box"><div class="ex-input-label">Вес (кг)</div><input id="add-ex-weight" class="ex-input-field" type="number" step="0.5" min="0" inputmode="decimal" placeholder="—"></div>
         <div class="ex-input-box"><div class="ex-input-label">Подходы</div><input id="add-ex-sets" class="ex-input-field" type="number" step="1" min="1" max="20" inputmode="numeric" placeholder="3"></div>
@@ -1008,7 +1021,6 @@
     }
 
     const QUEUE_KEY = 'aura_pending_sync';
-    // FIX: расширенный список queueable actions
     const QUEUEABLE_ACTIONS = [
       'addTransaction', 'updateTransaction', 'deleteTransaction',
       'addTask', 'updateTask', 'deleteTask',
@@ -1039,7 +1051,6 @@
       return json.data;
     }
 
-    // FIX: расширен _shouldRetry для русских сообщений
     function _shouldRetry(err) {
       if (!err) return false;
       const msg = (err.message || '').toLowerCase();
@@ -1076,7 +1087,6 @@
       const queue = getPendingQueue();
       const item = { id: 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), action, payload, createdAt: new Date().toISOString(), attempts: 0 };
       if (payload && payload.clientId) { const dup = queue.find(q => q.action === action && q.payload && q.payload.clientId === payload.clientId); if (dup) return; }
-      // Для update/delete без clientId — проверяем по id, чтобы не дублировать
       if (payload && payload.id && /^(update|delete|toggle)/.test(action)) {
         const dup = queue.find(q => q.action === action && q.payload && q.payload.id === payload.id);
         if (dup) { dup.payload = payload; savePendingQueue(queue); return; }
@@ -1193,7 +1203,6 @@
         if (Array.isArray(data.shopping)) localStorage.setItem('aura_shopping', JSON.stringify(data.shopping));
         if (data.profile) localStorage.setItem('aura_profile', JSON.stringify(data.profile));
         if (data.budget) localStorage.setItem('aura_budget_cache', JSON.stringify(data.budget));
-        // FIX: сохраняем accounts
         if (data.accounts) localStorage.setItem('aura_capital_cache', JSON.stringify(data.accounts));
         return true;
       } catch (e) { console.warn('bootstrap failed', e); return false; }
@@ -1230,14 +1239,19 @@
       const tabMatch = document.querySelector(`[data-nav="${name}"]`);
       if (tabMatch) tabMatch.classList.add('active');
       else {
-        const parent = { 'fin-budget':'finance','fin-capital':'finance','fin-goals':'finance','fin-history':'finance','fin-analytics':'finance','food-dish':'more','food-shop':'more','notes':'more','habits':'more','reports':'more','settings':'more','task-detail':'tasks','workout':'more','workout-today':'more','workout-plan':'more','workout-progress':'more','workout-body':'more','workout-cardio':'more','workout-coach':'more','workout-timer':'more' }[name];
+        const parent = { 'fin-budget':'finance','fin-capital':'finance','fin-goals':'finance','fin-history':'finance','fin-analytics':'finance','food':'more','food-dish':'more','food-shop':'more','notes':'more','habits':'more','reports':'more','settings':'more','task-detail':'tasks','workout':'more','workout-today':'more','workout-plan':'more','workout-progress':'more','workout-body':'more','workout-cardio':'more','workout-coach':'more','workout-timer':'more' }[name];
         if (parent) { const el = document.querySelector(`[data-nav="${parent}"]`); if (el) el.classList.add('active'); }
       }
 
       if (tg?.BackButton) { history.length > 1 ? tg.BackButton.show() : tg.BackButton.hide(); }
       updateFabForScreen(name);
 
-      if (name === 'tasks') renderTasksScreen();
+      if (name === 'tasks') {
+        const labels = { today: 'Сегодня', week: 'Эта неделя', all: 'Все задачи' };
+        const labelEl = document.getElementById('tasks-date-label');
+        if (labelEl) labelEl.textContent = labels[currentTaskTab] || 'Задачи';
+        renderTasksScreen();
+      }
       if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
       if (name === 'finance') { renderFinanceTotal(); renderFinanceRecent(); renderTodayTransactions(); }
       if (name === 'food') { foodCurrentDate = todayStr(); renderFoodScreen(); }
@@ -1270,9 +1284,19 @@
     }
 
     function goBack() {
-      haptic('light'); const rootTabs = ['home', 'finance', 'tasks', 'more']; if (rootTabs.includes(currentScreen)) return;
-      const parents = { 'fin-budget': 'finance', 'fin-capital': 'finance', 'fin-analytics': 'finance', 'fin-history': 'finance', 'fin-goals': 'finance', 'task-detail': 'tasks', 'food-dish': 'food', 'food-shop': 'food', 'workout-today': 'workout', 'workout-plan': 'workout', 'workout-progress': 'workout', 'workout-body': 'workout', 'workout-cardio': 'workout', 'workout-coach': 'workout', 'workout-timer': 'workout', 'notes': 'more', 'habits': 'more', 'reports': 'more', 'settings': 'more' };
-      const parent = parents[currentScreen] || 'more'; navigate(parent, {tab: true});
+      haptic('light');
+      const rootTabs = ['home', 'finance', 'tasks', 'more'];
+      if (rootTabs.includes(currentScreen)) return;
+      const parents = {
+        'fin-budget': 'finance', 'fin-capital': 'finance', 'fin-analytics': 'finance', 'fin-history': 'finance', 'fin-goals': 'finance',
+        'task-detail': 'tasks',
+        'food': 'more', 'food-dish': 'food', 'food-shop': 'food',
+        'workout': 'more', 'workout-today': 'workout', 'workout-plan': 'workout', 'workout-progress': 'workout', 'workout-body': 'workout', 'workout-cardio': 'workout', 'workout-coach': 'workout', 'workout-timer': 'workout',
+        'notes': 'more', 'habits': 'more', 'reports': 'more', 'settings': 'more'
+      };
+      const parent = parents[currentScreen] || 'more';
+      const isRoot = rootTabs.includes(parent);
+      navigate(parent, isRoot ? {tab: true} : {});
     }
 
     window.addEventListener('popstate', (e) => {
@@ -1316,6 +1340,16 @@
       const pad = n => String(n).padStart(2, '0');
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     }
+    // FIX: нормализация даты транзакции в локальный формат (для UTC-совместимости)
+    function getTrxLocalDate(t) {
+      if (!t || !t.date) return '';
+      const d = new Date(t.date);
+      if (isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
     function escapeHtml(t) { if (t===null||t===undefined) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     let trxState = { type:'expense', amountStr:'0', categoryId:null, accountId:'card' };
@@ -1343,7 +1377,8 @@
       if (getAmountNumber()<=0 || !trxState.categoryId) return;
       hapticNotify('success');
       const catList = trxState.type==='expense'?CATEGORIES:CATEGORIES_INCOME; const cat = catList.find(c => c.id===trxState.categoryId); const acc = ACCOUNTS.find(a => a.id===trxState.accountId);
-      const trx = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), type: trxState.type, amount: getAmountNumber(), category: cat?.label||'', categoryId: trxState.categoryId, categoryIcon: cat?.icon||'package', categoryColor: cat?.color||'gray', account: acc?.label||'', accountId: trxState.accountId, comment: document.getElementById('trx-comment').value.trim(), date: new Date().toISOString() };
+      // FIX: localIsoNow() вместо toISOString() — корректная локальная дата
+      const trx = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), type: trxState.type, amount: getAmountNumber(), category: cat?.label||'', categoryId: trxState.categoryId, categoryIcon: cat?.icon||'package', categoryColor: cat?.color||'gray', account: acc?.label||'', accountId: trxState.accountId, comment: document.getElementById('trx-comment').value.trim(), date: localIsoNow() };
       const all = loadTrx(); all.unshift(trx); saveTrx(all);
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderFinanceTotal();
       closeTrx(); toast(`${trx.type==='income'?'+':'−'}${trx.amount.toLocaleString('ru-RU')} ₽ · ${cat?.label||''}`);
@@ -1354,16 +1389,18 @@
     function saveTrx(arr) { try { localStorage.setItem('aura_trx_buffer', JSON.stringify(arr.slice(0,200))); } catch(e) {} }
     function renderHomeRecent() { const el = document.getElementById('home-recent'); if (!el) return; const trx = loadTrx().slice(0,2); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
     function renderFinanceRecent() { const el = document.getElementById('finance-recent'); if (!el) return; const trx = loadTrx().slice(0,3); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Пока нет операций</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
-    function renderTodayTransactions() { const el = document.getElementById('today-transactions'); if (!el) return; const today = new Date().toISOString().slice(0,10); const trx = loadTrx().filter(t=>t.date.slice(0,10)===today); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Сегодня операций не было</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
+    // FIX: используем getTrxLocalDate вместо slice(0,10)
+    function renderTodayTransactions() { const el = document.getElementById('today-transactions'); if (!el) return; const today = todayStr(); const trx = loadTrx().filter(t => getTrxLocalDate(t) === today); el.innerHTML = trx.length===0 ? '<p class="text-xs text-tertiary text-center py-2">Сегодня операций не было</p>' : trx.map(t=>trxItemHTML(t)).join(''); safeIcons(); }
 
     function trxItemHTML(t) {
       const cat = CATEGORIES.concat(CATEGORIES_INCOME).find(c=>c.id===t.categoryId); const color = cat?.color||'gray'; const icon = cat?.icon||'package';
       const sign = t.type==='income'?'+':'−'; const amtColor = t.type==='income'?'var(--green)':'var(--text-primary)';
-      const time = new Date(t.date).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      let timeStr = '';
+      try { timeStr = new Date(t.date).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); } catch(e) {}
       return `<div class="flex justify-between items-center cursor-pointer" onclick="openTrxDetail('${t.id}')">
         <div class="flex items-center space-x-3">
           <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: ${BG_MAP[color]}; color: ${COLOR_MAP[color]};"><i data-lucide="${icon}" class="w-4 h-4"></i></div>
-          <div><p class="text-sm font-medium text-primary">${escapeHtml(t.comment||cat?.label||'')}</p><p class="text-[11px] text-tertiary">${escapeHtml(cat?.label||'')} · ${time}</p></div>
+          <div><p class="text-sm font-medium text-primary">${escapeHtml(t.comment||cat?.label||'')}</p><p class="text-[11px] text-tertiary">${escapeHtml(cat?.label||'')} · ${timeStr}</p></div>
         </div>
         <span class="text-sm font-semibold numbers" style="color: ${amtColor};">${sign}${t.amount.toLocaleString('ru-RU')} ₽</span>
       </div>`;
@@ -1373,31 +1410,36 @@
     function openTrxDetail(id) { haptic('light'); const trx = loadTrx().find(t => t.id === id); if (!trx) return; currentTrxId = id; document.getElementById('trx-edit-amount').value = trx.amount; document.getElementById('trx-edit-category').value = trx.category || ''; document.getElementById('trx-edit-account').value = trx.account || ''; document.getElementById('trx-edit-comment').value = trx.comment || ''; document.getElementById('trx-detail-overlay').classList.add('show'); document.getElementById('trx-detail-sheet').classList.add('show'); }
     function closeTrxDetail() { haptic('light'); document.getElementById('trx-detail-overlay').classList.remove('show'); document.getElementById('trx-detail-sheet').classList.remove('show'); currentTrxId = null; }
 
+    // FIX: валидация суммы + маппинг категории/счёта на серверный формат
     async function saveTrxDetail() {
       if (!currentTrxId) return;
-      hapticNotify('success');
       const newAmount = parseFloat(document.getElementById('trx-edit-amount').value);
-      const newCat = document.getElementById('trx-edit-category').value;
-      const newAcc = document.getElementById('trx-edit-account').value;
+      if (isNaN(newAmount) || newAmount <= 0) { toast('Неверная сумма'); return; }
+      hapticNotify('success');
+      const newCatLabel = document.getElementById('trx-edit-category').value;
+      const newAccLabel = document.getElementById('trx-edit-account').value;
       const newComm = document.getElementById('trx-edit-comment').value;
       const all = loadTrx();
       const idx = all.findIndex(t => t.id === currentTrxId);
       if (idx >= 0) {
         all[idx].amount = newAmount;
-        all[idx].category = newCat;
-        all[idx].account = newAcc;
+        all[idx].category = newCatLabel;
+        all[idx].account = newAccLabel;
         all[idx].comment = newComm;
-        // FIX: синхронизация categoryId/accountId
         const allCats = CATEGORIES.concat(CATEGORIES_INCOME);
-        const cat = allCats.find(c => c.label === newCat);
+        const cat = allCats.find(c => c.label === newCatLabel || c.id === newCatLabel);
         if (cat) { all[idx].categoryId = cat.id; all[idx].categoryIcon = cat.icon; all[idx].categoryColor = cat.color; }
-        const acc = ACCOUNTS.find(a => a.label === newAcc || a.id === newAcc);
+        const acc = ACCOUNTS.find(a => a.label === newAccLabel || a.id === newAccLabel);
         if (acc) all[idx].accountId = acc.id;
         saveTrx(all);
       }
       closeTrxDetail();
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderFinanceTotal();
-      await apiPost('updateTransaction', { id: currentTrxId, amount: newAmount, category: newCat, account: newAcc, comment: newComm });
+      // FIX: маппим в серверный формат
+      const savedTrx = all.find(t => t.id === currentTrxId);
+      const catForServer = savedTrx ? (CAT_TO_SERVER[savedTrx.categoryId] || savedTrx.category || '📦 Прочее') : newCatLabel;
+      const accForServer = savedTrx ? (ACC_TO_SERVER[savedTrx.accountId] || savedTrx.account || 'Основная карта') : newAccLabel;
+      await apiPost('updateTransaction', { id: currentTrxId, amount: newAmount, category: catForServer, account: accForServer, comment: newComm });
       toast('Сохранено');
     }
 
@@ -1412,6 +1454,7 @@
       toast('Удалено');
     }
 
+    // FIX: fallback → «—» вместо «₽ 0»
     function renderFinanceTotal() {
       const el = document.getElementById('finance-total-accounts'); if (!el) return;
       try {
@@ -1421,7 +1464,7 @@
           if (data && typeof data.total === 'number') { el.textContent = '₽ ' + data.total.toLocaleString('ru-RU'); return; }
         }
       } catch(e) {}
-      el.textContent = '₽ 0';
+      el.textContent = '—';
     }
 
     let analyticsPeriod = 'month'; const MONTHS_RU_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1486,7 +1529,14 @@
       return html;
     }
 
-    const ACCOUNT_META = { card: { icon: 'credit-card', color: 'blue', label: 'Карта' }, credit: { icon: 'credit-card', color: 'red', label: 'Кредитка' }, cash: { icon: 'banknote', color: 'green', label: 'Наличные' }, investment: { icon: 'trending-up', color: 'purple', label: 'Инвестиции' } };
+    // FIX: добавлен invest, оставлен investment как алиас
+    const ACCOUNT_META = {
+      card: { icon: 'credit-card', color: 'blue', label: 'Карта' },
+      credit: { icon: 'credit-card', color: 'red', label: 'Кредитка' },
+      cash: { icon: 'banknote', color: 'green', label: 'Наличные' },
+      invest: { icon: 'trending-up', color: 'purple', label: 'Инвестиции' },
+      investment: { icon: 'trending-up', color: 'purple', label: 'Инвестиции' }
+    };
     function getAccountMeta(type) { return ACCOUNT_META[type] || { icon: 'wallet', color: 'gray', label: 'Счёт' }; }
     async function renderCapital() {
       const el = document.getElementById('capital-content'); if (!el) return;
@@ -1499,7 +1549,15 @@
       const total = data.total || 0; const accounts = data.accounts || [];
       if (accounts.length === 0) return `<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-primary mb-1">Счетов нет</p></div>`;
       let html = `<div class="apple-card p-6 rounded-[28px] mb-4"><p class="text-xs text-secondary">Всего</p><div class="text-4xl font-semibold tracking-tight numbers text-primary mt-1">₽ ${formatMoneyRu(total)}</div></div><div class="space-y-3">`;
-      accounts.forEach(a => { const meta = getAccountMeta(a.type); const isNeg = a.balance < 0; const bg = BG_MAP[meta.color] || BG_MAP.gray; const fg = COLOR_MAP[meta.color] || COLOR_MAP.gray; html += `<div class="apple-card p-5 rounded-[20px] flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:${bg}; color:${fg};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div><div><p class="text-sm font-medium text-primary">${escapeHtml(a.name)}</p><p class="text-[11px] text-tertiary">${meta.label}</p></div></div><span class="text-sm font-semibold numbers" style="color:${isNeg?'var(--red)':'var(--text-primary)'};">${isNeg?'−':''}₽ ${formatMoneyRu(Math.abs(a.balance))}</span></div>`; });
+      accounts.forEach(a => {
+        const meta = getAccountMeta(a.type);
+        const isNeg = a.balance < 0;
+        const bg = BG_MAP[meta.color] || BG_MAP.gray;
+        const fg = COLOR_MAP[meta.color] || COLOR_MAP.gray;
+        // FIX: «−100 ₽» вместо «−₽ 100»
+        const balanceStr = `${isNeg?'−':''}${formatMoneyRu(Math.abs(a.balance))} ₽`;
+        html += `<div class="apple-card p-5 rounded-[20px] flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:${bg}; color:${fg};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div><div><p class="text-sm font-medium text-primary">${escapeHtml(a.name)}</p><p class="text-[11px] text-tertiary">${meta.label}</p></div></div><span class="text-sm font-semibold numbers" style="color:${isNeg?'var(--red)':'var(--text-primary)'};">${balanceStr}</span></div>`;
+      });
       html += `</div>`;
       return html;
     }
@@ -1531,7 +1589,16 @@
 
     function toggleTaskDone(id) { haptic('medium'); const all = loadTasks(); const t = all.find(x=>x.id===id); if (!t) return; t.done = !t.done; t.doneAt = t.done?new Date().toISOString():null; saveTasks(all); if (t.done) hapticNotify('success'); renderTasksScreen(); renderHomeTasks(); if (currentScreen === 'task-detail') renderTaskDetail(t); apiPost('updateTask', { id, done: t.done }); }
     function deleteTask(id) { haptic('medium'); saveTasks(loadTasks().filter(t=>t.id!==id)); renderTasksScreen(); renderHomeTasks(); toast('Удалено'); apiPost('deleteTask', { id }); }
-    function setTaskTab(tab) { haptic('light'); currentTaskTab = tab; document.querySelectorAll('[data-task-tab]').forEach(b => b.classList.toggle('active', b.dataset.taskTab===tab)); renderTasksScreen(); }
+    // FIX: обновляем tasks-date-label
+    function setTaskTab(tab) {
+      haptic('light');
+      currentTaskTab = tab;
+      document.querySelectorAll('[data-task-tab]').forEach(b => b.classList.toggle('active', b.dataset.taskTab===tab));
+      const labels = { today: 'Сегодня', week: 'Эта неделя', all: 'Все задачи' };
+      const labelEl = document.getElementById('tasks-date-label');
+      if (labelEl) labelEl.textContent = labels[tab] || 'Задачи';
+      renderTasksScreen();
+    }
 
     function renderTasksScreen() {
       const el = document.getElementById('tasks-content'); if (!el) return;
@@ -1651,7 +1718,6 @@
       safeIcons();
     }
 
-    // FIX: отправляем на сервер
     async function toggleMealEatenNew(mealKey, dateStr) {
       haptic('medium');
       const dayData = getCachedFoodDay(dateStr) || await fetchFoodDay(dateStr);
@@ -1853,7 +1919,6 @@
       catch (e) { toast('Ошибка'); }
     }
 
-    // FIX: clientId для идемпотентности
     function openAddShopping() {
       const name = prompt('Название продукта:'); if (!name) return;
       const qty = prompt('Количество (например «500 г»):') || '';
@@ -2224,7 +2289,8 @@
       } catch(e) {}
       try {
         const trx = loadTrx(); const today = todayStr(); let spentToday = 0;
-        trx.forEach(t => { if (t.type === 'expense' && t.date.slice(0, 10) === today) spentToday += t.amount; });
+        // FIX: getTrxLocalDate
+        trx.forEach(t => { if (t.type === 'expense' && getTrxLocalDate(t) === today) spentToday += t.amount; });
         elFree.innerHTML = '—'; elToday.innerHTML = '—'; elSpent.innerHTML = formatMoney(spentToday); if (elUpdated) elUpdated.textContent = 'локально';
       } catch(e) { elFree.innerHTML = '—'; elToday.innerHTML = '—'; elSpent.innerHTML = '—'; }
     }
@@ -2243,14 +2309,14 @@
         const plan = getTodayWorkoutPlan(); const done = getWorkoutDone();
         let workoutDone = 0, workoutTotal = 0;
         if (plan && plan.exercises) { ensureExerciseIds(plan); workoutTotal = plan.exercises.length; workoutDone = plan.exercises.filter(ex => done[ex.id] === true).length; }
-        let insight = ''; let colorName = 'purple';
-        if (overdue.length > 0) { insight = `🔴 <b>${overdue.length} просроченных задач.</b> Стоит разобраться.`; colorName = 'red'; }
-        else if (urgentToday.length > 0) { insight = `🔥 <b>${urgentToday.length} срочных задач</b> на сегодня.`; colorName = 'red'; }
-        else if (workoutTotal > 0 && workoutDone < workoutTotal) { insight = `🏋️ Тренировка: <b>${escapeHtml(plan.split)}</b>. ${workoutDone} из ${workoutTotal} выполнено.`; colorName = 'blue'; }
-        else if (budget && budget.availableToday < 0) { insight = `⚠️ Дневной лимит превышен на <b>${Math.abs(budget.availableToday).toLocaleString('ru-RU')} ₽</b>.`; colorName = 'orange'; }
-        else if (proteinTarget > 0 && proteinEaten < proteinTarget * 0.7) { insight = `🍽 До нормы белка осталось <b>${Math.round(proteinTarget - proteinEaten)} г</b>.`; colorName = 'teal'; }
-        else if (normalToday.length > 0) { insight = `📋 <b>${normalToday.length} задач</b> на сегодня.`; colorName = 'green'; }
-        else { insight = `✨ <b>Отличный день!</b>`; colorName = 'green'; }
+        let insight = '';
+        if (overdue.length > 0) { insight = `🔴 <b>${overdue.length} просроченных задач.</b> Стоит разобраться.`; }
+        else if (urgentToday.length > 0) { insight = `🔥 <b>${urgentToday.length} срочных задач</b> на сегодня.`; }
+        else if (workoutTotal > 0 && workoutDone < workoutTotal) { insight = `🏋️ Тренировка: <b>${escapeHtml(plan.split)}</b>. ${workoutDone} из ${workoutTotal} выполнено.`; }
+        else if (budget && budget.availableToday < 0) { insight = `⚠️ Дневной лимит превышен на <b>${Math.abs(budget.availableToday).toLocaleString('ru-RU')} ₽</b>.`; }
+        else if (proteinTarget > 0 && proteinEaten < proteinTarget * 0.7) { insight = `🍽 До нормы белка осталось <b>${Math.round(proteinTarget - proteinEaten)} г</b>.`; }
+        else if (normalToday.length > 0) { insight = `📋 <b>${normalToday.length} задач</b> на сегодня.`; }
+        else { insight = `✨ <b>Отличный день!</b>`; }
         el.innerHTML = insight;
       } catch(e) { el.textContent = 'Сделай первый шаг!'; }
     }
@@ -2307,7 +2373,6 @@
     function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
 
     let pendingPlan = null;
-    // FIX: правильная обработка single/week mode
     async function generatePlanFlow(userMessage) {
       const input = document.getElementById('coach-input');
       const sendBtn = document.getElementById('coach-send');
@@ -2379,7 +2444,35 @@
     function cancelPlanPreview() { pendingPlan = null; haptic('light'); document.querySelectorAll('#coach-messages .plan-preview').forEach(c => c.remove()); toast('Отменено'); }
     async function reloadWorkoutPlanFromServer() { try { const fresh = await apiGet('getAll'); if (fresh && fresh.workoutPlan && typeof fresh.workoutPlan === 'object') { localStorage.setItem('aura_workout_plan', JSON.stringify(fresh.workoutPlan)); localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString()); } } catch (e) {} }
     function clearCoachHistory() { if (!confirm('Очистить историю?')) return; haptic('medium'); try { localStorage.removeItem(COACH_HISTORY_KEY); } catch (e) {} renderCoachMessages(); updateCoachChips(); toast('Очищено'); }
-    function sanitizeCoachHtml(html) { if (!html) return ''; let safe = String(html).replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/\son\w+\s*=\s*"[^"]*"/gi, '').replace(/javascript:/gi, ''); return safe.replace(/\n/g, '<br>'); }
+
+    // FIX: безопасная санитизация через DOMParser + whitelist
+    function sanitizeCoachHtml(html) {
+      if (!html) return '';
+      const tmp = document.createElement('div');
+      tmp.innerHTML = String(html);
+      const ALLOWED = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'CODE', 'BR', 'P', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'SPAN', 'DIV']);
+      const DANGEROUS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'FORM', 'INPUT', 'BUTTON', 'A', 'IMG', 'SVG', 'LINK', 'META']);
+      const toProcess = [];
+      const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_ELEMENT, null);
+      let node;
+      while ((node = walker.nextNode())) {
+        toProcess.push(node);
+      }
+      toProcess.forEach(n => {
+        if (!n.parentNode) return;
+        if (DANGEROUS.has(n.tagName)) {
+          n.parentNode.removeChild(n);
+        } else if (!ALLOWED.has(n.tagName)) {
+          const text = document.createTextNode(n.textContent || '');
+          n.parentNode.replaceChild(text, n);
+        } else {
+          Array.from(n.attributes).forEach(attr => n.removeAttribute(attr.name));
+        }
+      });
+      let result = tmp.innerHTML;
+      result = result.replace(/\n/g, '<br>');
+      return result;
+    }
 
     // Timer
     let timerMode = 'stopwatch'; let timerState = { running: false, elapsedMs: 0, startTs: 0, pausedElapsedMs: 0, workSec: 40, restSec: 20, rounds: 8, lastPhaseKey: '', finished: false }; let timerInterval = null; let audioCtx = null;
@@ -2430,7 +2523,6 @@
     }
     function setIntervalParam(key, value) { haptic('light'); timerState[key] = value; renderInterval(); }
 
-    // FIX: убран 10-секундный countdown, интервал стартует сразу
     function startTimer() {
       initAudio(); haptic('medium');
       if (timerMode === 'stopwatch') {
@@ -2481,7 +2573,6 @@
       else { ta.value = ''; title.textContent = 'Новая заметка'; submitBtn.textContent = 'Сохранить'; submitBtn.disabled = true; if (deleteBtn) deleteBtn.style.display = 'none'; }
       updateNoteCounter(); sheet.classList.add('show'); document.getElementById('note-sheet-overlay').classList.add('show'); setTimeout(() => ta.focus(), 350);
     }
-    // FIX: force close без подтверждения после сохранения
     function closeNoteForm(force = false) {
       haptic('light');
       if (!force) {
@@ -2502,12 +2593,12 @@
       if (editingNoteId) {
         const id = editingNoteId; const notes = loadNotes(); const idx = notes.findIndex(n => n.id === id); if (idx < 0) { closeNoteForm(true); return; }
         notes[idx].text = text; notes[idx].updatedAt = new Date().toISOString(); saveNotes(notes);
-        closeNoteForm(true); // FIX
+        closeNoteForm(true);
         renderNotes(); toast('Сохранено');
         await apiPost('updateNote', { id, text }); return;
       }
       const notes = loadNotes(); const note = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), text, createdAt: new Date().toISOString() }; notes.unshift(note); saveNotes(notes);
-      closeNoteForm(true); // FIX
+      closeNoteForm(true);
       renderNotes(); toast('Добавлено');
       const res = await apiPost('addNote', { clientId: note.id, text: note.text });
       if (res && res.id && res.id !== note.id) { const fresh = loadNotes(); const idx = fresh.findIndex(n => n.id === note.id); if (idx >= 0) { fresh[idx].id = res.id; saveNotes(fresh); } }
@@ -2530,7 +2621,7 @@
       safeIcons();
     }
 
-    // Habits - FIX: стабильные ID
+    // Habits
     function loadHabits() { try { return JSON.parse(localStorage.getItem('aura_habits')||'[]'); } catch(e) { return []; } }
     function saveHabits(arr) { try { localStorage.setItem('aura_habits', JSON.stringify(arr)); } catch(e) {} }
     function loadHabitLog() { try { return JSON.parse(localStorage.getItem('aura_habit_log')||'{}'); } catch(e) { return {}; } }
@@ -2546,13 +2637,11 @@
       habits.push({ id: clientId, name }); saveHabits(habits); closeHabitForm(); renderHabits();
       const res = await apiPost('addHabit', { clientId, name });
       if (res && res.duplicate) {
-        // Дубль: сервер уже имеет привычку. Удаляем локальную, синхронизируем
         saveHabits(loadHabits().filter(h => h.id !== clientId));
         await bootstrapFromBackend();
         renderHabits();
         toast('Уже есть');
       } else if (res && res.id && res.id !== clientId) {
-        // Сервер вернул другой ID - обновляем локально
         const h2 = loadHabits();
         const idx = h2.findIndex(h => h.id === clientId);
         if (idx >= 0) h2[idx].id = res.id;
@@ -2611,12 +2700,26 @@
 
     function loadProfile() { try { return JSON.parse(localStorage.getItem('aura_profile')||'{"targetWeight":77,"dailyKcal":1850,"dailyProtein":135,"startWeight":84}'); } catch(e) { return {targetWeight:77,dailyKcal:1850,dailyProtein:135,startWeight:84}; } }
     function saveProfile(p) { try { localStorage.setItem('aura_profile', JSON.stringify(p)); } catch(e) {} }
+    // FIX: логаут + guard для updateProfile
     function renderSettings() {
       const p = loadProfile(); const el = document.getElementById('settings-content');
-      el.innerHTML = `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">Профиль</h3><div class="settings-row"><span class="settings-label">Целевой вес</span><input class="settings-input" type="number" step="0.1" value="${p.targetWeight}" onblur="updateProfile('targetWeight', this.value)"></div><div class="settings-row"><span class="settings-label">Калории/день</span><input class="settings-input" type="number" value="${p.dailyKcal}" onblur="updateProfile('dailyKcal', this.value)"></div><div class="settings-row"><span class="settings-label">Белок/день</span><input class="settings-input" type="number" value="${p.dailyProtein}" onblur="updateProfile('dailyProtein', this.value)"></div></div><button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255,45,85,.2);"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Локально</p></div></button>`;
+      el.innerHTML = `<div class="apple-card p-6 rounded-[28px] mb-4"><h3 class="text-xs font-semibold uppercase text-secondary mb-4">Профиль</h3><div class="settings-row"><span class="settings-label">Целевой вес</span><input class="settings-input" type="number" step="0.1" value="${p.targetWeight}" onblur="updateProfile('targetWeight', this.value)"></div><div class="settings-row"><span class="settings-label">Калории/день</span><input class="settings-input" type="number" value="${p.dailyKcal}" onblur="updateProfile('dailyKcal', this.value)"></div><div class="settings-row"><span class="settings-label">Белок/день</span><input class="settings-input" type="number" value="${p.dailyProtein}" onblur="updateProfile('dailyProtein', this.value)"></div></div>
+      <button onclick="logoutUser()" class="hub-tile w-full mb-3" style="border-color: rgba(255,149,0,.2);"><div class="hub-icon" style="background: rgba(255,149,0,.15); color: var(--orange);"><i data-lucide="log-out" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--orange);">Выйти</p><p class="text-[11px] text-tertiary">Из аккаунта</p></div></button>
+      <button onclick="clearAllLocalData()" class="hub-tile w-full" style="border-color: rgba(255,45,85,.2);"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="trash-2" class="w-5 h-5"></i></div><div class="flex-1 text-left"><p class="text-sm font-medium" style="color: var(--red);">Очистить данные</p><p class="text-[11px] text-tertiary">Локально</p></div></button>`;
       safeIcons();
     }
-    function updateProfile(key, value) { const p = loadProfile(); p[key] = parseFloat(value) || 0; saveProfile(p); toast('Сохранено'); }
+    function updateProfile(key, value) { const p = loadProfile(); const v = parseFloat(value); p[key] = isNaN(v) ? 0 : v; saveProfile(p); toast('Сохранено'); }
+    function logoutUser() {
+      if (!confirm('Выйти из аккаунта?')) return;
+      haptic('medium');
+      AUTH_TOKEN = '';
+      try { localStorage.removeItem('aura_web_token'); } catch(e) {}
+      const authScreen = document.getElementById('auth-screen');
+      if (authScreen) authScreen.style.display = 'flex';
+      document.getElementById('auth-login').value = '';
+      document.getElementById('auth-password').value = '';
+      safeIcons();
+    }
     function clearAllLocalData() { if (!confirm('Удалить всё?')) return; try { ['aura_tasks','aura_trx_buffer','aura_food_menu_cache_v2','aura_shopping','aura_workout_plan','aura_workout_log','aura_workout_done_'+todayStr(),'aura_body','aura_cardio','aura_notes','aura_habits','aura_habit_log','aura_profile','aura_capital_cache','aura_budget_cache'].forEach(k => localStorage.removeItem(k)); } catch(e) {} renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); toast('Очищено'); setTimeout(()=>{ navigate('home', {tab:true}); }, 500); }
 
     (function setupKeyboardHandling() {
@@ -2631,7 +2734,10 @@
     function initApp() {
       showScreen('home'); safeIcons();
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
-      renderSkeletons(); setSyncStatus('syncing');
+      // FIX: скелетоны только если нет локальных данных
+      const hasLocal = loadTasks().length > 0 || loadTrx().length > 0;
+      if (!hasLocal) renderSkeletons();
+      setSyncStatus('syncing');
 
       function updateGreeting() { const el = document.getElementById('home-greeting'); if (!el) return; const h = new Date().getHours(); let greeting = 'Доброе утро'; if (h >= 12 && h < 18) greeting = 'Добрый день'; else if (h >= 18 && h < 23) greeting = 'Добрый вечер'; else if (h >= 23 || h < 5) greeting = 'Доброй ночи'; el.textContent = greeting; }
       updateGreeting();
