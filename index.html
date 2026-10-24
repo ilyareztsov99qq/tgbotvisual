@@ -416,6 +416,45 @@
     .task-meta-item { display: inline-flex; align-items: center; gap: 3px; }
     .task-flag { width: 4px; align-self: stretch; border-radius: 2px; flex-shrink: 0; margin: 4px 0; }
     .meal-card { padding: 16px; border-radius: 20px; background: var(--card-bg); border: 0.5px solid var(--card-border); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .food-day-tabs { display: flex; gap: 4px; padding: 3px; background: var(--neutral-fill); border-radius: 999px; margin-bottom: 16px; }
+.food-day-tab { flex: 1; padding: 8px 4px; border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--text-secondary); background: transparent; transition: all .2s ease; text-align: center; line-height: 1.2; }
+.food-day-tab.active { background: var(--card-bg); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+.food-day-tab.empty { opacity: 0.55; }
+
+.generate-menu-btn { width: 100%; padding: 14px; border-radius: 16px; background: var(--purple); color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+.generate-menu-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+.dish-hero-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.dish-replace-btn { background: var(--card-bg); border: 0.5px solid var(--card-border); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
+
+.replace-list { display: flex; flex-direction: column; gap: 8px; }
+.replace-item { padding: 14px; border-radius: 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); cursor: pointer; transition: border-color .2s ease; }
+.replace-item:active { transform: scale(0.98); border-color: var(--blue); }
+.replace-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.replace-item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); flex: 1; }
+.replace-item-kcal { font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.replace-item-delta { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 6px; }
+.replace-item-delta.down { background: rgba(52,199,89,.15); color: var(--green); }
+.replace-item-delta.up { background: rgba(255,45,85,.15); color: var(--red); }
+.replace-item-shared { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.replace-item-kbju { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+
+.draft-preview-day { padding: 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 14px; margin-bottom: 8px; }
+.draft-preview-day-header { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.draft-preview-meal { font-size: 12px; color: var(--text-secondary); padding: 4px 0; display: flex; justify-content: space-between; }
+.draft-preview-meal b { color: var(--text-primary); font-weight: 500; }
+
+.shop-category-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin: 16px 4px 8px; }
+.shop-item-new { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: 12px; margin-bottom: 6px; }
+.shop-item-new.checked { opacity: .45; }
+.shop-item-new.checked .shop-name { text-decoration: line-through; }
+.shop-check-new { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; background: transparent; }
+.shop-check-new.active { background: var(--green); border-color: var(--green); color: #fff; }
+.shop-body-new { flex: 1; min-width: 0; }
+.shop-name-new { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.shop-qty-new { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+.shop-add-btn { width: 100%; padding: 14px; border-radius: 14px; background: var(--card-bg); border: 1px dashed var(--card-border-hover); color: var(--text-primary); font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
     .meal-card.eaten { opacity: .65; } .meal-card.eaten .meal-name { text-decoration: line-through; }
     .meal-icon-wrap { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .meal-body { flex: 1; min-width: 0; }
@@ -764,32 +803,42 @@
     </section>
 
     <section id="screen-food" class="screen">
-      <header class="flex items-center justify-between mb-6">
-        <div><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="food-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Питание</h1></div>
-        <button onclick="navigate('food-shop')" class="apple-glass px-3 py-2 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Покупки</span></button>
-      </header>
-      <div class="food-progress-card">
-        <div class="food-progress-row">
-          <div><p class="text-xs text-secondary mb-1">Калории</p><div><span class="food-progress-big" id="food-kcal-eaten">0</span><span class="food-progress-total">/ <span id="food-kcal-plan">1850</span> ккал</span></div></div>
-          <div class="text-right"><p class="text-[10px] text-tertiary uppercase">Белок</p><p class="text-sm font-semibold numbers text-primary" id="food-protein-eaten">0 / 135 г</p></div>
-        </div>
-        <div class="progress-track h-2 rounded-full"><div id="food-progress-fill" class="progress-fill h-full rounded-full" style="width: 0%; background: linear-gradient(90deg, var(--green), var(--teal));"></div></div>
-      </div>
-      <div id="meals-list"></div>
-    </section>
+  <header class="flex items-center justify-between mb-4">
+    <div><p class="text-[11px] text-secondary uppercase font-medium mb-1" id="food-date-label">Сегодня</p><h1 class="text-2xl font-semibold text-primary">Питание</h1></div>
+    <button onclick="navigate('food-shop')" class="apple-glass px-3 py-2 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Покупки</span></button>
+  </header>
+
+  <div id="food-day-tabs" class="food-day-tabs"></div>
+  <button onclick="generateMenuFlow()" class="generate-menu-btn" id="food-generate-btn">
+    <i data-lucide="sparkles" class="w-4 h-4"></i>
+    <span>Меню на 3 дня (zero-waste)</span>
+  </button>
+
+  <div class="food-progress-card">
+    <div class="food-progress-row">
+      <div><p class="text-xs text-secondary mb-1">Калории</p><div><span class="food-progress-big" id="food-kcal-eaten">0</span><span class="food-progress-total">/ <span id="food-kcal-plan">1850</span> ккал</span></div></div>
+      <div class="text-right"><p class="text-[10px] text-tertiary uppercase">Белок</p><p class="text-sm font-semibold numbers text-primary" id="food-protein-eaten">0 / 135 г</p></div>
+    </div>
+    <div class="progress-track h-2 rounded-full"><div id="food-progress-fill" class="progress-fill h-full rounded-full" style="width: 0%; background: linear-gradient(90deg, var(--green), var(--teal));"></div></div>
+  </div>
+  <div id="meals-list"></div>
+</section>
     
     <section id="screen-food-dish" class="screen">
-      <header class="flex items-center justify-between mb-4"><button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><button onclick="toast('Скоро')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Заменить</button></header>
-      <div id="dish-content"></div>
-    </section>
+  <header class="flex items-center justify-between mb-4">
+    <button onclick="goBack()" class="back-btn"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+    <button onclick="openReplaceDish()" class="dish-replace-btn" id="dish-replace-btn"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Заменить</span></button>
+  </header>
+  <div id="dish-content"></div>
+</section>
     
     <section id="screen-food-shop" class="screen">
-      <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Питание</p><h1 class="text-xl font-semibold text-primary">Покупки</h1></div></div>
-        <button onclick="clearBoughtShopping()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Очистить</button>
-      </header>
-      <div id="shop-content"></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Питание</p><h1 class="text-xl font-semibold text-primary">Покупки</h1></div></div>
+    <button onclick="clearBoughtShopping()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary">Очистить купленное</button>
+  </header>
+  <div id="shop-content"></div>
+</section>
 
     <section id="screen-workout" class="screen">
       <header class="flex items-center mb-6">
@@ -1147,6 +1196,33 @@
     </div>
     <div class="task-sheet-footer"><button class="submit-btn" style="margin:0; background: var(--orange);" onclick="submitCardio()">Записать</button></div>
   </div>
+  <!-- REPLACE DISH SHEET -->
+<div id="replace-dish-overlay" class="task-sheet-overlay" onclick="closeReplaceDish()"></div>
+<div id="replace-dish-sheet" class="task-sheet" style="top: 8vh;">
+  <div class="task-drag-handle"></div>
+  <div class="task-sheet-header">
+    <button class="trx-close" onclick="closeReplaceDish()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 class="text-base font-semibold text-primary" id="replace-dish-title">Замена</h2>
+    <div class="w-9"></div>
+  </div>
+  <div class="task-sheet-body" id="replace-dish-body"></div>
+</div>
+
+<!-- GENERATE MENU SHEET -->
+<div id="genmenu-overlay" class="task-sheet-overlay" onclick="closeGenerateMenu()"></div>
+<div id="genmenu-sheet" class="task-sheet" style="top: 8vh;">
+  <div class="task-drag-handle"></div>
+  <div class="task-sheet-header">
+    <button class="trx-close" onclick="closeGenerateMenu()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <h2 class="text-base font-semibold text-primary">Меню на 3 дня</h2>
+    <div class="w-9"></div>
+  </div>
+  <div class="task-sheet-body" id="genmenu-body"></div>
+  <div class="task-sheet-footer">
+    <button onclick="closeGenerateMenu()" class="submit-btn" style="margin:0 8px 0 0; background: var(--neutral-fill-hover); color: var(--text-primary);">Отмена</button>
+    <button onclick="applyGeneratedMenu()" class="submit-btn" style="margin:0; background: var(--purple);" id="genmenu-apply-btn" disabled>Применить</button>
+  </div>
+</div>
 
   <div id="toast" style="position: fixed; left: 50%; bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: .5px solid var(--glass-border); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s ease; z-index: 300; white-space: nowrap; color: var(--text-primary); max-width: 90vw; overflow: hidden; text-overflow: ellipsis;"></div>
 
@@ -1514,7 +1590,13 @@
         if (currentScreen === 'home') { renderHomeRecent(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
         else if (currentScreen === 'finance') { renderFinanceRecent(); renderTodayTransactions(); renderFinanceTotal(); }
         else if (currentScreen === 'tasks') renderTasksScreen();
-        else if (currentScreen === 'food') renderFoodScreen();
+                else if (currentScreen === 'food') {
+          // сбрасываем кэш — перечитываем заново
+          const cache = loadFoodCache();
+          for (const d of getFoodDatesForTabs()) delete cache[d];
+          saveFoodCache(cache);
+          renderFoodScreen();
+        }
         else if (currentScreen === 'food-shop') renderShoppingScreen();
         else if (currentScreen === 'notes') renderNotes();
         else if (currentScreen === 'habits') renderHabits();
@@ -1570,7 +1652,11 @@
         if (Array.isArray(data.workoutLog)) localStorage.setItem('aura_workout_log', JSON.stringify(data.workoutLog));
         if (Array.isArray(data.cardio)) localStorage.setItem('aura_cardio', JSON.stringify(data.cardio));
         if (data.workoutPlan && typeof data.workoutPlan === 'object') { localStorage.setItem('aura_workout_plan', JSON.stringify(data.workoutPlan)); localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString()); }
-        if (data.foodMenu) { const all = JSON.parse(localStorage.getItem('aura_food_menu') || '{}'); all[todayStr()] = data.foodMenu; localStorage.setItem('aura_food_menu', JSON.stringify(all)); }
+                if (Array.isArray(data.foodMenuRange)) {
+          const cache = loadFoodCache();
+          data.foodMenuRange.forEach(day => { if (day && day.date) cache[day.date] = day; });
+          saveFoodCache(cache);
+        }
         if (Array.isArray(data.shopping) && data.shopping.length > 0) localStorage.setItem('aura_shopping', JSON.stringify(data.shopping));
         if (data.profile) localStorage.setItem('aura_profile', JSON.stringify(data.profile));
         if (data.budget) localStorage.setItem('aura_budget_cache', JSON.stringify(data.budget));
@@ -1620,7 +1706,7 @@
       if (name === 'tasks') renderTasksScreen();
       if (name === 'home') { renderHomeTasks(); renderHomeRecent(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); }
       if (name === 'finance') { renderFinanceTotal(); renderFinanceRecent(); renderTodayTransactions(); }
-      if (name === 'food') renderFoodScreen();
+      if (name === 'food') { foodCurrentDate = todayStr(); renderFoodScreen(); }
       if (name === 'food-shop') renderShoppingScreen();
       if (name === 'workout') renderWorkoutHub();
       if (name === 'workout-today') renderWorkoutToday();
@@ -2066,44 +2152,12 @@
     const MEAL_ORDER = ['breakfast','lunch','dinner','snack'];
     const DEFAULT_FOOD_MENU = { breakfast:{name:'Шакшука',emoji:'🍳',kcal:420,p:22,f:28,c:18,ingredients:[{name:'Яйца',qty:'2 шт'},{name:'Помидоры',qty:'200 г'},{name:'Лук',qty:'50 г'}],recipe:['Обжарь лук.','Добавь помидоры, туши 5 мин.','Вбей яйца.','Накрой крышкой, готовь 3-4 мин.']}, lunch:{name:'Курица с рисом',emoji:'🍗',kcal:650,p:45,f:18,c:62,ingredients:[{name:'Курица',qty:'200 г'},{name:'Рис',qty:'80 г'},{name:'Брокколи',qty:'150 г'}],recipe:['Отвари рис.','Обжарь курицу.','Брокколи 3 мин.','Смешай.']}, dinner:{name:'Стейк лосося',emoji:'🐟',kcal:520,p:38,f:32,c:0,ingredients:[{name:'Лосось',qty:'180 г'},{name:'Лимон',qty:'1/2'}],recipe:['Обсуши стейк.','Обжарь 3-4 мин с каждой стороны.','Сбрызни лимоном.']}, snack:{name:'Творог с ягодами',emoji:'🥛',kcal:260,p:22,f:8,c:22,ingredients:[{name:'Творог',qty:'200 г'},{name:'Ягоды',qty:'100 г'}],recipe:['Смешай.']} };
     const DEFAULT_SHOPPING = [ {id:'s1',name:'Яйца',qty:'10 шт',category:'Белки',checked:false},{id:'s2',name:'Курица',qty:'500 г',category:'Белки',checked:false},{id:'s3',name:'Лосось',qty:'400 г',category:'Белки',checked:false},{id:'s4',name:'Творог',qty:'400 г',category:'Белки',checked:false},{id:'s5',name:'Помидоры',qty:'500 г',category:'Овощи',checked:false},{id:'s6',name:'Лук',qty:'200 г',category:'Овощи',checked:false},{id:'s7',name:'Рис',qty:'500 г',category:'Крупы',checked:false},{id:'s8',name:'Ягоды',qty:'300 г',category:'Прочее',checked:false} ];
-    function loadFoodMenu() { try { const all = JSON.parse(localStorage.getItem('aura_food_menu')||'{}'); return all[todayStr()] || DEFAULT_FOOD_MENU; } catch(e) { return DEFAULT_FOOD_MENU; } }
-    function loadEaten() { try { return JSON.parse(localStorage.getItem('aura_food_eaten_'+todayStr())||'{}'); } catch(e) { return {}; } }
-    function saveEaten(o) { try { localStorage.setItem('aura_food_eaten_'+todayStr(), JSON.stringify(o)); } catch(e) {} }
     function loadShopping() { try { const s = localStorage.getItem('aura_shopping'); if (s) return JSON.parse(s); } catch(e) {} return DEFAULT_SHOPPING.slice(); }
     function saveShopping(arr) { try { localStorage.setItem('aura_shopping', JSON.stringify(arr)); } catch(e) {} }
-    function renderFoodScreen() {
-      const label = document.getElementById('food-date-label'); if (label) label.textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
-      const menu = loadFoodMenu(); const eaten = loadEaten(); let tK=0,tP=0,eK=0,eP=0;
-      MEAL_ORDER.forEach(k => { if (menu[k]) { tK+=menu[k].kcal; tP+=menu[k].p; if (eaten[k]) { eK+=menu[k].kcal; eP+=menu[k].p; } } });
-      document.getElementById('food-kcal-eaten').textContent = eK; document.getElementById('food-kcal-plan').textContent = tK; document.getElementById('food-protein-eaten').textContent = `${eP} / ${tP} г`; document.getElementById('food-progress-fill').style.width = (tK>0 ? Math.round(eK/tK*100):0) + '%';
-      document.getElementById('meals-list').innerHTML = MEAL_ORDER.map(k => { const m = menu[k]; if (!m) return ''; const meta = MEAL_ICONS[k]; const isE = !!eaten[k]; return `<div class="meal-card ${isE?'eaten':''}"><div class="meal-icon-wrap" style="background:${BG_MAP[meta.color]};color:${COLOR_MAP[meta.color]};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div><div class="meal-body" onclick="openFoodDish('${k}')"><div class="meal-type">${MEAL_LABELS[k]}</div><div class="meal-name">${m.emoji} ${escapeHtml(m.name)}</div><div class="meal-kbju">${m.kcal} ккал · Б${m.p} · Ж${m.f} · У${m.c}</div></div><button class="meal-check ${isE?'active':''}" onclick="event.stopPropagation();toggleMealEaten('${k}')">${isE?'<i data-lucide="check" class="w-4 h-4"></i>':''}</button></div>`; }).join('');
-      safeIcons();
-    }
-    function toggleMealEaten(k) { haptic('medium'); const e = loadEaten(); e[k] = !e[k]; saveEaten(e); if (e[k]) hapticNotify('success'); renderFoodScreen(); renderHomeMenuPreview(); }
     let currentDishKey = null;
-    function openFoodDish(k) {
-      haptic('light'); const menu = loadFoodMenu(); const d = menu[k]; if (!d) return; currentDishKey = k;
-      const kbju = `<div class="kbju-grid"><div class="kbju-cell"><div class="kbju-label">Ккал</div><div class="kbju-value">${d.kcal}</div></div><div class="kbju-cell"><div class="kbju-label">Б</div><div class="kbju-value">${d.p}<span class="kbju-unit">г</span></div></div><div class="kbju-cell"><div class="kbju-label">Ж</div><div class="kbju-value">${d.f}<span class="kbju-unit">г</span></div></div><div class="kbju-cell"><div class="kbju-label">У</div><div class="kbju-value">${d.c}<span class="kbju-unit">г</span></div></div></div>`;
-      const ing = d.ingredients.map(i => `<div class="ingredient-item"><span class="ingredient-name">${escapeHtml(i.name)}</span><span class="ingredient-qty">${escapeHtml(i.qty)}</span></div>`).join('');
-      const rec = d.recipe.map((s,i) => `<div class="recipe-step"><div class="recipe-num">${i+1}</div><div class="recipe-text">${escapeHtml(s)}</div></div>`).join('');
-      document.getElementById('dish-content').innerHTML = `<div class="dish-hero"><div class="dish-emoji">${d.emoji}</div><div class="dish-name">${escapeHtml(d.name)}</div><div class="dish-type">${MEAL_LABELS[k]}</div></div>${kbju}<div class="section-title">📦 Ингредиенты</div>${ing}<div class="section-title">👨‍🍳 Рецепт</div>${rec}<div class="h-8"></div>`;
-      safeIcons(); navigate('food-dish');
-    }
-    function renderShoppingScreen() {
-      const items = loadShopping(); const el = document.getElementById('shop-content'); if (!el) return;
-      if (!items.length) { el.innerHTML = `<div class="apple-card p-10 rounded-[28px] text-center"><p class="text-sm text-tertiary">Список пуст</p></div>`; return; }
-      const byCat = {}; items.forEach(i => { if (!byCat[i.category]) byCat[i.category]=[]; byCat[i.category].push(i); });
-      let html = ''; Object.keys(byCat).sort().forEach(cat => { html += `<div class="shop-category">${escapeHtml(cat)}</div>`; byCat[cat].forEach(it => { html += `<div class="shop-item ${it.checked?'checked':''}"><button class="shop-check ${it.checked?'active':''}" onclick="toggleShopping('${it.id}')">${it.checked?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':''}</button><span class="shop-name" onclick="toggleShopping('${it.id}')">${escapeHtml(it.name)}</span><span class="shop-qty">${escapeHtml(it.qty)}</span></div>`; }); });
-      el.innerHTML = html; safeIcons();
-    }
     function toggleShopping(id) { haptic('light'); const items = loadShopping(); const it = items.find(i=>i.id===id); if (!it) return; it.checked=!it.checked; saveShopping(items); if (it.checked) hapticNotify('success'); renderShoppingScreen(); apiPost('toggleShopping', { id, checked: it.checked }); }
-    function clearBoughtShopping() { haptic('medium'); const items = loadShopping(); const rem = items.filter(i=>!i.checked); if (rem.length===items.length) { toast('Нет отмеченных'); return; } saveShopping(rem); renderShoppingScreen(); toast('Купленное удалено'); }
-    function renderHomeMenuPreview() {
-      const el = document.getElementById('home-menu-preview'); if (!el) return;
-      const menu = loadFoodMenu(); const eaten = loadEaten(); let tK=0,eK=0; MEAL_ORDER.forEach(k => { if (menu[k]) { tK+=menu[k].kcal; if (eaten[k]) eK+=menu[k].kcal; } });
-      const lines = MEAL_ORDER.map(k => { if (!menu[k]) return ''; return `<div class="flex items-center gap-2 py-0.5"><span style="opacity:.7;">${eaten[k]?'✓':'○'}</span><span class="flex-1 text-xs text-primary">${menu[k].emoji} ${escapeHtml(menu[k].name)}</span><span class="text-[10px]">${menu[k].kcal}</span></div>`; }).join('');
-      el.innerHTML = `<div>${lines}</div><div class="mt-2 pt-2 border-t divider flex justify-between text-[11px]"><span class="text-tertiary">Съедено:</span><span class="font-semibold text-primary">${eK} / ${tK} ккал</span></div>`;
-    }
+    
+    
 
     const DEFAULT_WORKOUT_PLAN = { 1:{split:'Верх тела',exercises:[{name:'Жим лёжа',weight:60,sets:3,reps:8},{name:'Тяга блока',weight:50,sets:3,reps:10},{name:'Жим гантелей',weight:20,sets:3,reps:10},{name:'Махи в стороны',weight:8,sets:3,reps:12}]}, 3:{split:'Низ тела',exercises:[{name:'Присед',weight:80,sets:3,reps:8},{name:'Румынская тяга',weight:70,sets:3,reps:8},{name:'Выпады',weight:20,sets:3,reps:10},{name:'Икры',weight:40,sets:3,reps:15}]}, 5:{split:'Кардио / Пресс',exercises:[{name:'Бег 30 мин',weight:0,sets:1,reps:1},{name:'Планка',weight:0,sets:3,reps:60}]} };
     const CARDIO_OPTIONS = [{id:'run',name:'Бег',emoji:'🏃'},{id:'bike',name:'Велосипед',emoji:'🚴'},{id:'row',name:'Гребля',emoji:'🚣'},{id:'walk',name:'Ходьба',emoji:'🚶'},{id:'jump',name:'Скакалка',emoji:'🪢'},{id:'swim',name:'Плавание',emoji:'🏊'}];
@@ -2563,6 +2617,602 @@ function getPRForExerciseLocal(name) {
           workoutTotal = plan.exercises.length;
           workoutDone = plan.exercises.filter(ex => done[ex.id] === true).length;
         }
+        // ============================================================================
+// ПИТАНИЕ — новый блок
+// ============================================================================
+
+const FOOD_CACHE_KEY = 'aura_food_menu_cache_v2';
+let foodCurrentDate = todayStr();
+let currentDishContext = null;  // { date, mealType, dish, dayData }
+let generatedMenuDraft = null;
+
+function loadFoodCache() {
+  try { return JSON.parse(localStorage.getItem(FOOD_CACHE_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveFoodCache(c) { try { localStorage.setItem(FOOD_CACHE_KEY, JSON.stringify(c)); } catch (e) {} }
+function cacheFoodDay(dateStr, payload) {
+  if (!payload) return;
+  const c = loadFoodCache();
+  c[dateStr] = payload;
+  saveFoodCache(c);
+}
+function getCachedFoodDay(dateStr) { return loadFoodCache()[dateStr] || null; }
+
+async function fetchFoodDay(dateStr) {
+  try {
+    const data = await apiGet('getFoodMenu', { date: dateStr });
+    if (data) cacheFoodDay(dateStr, data);
+    return data || getCachedFoodDay(dateStr);
+  } catch (e) {
+    return getCachedFoodDay(dateStr);
+  }
+}
+
+function getFoodDatesForTabs() {
+  const today = todayStr();
+  return [today, addDays(today, 1), addDays(today, 2)];
+}
+
+function renderFoodDayTabs() {
+  const el = document.getElementById('food-day-tabs');
+  if (!el) return;
+  const dates = getFoodDatesForTabs();
+  const today = todayStr();
+  const cache = loadFoodCache();
+  const labels = { [today]: 'Сегодня', [addDays(today, 1)]: 'Завтра', [addDays(today, 2)]: 'Послезавтра' };
+
+  el.innerHTML = dates.map(d => {
+    const cached = cache[d];
+    const isEmpty = cached && cached.exists === false;
+    const active = d === foodCurrentDate;
+    const cls = `food-day-tab ${active ? 'active' : ''} ${isEmpty ? 'empty' : ''}`;
+    const lbl = labels[d] || new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
+    return `<button class="${cls}" onclick="selectFoodDate('${d}')">${lbl}</button>`;
+  }).join('');
+}
+
+async function selectFoodDate(dateStr) {
+  haptic('light');
+  foodCurrentDate = dateStr;
+  renderFoodDayTabs();
+  await renderFoodScreen();
+}
+
+async function renderFoodScreen() {
+  const elMeals = document.getElementById('meals-list');
+  if (!elMeals) return;
+
+  renderFoodDayTabs();
+
+  const dateStr = foodCurrentDate;
+  let dayData = getCachedFoodDay(dateStr);
+  if (!dayData) {
+    // Рендерим скелетон
+    elMeals.innerHTML = `<div class="apple-card p-6 rounded-[24px]"><div class="skeleton skeleton-line-lg" style="height:14px;margin-bottom:12px;"></div><div class="skeleton skeleton-line-sm" style="height:10px;margin-bottom:8px;"></div><div class="skeleton skeleton-line-sm" style="height:10px;"></div></div>`;
+    dayData = await fetchFoodDay(dateStr);
+  }
+
+  // Обновляем шапку даты
+  const dateLabelEl = document.getElementById('food-date-label');
+  if (dateLabelEl) {
+    const dObj = new Date(dateStr + 'T00:00:00');
+    if (dateStr === todayStr()) dateLabelEl.textContent = 'Сегодня';
+    else if (dateStr === addDays(todayStr(), 1)) dateLabelEl.textContent = 'Завтра';
+    else if (dateStr === addDays(todayStr(), 2)) dateLabelEl.textContent = 'Послезавтра';
+    else dateLabelEl.textContent = dObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  }
+
+  // Если меню нет
+  if (!dayData || dayData.exists === false) {
+    elMeals.innerHTML = `
+      <div class="apple-card p-8 rounded-[24px] text-center">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="utensils" class="w-7 h-7 text-tertiary"></i></div>
+        <p class="text-sm font-medium text-primary mb-1">Меню не задано</p>
+        <p class="text-xs text-tertiary mb-4">Сгенерируй на 3 дня или собери вручную</p>
+        <button onclick="generateMenuFlow()" class="generate-menu-btn" style="margin:0; background: var(--purple);">
+          <i data-lucide="sparkles" class="w-4 h-4"></i><span>Сгенерировать</span>
+        </button>
+      </div>`;
+    document.getElementById('food-kcal-eaten').textContent = '0';
+    document.getElementById('food-kcal-plan').textContent = '0';
+    document.getElementById('food-protein-eaten').textContent = '0 / 0 г';
+    document.getElementById('food-progress-fill').style.width = '0%';
+    safeIcons();
+    return;
+  }
+
+  const meals = dayData.meals || {};
+  const totals = dayData.totals || { kcal: 0, p: 0, f: 0, c: 0 };
+
+  let eatenKcal = 0, eatenP = 0;
+  MEAL_ORDER.forEach(k => {
+    const m = meals[k];
+    if (m && m.eaten) {
+      eatenKcal += m.kcal || 0;
+      eatenP += m.p || 0;
+    }
+  });
+
+  document.getElementById('food-kcal-eaten').textContent = eatenKcal;
+  document.getElementById('food-kcal-plan').textContent = totals.kcal || 0;
+  document.getElementById('food-protein-eaten').textContent = `${eatenP} / ${totals.p || 0} г`;
+  const pct = totals.kcal > 0 ? Math.round(eatenKcal / totals.kcal * 100) : 0;
+  document.getElementById('food-progress-fill').style.width = pct + '%';
+
+  // Список блюд
+  const cards = MEAL_ORDER.map(k => {
+    const m = meals[k];
+    if (!m) {
+      return `
+        <div class="meal-card">
+          <div class="meal-icon-wrap" style="background:${BG_MAP.gray};color:${COLOR_MAP.gray};"><i data-lucide="${MEAL_ICONS[k].icon}" class="w-5 h-5"></i></div>
+          <div class="meal-body"><div class="meal-type">${MEAL_LABELS[k]}</div><div class="meal-name" style="color: var(--text-tertiary);">— не задано</div></div>
+        </div>`;
+    }
+    const meta = MEAL_ICONS[k];
+    const isE = !!m.eaten;
+    return `
+      <div class="meal-card ${isE ? 'eaten' : ''}">
+        <div class="meal-icon-wrap" style="background:${BG_MAP[meta.color]};color:${COLOR_MAP[meta.color]};"><i data-lucide="${meta.icon}" class="w-5 h-5"></i></div>
+        <div class="meal-body" onclick="openFoodDishFromDay('${k}', '${dateStr}')">
+          <div class="meal-type">${MEAL_LABELS[k]}</div>
+          <div class="meal-name">${m.emoji} ${escapeHtml(m.name)}</div>
+          <div class="meal-kbju">${m.kcal} ккал · Б${m.p} · Ж${m.f} · У${m.c}</div>
+        </div>
+        <button class="meal-check ${isE ? 'active' : ''}" onclick="event.stopPropagation();toggleMealEatenNew('${k}', '${dateStr}')">${isE ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}</button>
+      </div>`;
+  });
+
+  elMeals.innerHTML = cards.join('');
+  safeIcons();
+}
+
+async function toggleMealEatenNew(mealKey, dateStr) {
+  haptic('medium');
+  const dayData = getCachedFoodDay(dateStr) || await fetchFoodDay(dateStr);
+  if (!dayData || !dayData.exists) return;
+  const m = dayData.meals[mealKey];
+  if (!m) return;
+  m.eaten = !m.eaten;
+  cacheFoodDay(dateStr, dayData);
+  if (m.eaten) hapticNotify('success');
+  await renderFoodScreen();
+  renderHomeMenuPreview();
+
+  // Отправляем на сервер через существующий эндпоинт toggleMealEaten (не через API — его нет).
+  // Пока оставляем локально: сервер синкается через addTransaction/... — но для еды эндпоинта нет.
+  // Используем существующий диалоговый bot-эндпоинт через Telegram не получится — так что:
+  // просто сохраняем в кэш, полная синхронизация — через toggleMealEaten API (нужен бэкенд).
+  // Для MVP: локально + при следующем открытии данные подтянутся с сервера.
+  // TODO: добавить webAppToggleMealEaten эндпоинт.
+}
+
+async function openFoodDishFromDay(mealKey, dateStr) {
+  haptic('light');
+  const dayData = getCachedFoodDay(dateStr) || await fetchFoodDay(dateStr);
+  if (!dayData || !dayData.exists) return;
+  const dish = dayData.meals[mealKey];
+  if (!dish) return;
+
+  currentDishContext = { date: dateStr, mealType: MEAL_LABELS[mealKey], dish };
+
+  const kbju = `
+    <div class="kbju-grid">
+      <div class="kbju-cell"><div class="kbju-label">Ккал</div><div class="kbju-value">${dish.kcal}</div></div>
+      <div class="kbju-cell"><div class="kbju-label">Б</div><div class="kbju-value">${dish.p}<span class="kbju-unit">г</span></div></div>
+      <div class="kbju-cell"><div class="kbju-label">Ж</div><div class="kbju-value">${dish.f}<span class="kbju-unit">г</span></div></div>
+      <div class="kbju-cell"><div class="kbju-label">У</div><div class="kbju-value">${dish.c}<span class="kbju-unit">г</span></div></div>
+    </div>`;
+
+  const ingredients = (dish.ingredients || []).map(i =>
+    `<div class="ingredient-item"><span class="ingredient-name">${escapeHtml(i.name)}</span><span class="ingredient-qty">${i.qty} ${escapeHtml(i.unit || 'г')}</span></div>`
+  ).join('') || '<p class="text-xs text-tertiary">Нет данных</p>';
+
+  const recipe = (dish.recipe || []).map((s, i) =>
+    `<div class="recipe-step"><div class="recipe-num">${i + 1}</div><div class="recipe-text">${escapeHtml(s)}</div></div>`
+  ).join('') || '<p class="text-xs text-tertiary">Рецепт пока не заполнен</p>';
+
+  const dateLabel = dateStr === todayStr() ? 'Сегодня' :
+                    dateStr === addDays(todayStr(), 1) ? 'Завтра' :
+                    dateStr === addDays(todayStr(), 2) ? 'Послезавтра' :
+                    new Date(dateStr + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+
+  document.getElementById('dish-content').innerHTML = `
+    <div class="dish-hero">
+      <div class="dish-emoji">${dish.emoji || '🍽'}</div>
+      <div class="dish-name">${escapeHtml(dish.name)}</div>
+      <div class="dish-type">${currentDishContext.mealType} · ${dateLabel}</div>
+    </div>
+    ${kbju}
+    <div class="section-title">📦 Ингредиенты</div>
+    ${ingredients}
+    <div class="section-title">👨‍🍳 Рецепт</div>
+    ${recipe}
+    <div class="h-8"></div>`;
+
+  safeIcons();
+  navigate('food-dish');
+}
+
+async function openReplaceDish() {
+  if (!currentDishContext) return;
+  haptic('medium');
+
+  document.getElementById('replace-dish-title').textContent = `Заменить ${currentDishContext.mealType}`;
+  document.getElementById('replace-dish-body').innerHTML = `<p class="text-xs text-tertiary text-center py-6">Ищу альтернативы...</p>`;
+  document.getElementById('replace-dish-overlay').classList.add('show');
+  document.getElementById('replace-dish-sheet').classList.add('show');
+
+  try {
+    const data = await apiGet('getDishReplacements', { dishName: currentDishContext.dish.name });
+    renderReplaceOptions(data);
+  } catch (e) {
+    document.getElementById('replace-dish-body').innerHTML = `<p class="text-xs" style="color: var(--red); text-align: center; padding: 20px;">Не удалось загрузить замены</p>`;
+  }
+}
+
+function renderReplaceOptions(data) {
+  const body = document.getElementById('replace-dish-body');
+  if (!body) return;
+  const options = (data && data.options) || [];
+  if (options.length === 0) {
+    body.innerHTML = `<p class="text-xs text-tertiary text-center py-6">Нет альтернатив этого типа в базе</p>`;
+    return;
+  }
+
+  const head = `<div style="padding: 4px 0 12px; border-bottom: 0.5px solid var(--divider); margin-bottom: 12px;">
+    <p class="text-xs text-secondary">Похожие по ингредиентам:</p>
+  </div>`;
+
+  const items = options.map(o => {
+    const deltaCls = o.kcalDelta > 0 ? 'up' : o.kcalDelta < 0 ? 'down' : '';
+    const deltaSign = o.kcalDelta > 0 ? '+' : '';
+    const deltaHtml = o.kcalDelta !== 0 ? `<span class="replace-item-delta ${deltaCls}">${deltaSign}${o.kcalDelta} ккал</span>` : '';
+    const shared = o.sharedCount > 0 ? `Общие ингредиенты: ${o.sharedIngredients.join(', ')}` : 'Нет общих ингредиентов';
+    return `
+      <div class="replace-item" onclick="applyReplace('${o.id}', this)">
+        <div class="replace-item-header">
+          <span class="replace-item-name">${escapeHtml(o.name)}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${deltaHtml}
+            <span class="replace-item-kcal">${o.kcal} ккал</span>
+          </div>
+        </div>
+        <div class="replace-item-kbju">Б${o.p} · Ж${o.f} · У${o.c} ${o.sharedCount > 0 ? `· 🎯 ${o.sharedCount} общ.` : ''}</div>
+        <div class="replace-item-shared">${escapeHtml(shared)}</div>
+      </div>`;
+  }).join('');
+
+  body.innerHTML = head + `<div class="replace-list">${items}</div>`;
+  safeIcons();
+}
+
+async function applyReplace(dishId, el) {
+  if (!currentDishContext) return;
+  haptic('medium');
+  const dateStr = currentDishContext.date;
+  const mealType = currentDishContext.mealType;
+
+  try {
+    const res = await apiPost('replaceDish', { date: dateStr, mealType, dishId });
+    if (!res || !res.ok) throw new Error('Не удалось заменить');
+
+    // Обновляем кэш
+    const dayData = getCachedFoodDay(dateStr);
+    if (dayData && dayData.exists) {
+      const mealKey = Object.keys(MEAL_LABELS).find(k => MEAL_LABELS[k] === mealType);
+      if (mealKey) {
+        dayData.meals[mealKey] = { ...res.dish, ingredients: [], recipe: [], eaten: false };
+        cacheFoodDay(dateStr, dayData);
+      }
+    }
+
+    closeReplaceDish();
+    toast(`✓ ${res.dish.name}`);
+    hapticNotify('success');
+
+    // Пересобираем и открываем обновлённую карточку блюда
+    const fresh = getCachedFoodDay(dateStr) || await fetchFoodDay(dateStr);
+    cacheFoodDay(dateStr, fresh);
+    await renderFoodScreen();
+
+    if (currentDishContext) {
+      const mealKey = Object.keys(MEAL_LABELS).find(k => MEAL_LABELS[k] === mealType);
+      if (mealKey) await openFoodDishFromDay(mealKey, dateStr);
+    }
+  } catch (e) {
+    console.error('applyReplace failed', e);
+    toast('Ошибка замены');
+  }
+}
+
+function closeReplaceDish() {
+  haptic('light');
+  document.getElementById('replace-dish-overlay').classList.remove('show');
+  document.getElementById('replace-dish-sheet').classList.remove('show');
+}
+
+async function generateMenuFlow() {
+  haptic('medium');
+  document.getElementById('genmenu-body').innerHTML = `<div style="text-align:center;padding:30px 0;"><i data-lucide="loader-2" class="w-8 h-8 animate-spin" style="color: var(--purple);margin:0 auto;"></i><p class="text-xs text-tertiary mt-3">Собираю zero-waste меню...</p></div>`;
+  document.getElementById('genmenu-overlay').classList.add('show');
+  document.getElementById('genmenu-sheet').classList.add('show');
+  document.getElementById('genmenu-apply-btn').disabled = true;
+  safeIcons();
+
+  try {
+    const draft = await apiPost('generateMenu', { startDate: todayStr(), numDays: 3 });
+    if (!draft || !draft.days) throw new Error('Пустой план');
+    generatedMenuDraft = draft;
+    renderGeneratedMenuPreview(draft);
+    document.getElementById('genmenu-apply-btn').disabled = false;
+  } catch (e) {
+    console.error('generateMenuFlow failed', e);
+    document.getElementById('genmenu-body').innerHTML = `<p class="text-xs text-center py-8" style="color: var(--red);">Не удалось собрать меню: ${escapeHtml(e.message || 'unknown')}</p>`;
+  }
+}
+
+function renderGeneratedMenuPreview(draft) {
+  const body = document.getElementById('genmenu-body');
+  if (!body) return;
+
+  const head = `
+    <div class="apple-card p-4 rounded-2xl mb-4" style="background: rgba(175,82,222,.08); border-color: rgba(175,82,222,.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <p class="text-[10px] font-semibold uppercase" style="color: var(--purple);">Zero-waste</p>
+          <p class="text-sm font-semibold text-primary mt-1">${draft.days.length} дня</p>
+        </div>
+        <div style="text-align:right;">
+          <p class="text-[10px] text-tertiary uppercase">Пересечение ингредиентов</p>
+          <p class="text-lg font-semibold" style="color: var(--purple);">${draft.crossUsagePct}%</p>
+        </div>
+      </div>
+    </div>`;
+
+  const today = todayStr();
+  const daysHtml = draft.days.map((day, idx) => {
+    const dObj = new Date(day.date + 'T00:00:00');
+    const label = day.date === today ? 'Сегодня' :
+                  day.date === addDays(today, 1) ? 'Завтра' :
+                  day.date === addDays(today, 2) ? 'Послезавтра' :
+                  dObj.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
+
+    const line = (dish, mealLabel) => dish
+      ? `<div class="draft-preview-meal"><span>${mealLabel}</span><b>${escapeHtml(dish.name)}</b></div>`
+      : `<div class="draft-preview-meal" style="opacity:.4;"><span>${mealLabel}</span><b>—</b></div>`;
+
+    return `<div class="draft-preview-day">
+      <div class="draft-preview-day-header">${label} · ${dObj.toLocaleDateString('ru-RU', { weekday: 'short' })}</div>
+      ${line(day.breakfast, '🍳')}
+      ${line(day.lunch, '🍗')}
+      ${line(day.dinner, '🥩')}
+      ${line(day.snack, '🥛')}
+      <div style="display:flex; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:0.5px solid var(--divider); font-size:11px;">
+        <span class="text-tertiary">Итого</span>
+        <span class="text-primary font-semibold numbers">${day.totals.kcal} ккал · Б${day.totals.p} · Ж${day.totals.f} · У${day.totals.c}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = head + daysHtml;
+  safeIcons();
+}
+
+async function applyGeneratedMenu() {
+  if (!generatedMenuDraft) return;
+  haptic('medium');
+  const btn = document.getElementById('genmenu-apply-btn');
+  btn.disabled = true;
+  btn.textContent = 'Применяю...';
+
+  try {
+    const res = await apiPost('applyMenu', { days: generatedMenuDraft.days });
+    if (!res || !res.ok) throw new Error('Не удалось');
+
+    // Сбрасываем кэш этих дней и перечитываем с сервера
+    const cache = loadFoodCache();
+    for (const day of generatedMenuDraft.days) delete cache[day.date];
+    saveFoodCache(cache);
+
+    closeGenerateMenu();
+    toast(`✓ Меню на ${res.days} дня · ${res.shoppingItems} покупок`);
+    hapticNotify('success');
+
+    // Обновляем покупки и меню
+    const fresh = await apiGet('getShopping');
+    if (Array.isArray(fresh)) {
+      localStorage.setItem('aura_shopping', JSON.stringify(fresh));
+    }
+    await renderFoodScreen();
+    renderHomeMenuPreview();
+  } catch (e) {
+    console.error('applyGeneratedMenu failed', e);
+    btn.disabled = false;
+    btn.textContent = 'Применить';
+    toast('Ошибка: ' + (e.message || 'unknown'));
+  }
+}
+
+function closeGenerateMenu() {
+  haptic('light');
+  document.getElementById('genmenu-overlay').classList.remove('show');
+  document.getElementById('genmenu-sheet').classList.remove('show');
+  generatedMenuDraft = null;
+}
+
+// --- Покупки ---
+
+async function loadShoppingNew() {
+  try {
+    const data = await apiGet('getShopping');
+    if (Array.isArray(data)) {
+      localStorage.setItem('aura_shopping', JSON.stringify(data));
+      return data;
+    }
+  } catch (e) {}
+  // fallback на локальный кэш
+  try { return JSON.parse(localStorage.getItem('aura_shopping') || '[]'); } catch (e) { return []; }
+}
+
+function parseQtyString(qty) {
+  // "400 г · 2 блюда · 3 дн." → { main: "400 г", meta: "2 блюда · 3 дн." }
+  const s = String(qty || "");
+  const parts = s.split(' · ');
+  return { main: parts[0] || '', meta: parts.slice(1).join(' · ') };
+}
+
+async function renderShoppingScreen() {
+  const el = document.getElementById('shop-content');
+  if (!el) return;
+
+  const items = await loadShoppingNew();
+  if (!items || items.length === 0) {
+    el.innerHTML = `
+      <div class="apple-card p-10 rounded-[28px] text-center">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center" style="background:var(--neutral-fill);"><i data-lucide="shopping-bag" class="w-7 h-7 text-tertiary"></i></div>
+        <p class="text-sm font-medium text-primary mb-1">Список пуст</p>
+        <p class="text-xs text-tertiary">Сгенерируй меню — покупки соберутся автоматически</p>
+      </div>
+      <button onclick="generateMenuFlow()" class="generate-menu-btn" style="margin-top: 16px; background: var(--purple);">
+        <i data-lucide="sparkles" class="w-4 h-4"></i><span>Меню на 3 дня</span>
+      </button>`;
+    safeIcons();
+    return;
+  }
+
+  // Группировка
+  const active = items.filter(i => !i.checked);
+  const bought = items.filter(i => i.checked);
+
+  const byCat = {};
+  active.forEach(i => {
+    const cat = i.category || 'Прочее';
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push(i);
+  });
+
+  const catOrder = ['Белки', 'Молочка', 'Овощи', 'Фрукты и ягоды', 'Крупы и хлеб', 'Специи и масла', 'Орехи и сухофрукты', 'Прочее'];
+  const sortedCats = Object.keys(byCat).sort((a, b) => {
+    const ia = catOrder.indexOf(a); const ib = catOrder.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+
+  let html = '';
+
+  // Категории
+  sortedCats.forEach(cat => {
+    html += `<div class="shop-category-label">${escapeHtml(cat)} · ${byCat[cat].length}</div>`;
+    byCat[cat].forEach(it => {
+      const q = parseQtyString(it.qty);
+      html += `
+        <div class="shop-item-new" data-id="${it.id}">
+          <button class="shop-check-new" onclick="toggleShoppingNew('${it.id}')"></button>
+          <div class="shop-body-new">
+            <div class="shop-name-new">${escapeHtml(it.name)}</div>
+            <div class="shop-qty-new">${escapeHtml(q.main)}${q.meta ? ` · ${escapeHtml(q.meta)}` : ''}</div>
+          </div>
+        </div>`;
+    });
+  });
+
+  // Купленное
+  if (bought.length > 0) {
+    html += `<div class="shop-category-label" style="margin-top: 24px;">✔ Куплено · ${bought.length}</div>`;
+    bought.forEach(it => {
+      const q = parseQtyString(it.qty);
+      html += `
+        <div class="shop-item-new checked" data-id="${it.id}">
+          <button class="shop-check-new active" onclick="toggleShoppingNew('${it.id}')"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+          <div class="shop-body-new">
+            <div class="shop-name-new">${escapeHtml(it.name)}</div>
+            <div class="shop-qty-new">${escapeHtml(q.main)}</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // Кнопка добавить
+  html += `
+    <button onclick="openAddShopping()" class="shop-add-btn">
+      <i data-lucide="plus" class="w-4 h-4"></i>
+      <span>Добавить продукт</span>
+    </button>`;
+
+  el.innerHTML = html;
+  safeIcons();
+}
+
+async function toggleShoppingNew(id) {
+  haptic('light');
+  const items = await loadShoppingNew();
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  it.checked = !it.checked;
+  localStorage.setItem('aura_shopping', JSON.stringify(items));
+  if (it.checked) hapticNotify('success');
+  await renderShoppingScreen();
+  apiPost('toggleShopping', { id, checked: it.checked });
+}
+
+async function clearBoughtShopping() {
+  haptic('medium');
+  const items = await loadShoppingNew();
+  const boughtCount = items.filter(i => i.checked).length;
+  if (boughtCount === 0) { toast('Нет отмеченных'); return; }
+  if (!confirm(`Удалить ${boughtCount} купленных?`)) return;
+  try {
+    await apiPost('clearBoughtShopping', {});
+    const fresh = items.filter(i => !i.checked);
+    localStorage.setItem('aura_shopping', JSON.stringify(fresh));
+    await renderShoppingScreen();
+    toast('Купленное удалено');
+  } catch (e) {
+    toast('Ошибка');
+  }
+}
+
+function openAddShopping() {
+  const name = prompt('Название продукта:');
+  if (!name) return;
+  const qty = prompt('Количество (например «500 г» или «2 шт»):') || '';
+  apiPost('addShopping', { name: name.trim(), qty: qty.trim() }).then(async (res) => {
+    if (res && res.ok) {
+      toast('Добавлено');
+      await renderShoppingScreen();
+    } else {
+      toast('Ошибка');
+    }
+  });
+}
+
+// --- Превью для главного экрана ---
+
+async function renderHomeMenuPreview() {
+  const el = document.getElementById('home-menu-preview');
+  if (!el) return;
+
+  let dayData = getCachedFoodDay(todayStr());
+  if (!dayData) dayData = await fetchFoodDay(todayStr());
+
+  if (!dayData || dayData.exists === false) {
+    el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Меню не задано</p>';
+    return;
+  }
+
+  const meals = dayData.meals || {};
+  const totals = dayData.totals || { kcal: 0 };
+  let eatenKcal = 0;
+  MEAL_ORDER.forEach(k => { if (meals[k] && meals[k].eaten) eatenKcal += meals[k].kcal || 0; });
+
+  const lines = MEAL_ORDER.map(k => {
+    const m = meals[k];
+    if (!m) return '';
+    return `<div class="flex items-center gap-2 py-0.5"><span style="opacity:.7;">${m.eaten ? '✓' : '○'}</span><span class="flex-1 text-xs text-primary truncate">${escapeHtml(m.name)}</span><span class="text-[10px] text-tertiary">${m.kcal}</span></div>`;
+  }).join('');
+
+  el.innerHTML = `<div>${lines}</div><div class="mt-2 pt-2 border-t divider flex justify-between text-[11px]"><span class="text-tertiary">Съедено:</span><span class="font-semibold text-primary">${eatenKcal} / ${totals.kcal} ккал</span></div>`;
+}
         let insight = ''; let colorName = 'purple';
         
         if (overdue.length > 0) { insight = `🔴 <b>У вас ${overdue.length} просроченных задач.</b> Стоит разобраться с ними.`; colorName = 'red'; }
