@@ -2124,7 +2124,19 @@
     function rpeColor(rpe) { const n = Number(rpe); if (n <= 7) return 'var(--green)'; if (n <= 8) return 'var(--yellow)'; return 'var(--red)'; }
     function getExerciseId(ex, idx) { if (ex.id) return ex.id; return 'ex_' + (ex.name || 'unknown') + '_' + idx; }
     function ensureExerciseIds(plan) { let changed = false; plan.exercises.forEach((ex, idx) => { if (!ex.id) { ex.id = getExerciseId(ex, idx); changed = true; } }); return changed; }
-    function getLastExerciseLogLocal(name) { try { const logs = loadWorkoutLog(); const todayStr_ = todayStr(); return logs.find(l => l.exercise === name && (!l.date || !l.date.startsWith(todayStr_))) || logs.find(l => l.exercise === name) || null; } catch(e) { return null; } }
+        function getLastExerciseLogLocal(name) {
+      try {
+        const logs = loadWorkoutLog();
+        const todayStr_ = todayStr();
+        // «Прошлый раз» — строго ДО сегодня (по локальной дате)
+        const prevLogs = logs.filter(l =>
+          l.exercise === name &&
+          l.date &&
+          !l.date.startsWith(todayStr_)
+        );
+        return prevLogs[0] || null;
+      } catch (e) { return null; }
+    }
     function renderWorkoutToday() {
       const labelEl = document.getElementById('workout-today-label'); if (labelEl) labelEl.textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'short'});
       const el = document.getElementById('workout-today-content'); if (!el) return; const plan = getTodayWorkoutPlan();
@@ -2134,7 +2146,14 @@
         if (typeof lucide !== 'undefined') safeIcons(); return;
       }
       ensureExerciseIds(plan); migrateWorkoutDone(); const done = getWorkoutDone(); const logs = loadWorkoutLog(); const todayDateStr = todayStr(); const doneCount = plan.exercises.filter(ex => done[ex.id] === true).length; const total = plan.exercises.length;
-      const setCounts = {}; const lastRpe = {}; logs.forEach(l => { if (l.date && l.date.startsWith(todayDateStr)) { setCounts[l.exercise] = (setCounts[l.exercise]||0) + 1; if (l.rpe) lastRpe[l.exercise] = l.rpe; } });
+            const setCounts = {};
+      const lastRpe = {};
+      logs.forEach(l => {
+        if (l.date && l.date.startsWith(todayDateStr)) {
+          setCounts[l.exercise] = (setCounts[l.exercise] || 0) + (Number(l.sets) || 1); // ← по подходам
+          if (l.rpe) lastRpe[l.exercise] = l.rpe;
+        }
+      });
       let html = `<div class="apple-card p-5 rounded-[24px] mb-4"><div class="flex justify-between items-start mb-2"><div><p class="text-xs text-secondary">Сегодня</p><p class="text-lg font-semibold text-primary mt-0.5">${escapeHtml(plan.split)}</p></div><div class="text-right"><p class="text-xs text-tertiary uppercase">Выполнено</p><p class="text-lg font-semibold numbers text-primary">${doneCount} / ${total}</p></div></div><div class="progress-track h-2 rounded-full"><div class="progress-fill h-full rounded-full" style="width:${Math.round(doneCount/total*100)}%;background:var(--green);"></div></div></div>`;
       const firstNotDone = plan.exercises.find(ex => !done[ex.id]); if (firstNotDone && doneCount < total) { html += `<div class="apple-card p-4 rounded-[24px] mb-4"><button onclick="startWorkout()" class="w-full apple-card tappable p-5 rounded-2xl flex items-center justify-center space-x-3 bg-green/10 border border-green/30 hover:border-green/50 transition-colors"><span style="font-size:24px;">▶</span><div><p class="text-sm font-semibold text-primary">Начать тренировку</p><p class="text-xs text-tertiary">Первое невыполненное: ${escapeHtml(firstNotDone.name)}</p></div></button></div>`; }
       plan.exercises.forEach((ex, i) => {
@@ -2177,16 +2196,68 @@
     let addExerciseTargetDow = null;
     function openAddExerciseSheet(targetDow = null) { haptic('medium'); addExerciseTargetDow = targetDow; document.getElementById('add-ex-name').value = ''; document.getElementById('add-ex-weight').value = ''; document.getElementById('add-ex-sets').value = '3'; document.getElementById('add-ex-reps').value = '8'; document.getElementById('add-ex-sheet-overlay').classList.add('show'); document.getElementById('add-ex-sheet').classList.add('show'); setTimeout(() => document.getElementById('add-ex-name').focus(), 350); }
     function closeAddExerciseSheet() { haptic('light'); document.getElementById('add-ex-sheet-overlay').classList.remove('show'); document.getElementById('add-ex-sheet').classList.remove('show'); }
-    function saveAddedExercise() {
-      const name = document.getElementById('add-ex-name').value.trim(); const weight = parseFloat(document.getElementById('add-ex-weight').value.replace(',', '.')) || 0; const sets = parseInt(document.getElementById('add-ex-sets').value, 10) || 3; const reps = parseInt(document.getElementById('add-ex-reps').value, 10) || 8; if (!name) { toast('Укажите название'); return; }
-      const dow = addExerciseTargetDow || getTodayDow(); const all = loadWorkoutPlan(); if (!all[dow]) all[dow] = { split: 'Тренировка', exercises: [] }; if (!all[dow].exercises) all[dow].exercises = [];
-      const newEx = { id: 'ex_manual_' + Date.now().toString(36), name: name, weight: weight, sets: sets, reps: reps }; all[dow].exercises.push(newEx); localStorage.setItem('aura_workout_plan', JSON.stringify(all));
-      closeAddExerciseSheet(); renderWorkoutToday(); renderWorkoutPlan(); if (addExerciseTargetDow) openWorkoutDay(addExerciseTargetDow); addExerciseTargetDow = null; toast(`Добавлено: ${name}`);
+        async function saveAddedExercise() {
+      const name = document.getElementById('add-ex-name').value.trim();
+      const weight = parseFloat(document.getElementById('add-ex-weight').value.replace(',', '.')) || 0;
+      const sets = parseInt(document.getElementById('add-ex-sets').value, 10) || 3;
+      const reps = parseInt(document.getElementById('add-ex-reps').value, 10) || 8;
+      if (!name) { toast('Укажите название'); return; }
+
+      const dow = addExerciseTargetDow || getTodayDow();
+      const all = loadWorkoutPlan();
+      if (!all[dow]) all[dow] = { split: 'Тренировка', exercises: [] };
+      if (!all[dow].exercises) all[dow].exercises = [];
+
+      const clientId = 'plan_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+      // 1. Сохраняем локально (оптимистично)
+      const newEx = { id: clientId, name, weight, sets, reps };
+      all[dow].exercises.push(newEx);
+      localStorage.setItem('aura_workout_plan', JSON.stringify(all));
+
+      // 2. Синкаем на сервер
+      await apiPost('addPlanExercise', {
+        clientId,
+        dow,
+        name,
+        weight,
+        sets,
+        reps,
+        split: all[dow].split
+      });
+
+      closeAddExerciseSheet();
+      renderWorkoutToday();
+      renderWorkoutPlan();
+      if (addExerciseTargetDow) openWorkoutDay(addExerciseTargetDow);
+      addExerciseTargetDow = null;
+      toast(`Добавлено: ${name}`);
     }
-    function startWorkout() { const plan = getTodayWorkoutPlan(); if (!plan) return; const done = getWorkoutDone(); const firstNotDone = plan.exercises.find(ex => !done[ex.id]); if (firstNotDone) openExerciseLogSheetById(firstNotDone.id); }
+        function startWorkout() {
+      const plan = getTodayWorkoutPlan();
+      if (!plan) return;
+      ensureExerciseIds(plan); // ← КРИТИЧНО
+      const done = getWorkoutDone();
+      const firstNotDone = plan.exercises.find(ex => done[ex.id] !== true && done[ex.id] !== 'skipped');
+      if (firstNotDone) openExerciseLogSheetById(firstNotDone.id);
+    }
     function openExerciseLogSheetById(exId) { const plan = getTodayWorkoutPlan(); if (!plan) return; const idx = plan.exercises.findIndex(ex => ex.id === exId); if (idx >= 0) openExerciseLogSheet(idx); }
     function toggleExerciseDone(exId) { haptic('medium'); const done = getWorkoutDone(); done[exId] = !done[exId]; saveWorkoutDone(done); apiPost('toggleWorkoutDone', { exerciseId: exId, done: !!done[exId] }); if (done[exId]) hapticNotify('success'); renderWorkoutToday(); }
-    function toggleExerciseSkip(exId, idx) { haptic('medium'); const done = getWorkoutDone(); if (done[exId] === 'skipped') delete done[exId]; else done[exId] = 'skipped'; saveWorkoutDone(done); apiPost('toggleWorkoutDone', { exerciseId: exId, done: done[exId] || false }); renderWorkoutToday(); toast(done[exId] === 'skipped' ? 'Пропущено' : 'Возвращено'); }
+        function toggleExerciseSkip(exId, idx) {
+      haptic('medium');
+      const done = getWorkoutDone();
+      if (done[exId] === 'skipped') delete done[exId];
+      else done[exId] = 'skipped';
+      saveWorkoutDone(done);
+      const isSkipped = done[exId] === 'skipped';
+      apiPost('toggleWorkoutDone', {
+        exerciseId: exId,
+        done: false,
+        skipped: isSkipped
+      });
+      renderWorkoutToday();
+      toast(isSkipped ? 'Пропущено' : 'Возвращено');
+    }
     let currentExSheetIndex = null; let currentExSheetRpe = null;
     function openExerciseLogSheet(i) {
       haptic('medium'); const plan = getTodayWorkoutPlan(); if (!plan || !plan.exercises[i]) return; const ex = plan.exercises[i]; currentExSheetIndex = i; currentExSheetRpe = null;
@@ -2201,20 +2272,104 @@
     }
     function closeExerciseLogSheet() { haptic('light'); document.getElementById('ex-sheet').classList.remove('show'); document.getElementById('ex-sheet-overlay').classList.remove('show'); document.getElementById('ex-input-weight').blur(); document.getElementById('ex-input-sets').blur(); document.getElementById('ex-input-reps').blur(); document.getElementById('ex-input-notes').blur(); currentExSheetIndex = null; currentExSheetRpe = null; updateFabForScreen(currentScreen); }
     function setExerciseRpe(v) { haptic('light'); currentExSheetRpe = (currentExSheetRpe === v) ? null : v; document.querySelectorAll('[data-rpe]').forEach(b => { b.classList.toggle('active', Number(b.dataset.rpe) === currentExSheetRpe); }); }
-    function saveExerciseSet(keepOpen) {
+    function localIsoNow() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function getPRForExerciseLocal(name) {
+  try {
+    const logs = loadWorkoutLog();
+    const filtered = logs.filter(l => l.exercise === name && Number(l.weight) > 0);
+    if (filtered.length === 0) return 0;
+    return Math.max(...filtered.map(l => Number(l.weight)));
+  } catch (e) { return 0; }
+}
+        function saveExerciseSet(keepOpen) {
       if (currentExSheetIndex === null) return;
-      const plan = getTodayWorkoutPlan(); if (!plan) return; const ex = plan.exercises[currentExSheetIndex]; if (!ex) return;
-      const weightInput = document.getElementById('ex-input-weight').value.trim(); const setsInput = document.getElementById('ex-input-sets').value.trim(); const repsInput = document.getElementById('ex-input-reps').value.trim();
-      const weight = weightInput === '' ? 0 : parseFloat(weightInput.replace(',', '.')); const sets = parseInt(setsInput, 10); const reps = parseInt(repsInput, 10);
-      if (isNaN(sets) || sets < 1) { toast('Укажи подходы'); return; } if (isNaN(reps) || reps < 1) { toast('Укажи повторы'); return; } if (isNaN(weight) || weight < 0) { toast('Неверный вес'); return; }
-      const notes = document.getElementById('ex-input-notes').value.trim(); const rpe = currentExSheetRpe; const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      const entry = { id: clientId, date: new Date().toISOString(), exercise: ex.name, weight: weight, sets: sets, reps: reps, rpe: rpe, notes: notes, tonnage: weight * sets * reps };
-      const logs = loadWorkoutLog(); logs.unshift(entry); saveWorkoutLog(logs); const done = getWorkoutDone(); const exId = ex.id || getExerciseId(ex, currentExSheetIndex); done[exId] = true; saveWorkoutDone(done);
-      apiPost('addWorkoutSet', { clientId: clientId, exerciseId: exId, exercise: ex.name, weight: weight, sets: sets, reps: String(reps), rpe: rpe || '', notes: notes || '' });
-      let prText = ''; const lastLog = getLastExerciseLogLocal(ex.name); if (lastLog && lastLog.weight > 0 && weight > lastLog.weight) prText = ` 🎉 Новый рекорд! Было ${lastLog.weight}кг, стало ${weight}кг`;
-      hapticNotify('success'); toast(`✓ ${ex.name}: ${weight > 0 ? weight + 'кг × ' : ''}${sets}×${reps}${prText}`);
-      if (keepOpen) { document.getElementById('ex-input-sets').value = 1; document.getElementById('ex-input-reps').value = reps; document.getElementById('ex-input-notes').value = ''; document.getElementById('ex-input-reps').focus(); }
-      else { closeExerciseLogSheet(); renderWorkoutToday(); renderHomeWorkoutPreview(); const plan = getTodayWorkoutPlan(); const done = getWorkoutDone(); const hasNext = plan ? plan.exercises.some(ex => done[ex.id] !== true && done[ex.id] !== 'skipped') : false; if (hasNext) { let restSec = 90; if (rpe >= 9) restSec = 120; else if (rpe === 8) restSec = 90; else if (rpe > 0 && rpe <= 7) restSec = 60; showRestTimer(restSec); } }
+      const plan = getTodayWorkoutPlan(); if (!plan) return;
+      ensureExerciseIds(plan); // ← гарантируем id на всех упражнениях
+      const ex = plan.exercises[currentExSheetIndex]; if (!ex) return;
+
+      const weightInput = document.getElementById('ex-input-weight').value.trim();
+      const setsInput = document.getElementById('ex-input-sets').value.trim();
+      const repsInput = document.getElementById('ex-input-reps').value.trim();
+      const weight = weightInput === '' ? 0 : parseFloat(weightInput.replace(',', '.'));
+      const sets = parseInt(setsInput, 10);
+      const reps = parseInt(repsInput, 10);
+      if (isNaN(sets) || sets < 1) { toast('Укажи подходы'); return; }
+      if (isNaN(reps) || reps < 1) { toast('Укажи повторы'); return; }
+      if (isNaN(weight) || weight < 0) { toast('Неверный вес'); return; }
+
+      const notes = document.getElementById('ex-input-notes').value.trim();
+      const rpe = currentExSheetRpe;
+      const clientId = 'ws_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+      // PR ДО сохранения — по максимуму из всей истории
+      const prevMax = getPRForExerciseLocal(ex.name);
+      const isNewPR = weight > 0 && weight > prevMax;
+
+      const entry = {
+        id: clientId,
+        date: localIsoNow(),       // ← ЛОКАЛЬНАЯ дата, не UTC
+        exercise: ex.name,
+        weight: weight,
+        sets: sets,
+        reps: reps,
+        rpe: rpe,
+        notes: notes,
+        tonnage: weight * sets * reps
+      };
+      const logs = loadWorkoutLog();
+      logs.unshift(entry);
+      saveWorkoutLog(logs);
+
+      const done = getWorkoutDone();
+      const exId = ex.id || getExerciseId(ex, currentExSheetIndex);
+      done[exId] = true;
+      saveWorkoutDone(done);
+
+      // Синк: сначала подход, потом статус (план обновляется сервер-сайд автоматически тоже)
+      apiPost('addWorkoutSet', {
+        clientId: clientId, exerciseId: exId, exercise: ex.name,
+        weight: weight, sets: sets, reps: String(reps), rpe: rpe || '', notes: notes || ''
+      });
+      apiPost('toggleWorkoutDone', { exerciseId: exId, done: true, skipped: false });
+
+      let prText = '';
+      if (isNewPR && prevMax > 0) prText = ` 🎉 Новый рекорд! Было ${prevMax}кг, стало ${weight}кг`;
+      else if (isNewPR) prText = ` 🎉 Первый рекорд!`;
+
+      hapticNotify('success');
+      toast(`✓ ${ex.name}: ${weight > 0 ? weight + 'кг × ' : ''}${sets}×${reps}${prText}`);
+
+      if (keepOpen) {
+        document.getElementById('ex-input-sets').value = 1;
+        document.getElementById('ex-input-reps').value = reps;
+        document.getElementById('ex-input-notes').value = '';
+        document.getElementById('ex-input-reps').focus();
+      } else {
+        closeExerciseLogSheet();
+        renderWorkoutToday();
+        renderHomeWorkoutPreview();
+
+        // Проверка: остались ли ещё упражнения (с учётом skip)
+        const freshPlan = getTodayWorkoutPlan();
+        if (freshPlan) ensureExerciseIds(freshPlan); // ← КРИТИЧНО
+        const freshDone = getWorkoutDone();
+        const hasNext = freshPlan
+          ? freshPlan.exercises.some(ex2 => freshDone[ex2.id] !== true && freshDone[ex2.id] !== 'skipped')
+          : false;
+
+        if (hasNext) {
+          let restSec = 90;
+          if (rpe >= 9) restSec = 120;
+          else if (rpe === 8) restSec = 90;
+          else if (rpe > 0 && rpe <= 7) restSec = 60;
+          showRestTimer(restSec);
+        }
+      }
     }
     function renderWorkoutPlan() {
       const plan = loadWorkoutPlan(); const today = getTodayDow(); const dayNames = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб',7:'Вс'}; let html = '';
@@ -2230,7 +2385,26 @@
       safeIcons(); document.getElementById('workout-day-sheet').classList.add('show'); document.getElementById('workout-day-sheet-overlay').classList.add('show');
     }
     function closeWorkoutDay() { haptic('light'); document.getElementById('workout-day-sheet').classList.remove('show'); document.getElementById('workout-day-sheet-overlay').classList.remove('show'); }
-    function deleteExerciseFromDay(dow, index) { if (!confirm('Удалить это упражнение из плана?')) return; haptic('medium'); const all = loadWorkoutPlan(); if (!all[dow] || !all[dow].exercises) return; all[dow].exercises.splice(index, 1); localStorage.setItem('aura_workout_plan', JSON.stringify(all)); openWorkoutDay(dow); renderWorkoutPlan(); toast('Упражнение удалено'); }
+        async function deleteExerciseFromDay(dow, index) {
+      if (!confirm('Удалить это упражнение из плана?')) return;
+      haptic('medium');
+      const all = loadWorkoutPlan();
+      if (!all[dow] || !all[dow].exercises) return;
+      const ex = all[dow].exercises[index];
+      if (!ex) return;
+      const exId = ex.id || null;
+
+      all[dow].exercises.splice(index, 1);
+      localStorage.setItem('aura_workout_plan', JSON.stringify(all));
+
+      if (exId) {
+        await apiPost('deletePlanExercise', { id: exId });
+      }
+
+      openWorkoutDay(dow);
+      renderWorkoutPlan();
+      toast('Упражнение удалено');
+    }
 
     let progressTab = 'history'; function setProgressTab(tab) { progressTab = tab; renderWorkoutProgress(); }
     function renderWorkoutProgress() {
@@ -2304,7 +2478,15 @@
     async function submitBodyMeasurement() {
       const w = parseFloat(document.getElementById('body-weight').value); if (isNaN(w) || w <= 0) { toast('Введи вес'); return; }
       hapticNotify('success'); const clientId = 'bm_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      const entry = { id: clientId, date: new Date().toISOString(), weight: w, fat: parseFloat(document.getElementById('body-fat').value) || null, waist: parseFloat(document.getElementById('body-waist').value) || null, chest: parseFloat(document.getElementById('body-chest').value) || null, hips: parseFloat(document.getElementById('body-hips').value) || null };
+            const entry = {
+        id: clientId,
+        date: localIsoNow(),
+        weight: w,
+        fat: parseFloat(document.getElementById('body-fat').value) || null,
+        waist: parseFloat(document.getElementById('body-waist').value) || null,
+        chest: parseFloat(document.getElementById('body-chest').value) || null,
+        hips: parseFloat(document.getElementById('body-hips').value) || null
+      };
       const body = loadBody(); body.push(entry); saveBody(body);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_body', payload: entry})); } catch(e) {}
       closeBodyForm(); renderWorkoutBody(); renderWorkoutHub(); toast('Замер сохранён');
@@ -2322,7 +2504,11 @@
     function setCardioMinutes(n) { haptic('light'); document.getElementById('cardio-minutes').value = n; }
     async function submitCardio() {
       const m = parseInt(document.getElementById('cardio-minutes').value, 10); if (isNaN(m) || m <= 0) { toast('Введи минуты'); return; }
-      hapticNotify('success'); const clientId = 'cd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); const logs = loadCardio(); const entry = { id: clientId, date: new Date().toISOString(), type: currentCardioType, minutes: m }; logs.unshift(entry); saveCardio(logs);
+      hapticNotify('success');       const clientId = 'cd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const logs = loadCardio();
+      const entry = { id: clientId, date: localIsoNow(), type: currentCardioType, minutes: m };
+      logs.unshift(entry);
+      saveCardio(logs);
       try { if (tg?.sendData) tg.sendData(JSON.stringify({action:'add_cardio', payload: entry})); } catch(e) {}
       closeCardioForm(); renderWorkoutCardio(); renderWorkoutHub(); toast(`${m} мин записано`);
       apiPost('addCardio', { clientId: clientId, type: entry.type, minutes: entry.minutes });
@@ -2369,8 +2555,14 @@
         const budgetRaw = localStorage.getItem('aura_budget_cache'); const budget = budgetRaw ? JSON.parse(budgetRaw) : null;
         const menu = loadFoodMenu(); const eaten = loadEaten(); let proteinEaten = 0, proteinTarget = 0;
         MEAL_ORDER.forEach(k => { if (menu[k]) { proteinTarget += menu[k].p; if (eaten[k]) proteinEaten += menu[k].p; } });
-        const plan = getTodayWorkoutPlan(); const done = getWorkoutDone(); let workoutDone = 0, workoutTotal = 0;
-        if (plan && plan.exercises) { workoutTotal = plan.exercises.length; workoutDone = plan.exercises.filter(ex => done[ex.id] === true).length; }
+                const plan = getTodayWorkoutPlan();
+        const done = getWorkoutDone();
+        let workoutDone = 0, workoutTotal = 0;
+        if (plan && plan.exercises) {
+          ensureExerciseIds(plan); // ← КРИТИЧНО
+          workoutTotal = plan.exercises.length;
+          workoutDone = plan.exercises.filter(ex => done[ex.id] === true).length;
+        }
         let insight = ''; let colorName = 'purple';
         
         if (overdue.length > 0) { insight = `🔴 <b>У вас ${overdue.length} просроченных задач.</b> Стоит разобраться с ними.`; colorName = 'red'; }
