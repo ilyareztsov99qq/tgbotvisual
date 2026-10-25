@@ -2752,9 +2752,9 @@ async function executeGeneratePlan() {
     hideCoachTyping();
     if (!res) throw new Error('Пустой ответ');
 
-    if (res.explanation) appendCoachBubble('coach', res.explanation);
+        if (res.explanation) appendCoachBubble('coach', res.explanation);
     pendingPlan = res;
-    renderPlanPreview(res);
+    showPlanPreview(res);
     hapticNotify('success');
   } catch (e) {
     hideCoachTyping();
