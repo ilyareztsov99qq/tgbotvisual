@@ -2577,7 +2577,7 @@ function renderCalendarDayDetail(ds) {
         history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() });
         saveCoachHistory(history);
         hapticNotify('success');
-      } catch (e) {
+            } catch (e) {
         hideCoachTyping();
         appendCoachBubble('coach', 'Не удалось связаться');
         hapticNotify('error');
@@ -2585,6 +2585,8 @@ function renderCalendarDayDetail(ds) {
         const el = document.getElementById('coach-messages');
         if (el) el.scrollTop = el.scrollHeight;
       }
+    }
+
     function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
 
 // === НОВАЯ ФУНКЦИЯ ===
