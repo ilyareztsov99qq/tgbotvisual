@@ -307,6 +307,30 @@
     .auth-error-banner.visible { display: flex; }
     .auth-error-banner svg { color: var(--red); width: 18px; height: 18px; flex-shrink: 0; }
     .auth-error-banner span { color: var(--red); font-size: 13px; font-weight: 500; line-height: 1.3; }
+    .calendar-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.calendar-day:hover { background: var(--neutral-fill); }
+.calendar-day.other-month { opacity: 0.3; }
+.calendar-day.today { background: rgba(0, 122, 255, 0.12); }
+.calendar-day.today .calendar-day-num { color: var(--blue); font-weight: 700; }
+.calendar-day.has-workout { background: var(--card-bg); border-color: var(--card-border); }
+.calendar-day.selected { border: 2px solid var(--blue); }
+.calendar-day-num { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+.calendar-dot { width: 6px; height: 6px; border-radius: 50%; }
+.calendar-dot.done { background: var(--green); }
+.calendar-dot.planned { background: var(--blue); }
+.calendar-dot.skipped { background: var(--orange); }
+.calendar-dot.cardio { background: var(--teal); }
   </style>
 </head>
 <body>
@@ -524,7 +548,7 @@
       </header>
       <div class="grid grid-cols-2 gap-3 mb-4">
         <button onclick="navigate('workout-today')" class="hub-tile"><div class="hub-icon" style="background: rgba(255,45,85,.15); color: var(--red);"><i data-lucide="dumbbell" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Сегодня</p><p class="text-sm font-semibold text-primary" id="hub-today-label">—</p></div></button>
-        <button onclick="navigate('workout-plan')" class="hub-tile"><div class="hub-icon" style="background: rgba(0,122,255,.15); color: var(--blue);"><i data-lucide="calendar" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">План</p><p class="text-sm font-semibold text-primary">Неделя</p></div></button>
+        <button onclick="navigate('workout-calendar')" class="hub-tile"><div class="hub-icon" style="background: rgba(0,122,255,.15); color: var(--blue);"><i data-lucide="calendar" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Календарь</p><p class="text-sm font-semibold text-primary">Все даты</p></div></button>
         <button onclick="navigate('workout-progress')" class="hub-tile"><div class="hub-icon" style="background: rgba(52,199,89,.15); color: var(--green);"><i data-lucide="trending-up" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Прогресс</p><p class="text-sm font-semibold text-primary">Рекорды</p></div></button>
         <button onclick="navigate('workout-body')" class="hub-tile"><div class="hub-icon" style="background: rgba(175,82,222,.15); color: var(--purple);"><i data-lucide="activity" class="w-5 h-5"></i></div><div class="text-left"><p class="text-xs text-secondary">Замеры</p><p class="text-sm font-semibold text-primary" id="hub-body-label">—</p></div></button>
       </div>
@@ -578,15 +602,59 @@
     </section>
 
     <section id="screen-workout-plan" class="screen">
-      <header class="flex items-center justify-between mb-6">
-        <div class="flex items-center">
-          <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-          <div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">План</h1></div>
-        </div>
-        <button onclick="generatePlanFlow('Составь план тренировок на следующую неделю')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5" style="color: var(--purple);"></i><span>AI План</span></button>
-      </header>
-      <div id="workout-plan-content"></div>
-    </section>
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">План</h1></div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="analyzeCurrentPlan()" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5" style="color: var(--orange);"></i><span>Анализ</span></button>
+      <button onclick="generatePlanFlow('Составь план тренировок')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5" style="color: var(--purple);"></i><span>AI План</span></button>
+    </div>
+  </header>
+  <div id="workout-plan-content"></div>
+</section>
+    <section id="screen-workout-calendar" class="screen">
+  <header class="flex items-center justify-between mb-4">
+    <div class="flex items-center">
+      <button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+      <div>
+        <p class="text-[11px] text-secondary uppercase font-medium">Спорт</p>
+        <h1 class="text-xl font-semibold text-primary">Календарь</h1>
+      </div>
+    </div>
+    <button onclick="generatePlanFlow('Составь план тренировок')" class="apple-glass px-3 py-1.5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5">
+      <i data-lucide="sparkles" class="w-3.5 h-3.5" style="color: var(--purple);"></i>
+      <span>AI План</span>
+    </button>
+  </header>
+
+  <div class="apple-card p-4 rounded-[24px] mb-4">
+    <div class="flex justify-between items-center mb-3">
+      <button onclick="calendarPrevMonth()" class="apple-glass px-3 py-2 rounded-full"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <div class="text-center">
+        <span class="text-sm font-semibold text-primary" id="calendar-current-month"></span>
+        <p class="text-[10px] text-tertiary mt-0.5" id="calendar-plan-coverage"></p>
+      </div>
+      <button onclick="calendarNextMonth()" class="apple-glass px-3 py-2 rounded-full"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+    <div class="grid grid-cols-7 gap-1 mb-2">
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Пн</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Вт</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Ср</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Чт</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Пт</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Сб</div>
+      <div class="text-center text-[10px] text-tertiary uppercase font-semibold py-1">Вс</div>
+    </div>
+    <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+    <div class="flex justify-center mt-3">
+      <button onclick="calendarGoToday()" class="apple-glass px-4 py-2 rounded-full text-xs font-medium text-primary">Сегодня</button>
+    </div>
+  </div>
+
+  <div id="calendar-day-detail"></div>
+</section>
 
     <section id="screen-workout-progress" class="screen">
       <header class="flex items-center mb-6"><button onclick="goBack()" class="back-btn mr-3"><i data-lucide="chevron-left" class="w-6 h-6"></i></button><div><p class="text-[11px] text-secondary uppercase font-medium">Спорт</p><h1 class="text-xl font-semibold text-primary">Прогресс</h1></div></header>
@@ -1259,6 +1327,7 @@
       if (name === 'workout') renderWorkoutHub();
       if (name === 'workout-today') renderWorkoutToday();
       if (name === 'workout-plan') renderWorkoutPlan();
+      if (name === 'workout-calendar') renderWorkoutCalendar();
       if (name === 'workout-progress') renderWorkoutProgress();
       if (name === 'workout-body') renderWorkoutBody();
       if (name === 'workout-cardio') renderWorkoutCardio();
@@ -1955,6 +2024,136 @@
     function saveCardio(arr) { try { localStorage.setItem('aura_cardio', JSON.stringify(arr)); } catch(e) {} }
     function getTodayDow() { const d = new Date().getDay(); return d === 0 ? 7 : d; }
     function getTodayWorkoutPlan() { return loadWorkoutPlan()[getTodayDow()] || null; }
+    // ============================================================================
+// КАЛЕНДАРЬ ТРЕНИРОВОК
+// ============================================================================
+let calendarCurrentDate = new Date();
+let calendarPlanCache = {};
+let calendarSelectedDate = null;
+
+function fmtDateYMD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function renderWorkoutCalendar() {
+  const y = calendarCurrentDate.getFullYear();
+  const m = calendarCurrentDate.getMonth();
+
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const firstDow = (first.getDay() + 6) % 7;
+  const lastDow = (last.getDay() + 6) % 7;
+  const gridStart = new Date(first); gridStart.setDate(1 - firstDow);
+  const gridEnd = new Date(last); gridEnd.setDate(last.getDate() + (6 - lastDow));
+
+  const fromStr = fmtDateYMD(gridStart);
+  const toStr = fmtDateYMD(gridEnd);
+
+  try {
+    const data = await apiGet('getWorkoutPlanRange', { from: fromStr, to: toStr });
+    if (data) {
+      calendarPlanCache = data.days || {};
+      const covEl = document.getElementById('calendar-plan-coverage');
+      if (covEl && data.coverage) {
+        if (data.coverage.hasPlan) {
+          const fromLabel = data.coverage.from.split('-').reverse().slice(0, 2).join('.');
+          const toLabel = data.coverage.to.split('-').reverse().slice(0, 2).join('.');
+          covEl.textContent = `План: ${fromLabel} — ${toLabel} · ${data.coverage.totalDays} дн.`;
+        } else {
+          covEl.textContent = 'План не составлен';
+        }
+      }
+    }
+  } catch (e) { console.warn('Calendar fetch failed', e); }
+
+  const mn = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+  document.getElementById('calendar-current-month').textContent = `${mn[m]} ${y}`;
+
+  const today = todayStr();
+  let html = '';
+  const cur = new Date(gridStart);
+  while (cur <= gridEnd) {
+    const ds = fmtDateYMD(cur);
+    const other = cur.getMonth() !== m;
+    const isToday = ds === today;
+    const isSelected = ds === calendarSelectedDate;
+    const day = calendarPlanCache[ds];
+    let dots = '';
+    if (day && day.exercises && day.exercises.length > 0) {
+      const done = day.exercises.filter(e => e.status === '✅').length;
+      const skipped = day.exercises.filter(e => e.status === '❌').length;
+      const total = day.exercises.length;
+      const cls = done === total ? 'done' : skipped === total ? 'skipped' : 'planned';
+      dots = `<span class="calendar-dot ${cls}"></span>`;
+    }
+    html += `<div class="calendar-day ${other ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${day ? 'has-workout' : ''}" onclick="openCalendarDay('${ds}')">
+      <span class="calendar-day-num">${cur.getDate()}</span>${dots}
+    </div>`;
+    cur.setDate(cur.getDate() + 1);
+  }
+  document.getElementById('calendar-grid').innerHTML = html;
+
+  if (calendarSelectedDate) renderCalendarDayDetail(calendarSelectedDate);
+  safeIcons();
+}
+
+function calendarPrevMonth() { haptic('light'); calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1); renderWorkoutCalendar(); }
+function calendarNextMonth() { haptic('light'); calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1); renderWorkoutCalendar(); }
+function calendarGoToday() { haptic('light'); calendarCurrentDate = new Date(); calendarSelectedDate = todayStr(); renderWorkoutCalendar(); }
+
+async function openCalendarDay(ds) {
+  haptic('light');
+  calendarSelectedDate = ds;
+  await renderWorkoutCalendar();
+  renderCalendarDayDetail(ds);
+}
+
+function renderCalendarDayDetail(ds) {
+  const el = document.getElementById('calendar-day-detail');
+  if (!el) return;
+  const day = calendarPlanCache[ds];
+  const dateLabel = ds === todayStr() ? 'Сегодня' : (() => {
+    const d = new Date(ds + 'T00:00:00');
+    const mNames = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    return `${d.getDate()} ${mNames[d.getMonth()]} · ${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]}`;
+  })();
+
+  if (!day || !day.exercises || day.exercises.length === 0) {
+    el.innerHTML = `<div class="apple-card p-5 rounded-[24px] text-center">
+      <p class="text-sm font-medium text-primary mb-1">${dateLabel}</p>
+      <p class="text-xs text-tertiary mb-3">День отдыха</p>
+      <button onclick="generatePlanFlow('Составь тренировку на ${dateLabel.toLowerCase()}')" class="apple-glass px-4 py-2 rounded-full text-xs font-medium" style="color: var(--purple);">🤖 Спросить AI</button>
+    </div>`;
+    safeIcons();
+    return;
+  }
+
+  const done = day.exercises.filter(e => e.status === '✅').length;
+  const total = day.exercises.length;
+
+  let html = `<div class="apple-card p-5 rounded-[24px]">
+    <div class="flex justify-between items-start mb-3">
+      <div>
+        <p class="text-sm font-semibold text-primary">${dateLabel}</p>
+        <p class="text-xs text-secondary">${escapeHtml(day.split || 'Тренировка')}</p>
+      </div>
+      <span class="text-xs font-semibold numbers" style="color:${done === total ? 'var(--green)' : 'var(--text-tertiary)'}">${done} / ${total}</span>
+    </div>
+    <div class="space-y-2">`;
+  day.exercises.forEach(ex => {
+    const icon = ex.status === '✅' ? '✅' : ex.status === '❌' ? '⏭' : '◻️';
+    html += `<div class="flex justify-between items-center py-2 border-b divider last:border-0">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <span>${icon}</span>
+        <span class="text-sm text-primary truncate">${escapeHtml(ex.name)}</span>
+      </div>
+      <span class="text-xs text-secondary numbers whitespace-nowrap ml-2">${ex.weight > 0 ? ex.weight + 'кг × ' : ''}${ex.sets}×${ex.reps}</span>
+    </div>`;
+  });
+  html += `</div></div>`;
+  el.innerHTML = html;
+  safeIcons();
+}
 
     function renderWorkoutHub() {
       const today = getTodayWorkoutPlan();
@@ -2360,87 +2559,306 @@
       appendCoachBubble('user', text);
       const history = loadCoachHistory(); history.push({ role: 'user', content: text, ts: new Date().toISOString() }); saveCoachHistory(history); updateCoachChips(); showCoachTyping();
       const historyForApi = history.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
-      try {
+            try {
         const res = await apiPost('coachMessage', { history: historyForApi, message: text });
         hideCoachTyping();
-        if (!res || !res.reply) throw new Error('Пустой ответ');
+        if (!res) throw new Error('Пустой ответ');
+
+        if (res.type === 'route_to_plan_dialog') {
+          history.pop();
+          saveCoachHistory(history);
+          await generatePlanFlow(res.message || text);
+          return;
+        }
+
+        if (!res.reply) throw new Error('Пустой ответ');
         const replyHtml = sanitizeCoachHtml(res.reply);
         appendCoachBubble('coach', res.reply, replyHtml);
-        history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() }); saveCoachHistory(history); hapticNotify('success');
-      } catch (e) { hideCoachTyping(); appendCoachBubble('coach', 'Не удалось связаться'); hapticNotify('error'); }
-      finally { const el = document.getElementById('coach-messages'); if (el) el.scrollTop = el.scrollHeight; }
-    }
-    function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
-
-    let pendingPlan = null;
-    async function generatePlanFlow(userMessage) {
-      const input = document.getElementById('coach-input');
-      const sendBtn = document.getElementById('coach-send');
-      const text = userMessage || (input ? input.value.trim() : '') || 'Составь план на следующую неделю';
-      haptic('medium');
-      if (input) input.value = '';
-      if (sendBtn) sendBtn.disabled = true;
-      appendCoachBubble('user', text);
-      const history = loadCoachHistory();
-      history.push({ role: 'user', content: text, ts: new Date().toISOString() });
-      saveCoachHistory(history);
-      showCoachTyping();
-      toast('Составляю план...');
-      try {
-        const res = await apiPost('generatePlan', { message: text });
-        hideCoachTyping();
-        if (!res) throw new Error('Пустой ответ');
-        if (res.mode === 'single') {
-          if (!res.day || !Array.isArray(res.day.exercises) || res.day.exercises.length === 0) throw new Error('Пустая тренировка');
-        } else {
-          if (!res.plan || !Array.isArray(res.plan) || res.plan.length === 0) throw new Error('Пустой план');
-        }
-        const replyText = res.explanation || 'Вот план. Проверь и применяй:';
-        appendCoachBubble('coach', replyText);
-        history.push({ role: 'coach', content: replyText, ts: new Date().toISOString() });
+        history.push({ role: 'coach', content: res.reply, html: replyHtml, ts: new Date().toISOString() });
         saveCoachHistory(history);
-        showPlanPreview(res);
         hapticNotify('success');
       } catch (e) {
         hideCoachTyping();
-        appendCoachBubble('coach', 'Не удалось составить план: ' + (e.message || ''));
+        appendCoachBubble('coach', 'Не удалось связаться');
         hapticNotify('error');
       } finally {
-        if (sendBtn) sendBtn.disabled = false;
+        const el = document.getElementById('coach-messages');
+        if (el) el.scrollTop = el.scrollHeight;
       }
+    function sendCoachQuick(text) { const input = document.getElementById('coach-input'); if (input) input.value = text; sendCoachMessage(); }
+
+// === НОВАЯ ФУНКЦИЯ ===
+async function analyzeCurrentPlan() {
+  haptic('medium');
+  if (currentScreen !== 'workout-coach') navigate('workout-coach');
+  appendCoachBubble('user', 'Проанализируй мой план');
+  const history = loadCoachHistory();
+  history.push({ role: 'user', content: 'Проанализируй мой план', ts: new Date().toISOString() });
+  saveCoachHistory(history);
+  showCoachTyping();
+  try {
+    const res = await apiPost('analyzePlan', { message: 'Проанализируй мой текущий план тренировок' });
+    hideCoachTyping();
+    if (res && res.reply) {
+      const html = sanitizeCoachHtml(res.reply);
+      appendCoachBubble('coach', res.reply, html);
+      history.push({ role: 'coach', content: res.reply, html, ts: new Date().toISOString() });
+      saveCoachHistory(history);
+      hapticNotify('success');
+    } else {
+      throw new Error('Пустой ответ');
     }
+  } catch (e) {
+    hideCoachTyping();
+    appendCoachBubble('coach', 'Ошибка анализа: ' + (e.message || ''));
+  }
+}
+
+async function syncPlanWithProgress() {
+  if (!confirm('Синхронизировать будущий план с реальным прогрессом?\n\nAI посмотрит твои результаты и подкорректирует веса в плане.')) return;
+  haptic('medium');
+  toast('Синхронизирую...');
+  try {
+    const res = await apiPost('syncPlanWithProgress', {});
+    if (!res || !res.ok) throw new Error('Ошибка');
+    if (res.applied && res.applied.length > 0) {
+      toast(`✓ ${res.applied.length} изменений`);
+      alert(`Синхронизировано:\n\n${res.applied.join('\n')}\n\n${res.explanation || ''}`);
+    } else {
+      toast('План уже синхронизирован');
+    }
+    if (currentScreen === 'workout-calendar') await renderWorkoutCalendar();
+  } catch (e) {
+    toast('Ошибка: ' + (e.message || ''));
+  }
+}
+
+let pendingPlan = null;
+
+    let _planAnswers = {};
+let _planUserMessage = '';
+
+async function generatePlanFlow(userMessage) {
+  const text = userMessage || 'Составь план тренировок';
+  haptic('medium');
+  const input = document.getElementById('coach-input');
+  if (input) input.value = '';
+  const sendBtn = document.getElementById('coach-send');
+  if (sendBtn) sendBtn.disabled = true;
+
+  // Если мы не в чате — переходим туда
+  if (currentScreen !== 'workout-coach') navigate('workout-coach');
+
+  appendCoachBubble('user', text);
+  const history = loadCoachHistory();
+  history.push({ role: 'user', content: text, ts: new Date().toISOString() });
+  saveCoachHistory(history);
+
+  showCoachTyping();
+
+  try {
+    const res = await apiPost('startPlanDialog', { message: text });
+    hideCoachTyping();
+    if (!res) throw new Error('Пустой ответ');
+
+    if (res.skipQuestions) {
+      _planAnswers = {};
+      _planUserMessage = res.userMessage || text;
+      await executeGeneratePlan();
+      return;
+    }
+
+    // Показываем вопросы
+    _planAnswers = {};
+    _planUserMessage = res.userMessage || text;
+    showPlanQuestions(res);
+  } catch (e) {
+    hideCoachTyping();
+    appendCoachBubble('coach', 'Ошибка: ' + (e.message || ''));
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+function showPlanQuestions(data) {
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+
+  if (data.context) appendCoachBubble('coach', data.context);
+
+  (data.questions || []).forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'coach-bubble coach plan-q-card';
+    div.style.maxWidth = '95%';
+    div.style.background = 'var(--bg)';
+    div.style.border = '1px solid var(--purple)';
+
+    let inner = `<div class="text-xs font-semibold text-primary mb-2">${escapeHtml(q.text)}</div>`;
+
+    if (q.type === 'text') {
+      inner += `<input type="text" id="plan-q-${q.id}" class="task-time-input" placeholder="${escapeHtml(q.placeholder || '')}" style="font-size: 14px;" onkeypress="if(event.key==='Enter'){event.preventDefault();planAnswer('${q.id}', this.value, this.value);}">`;
+      inner += `<button onclick="planAnswer('${q.id}', document.getElementById('plan-q-${q.id}').value, document.getElementById('plan-q-${q.id}').value)" class="w-full mt-2 px-3 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color:#fff;">OK</button>`;
+    } else if (q.options && q.options.length) {
+      inner += '<div class="flex flex-col gap-1">';
+      q.options.forEach(o => {
+        inner += `<button onclick="planAnswer('${q.id}', '${escapeHtml(o.value)}', '${escapeHtml(o.label)}')" class="text-left px-3 py-2 rounded-xl text-xs font-medium" style="background: var(--neutral-fill); color: var(--text-primary);">${escapeHtml(o.label)}</button>`;
+      });
+      inner += '</div>';
+    }
+
+    div.innerHTML = inner;
+    el.appendChild(div);
+  });
+
+  const autoDiv = document.createElement('div');
+  autoDiv.className = 'coach-bubble coach';
+  autoDiv.style.maxWidth = '95%';
+  autoDiv.innerHTML = `<button onclick="planAutoDecide()" class="w-full px-3 py-2 rounded-xl text-sm font-semibold" style="background: var(--purple); color:#fff;">🤖 Решай сам</button>`;
+  el.appendChild(autoDiv);
+
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  safeIcons();
+}
+
+async function planAnswer(questionId, value, label) {
+  haptic('light');
+  if (!value) return;
+  _planAnswers[questionId] = value;
+
+  // Убираем карточки вопросов
+  document.querySelectorAll('#coach-messages .plan-q-card').forEach(b => b.remove());
+
+  appendCoachBubble('user', label || value);
+  await executeGeneratePlan();
+}
+
+async function planAutoDecide() {
+  haptic('light');
+  _planAnswers = { __auto__: true };
+  document.querySelectorAll('#coach-messages .plan-q-card').forEach(b => b.remove());
+  appendCoachBubble('user', 'Решай сам');
+  await executeGeneratePlan();
+}
+
+async function executeGeneratePlan() {
+  showCoachTyping();
+  try {
+    const res = await apiPost('generatePlanV2', {
+      message: _planUserMessage,
+      answers: _planAnswers
+    });
+    hideCoachTyping();
+    if (!res) throw new Error('Пустой ответ');
+
+    if (res.explanation) appendCoachBubble('coach', res.explanation);
+    pendingPlan = res;
+    renderPlanPreview(res);
+    hapticNotify('success');
+  } catch (e) {
+    hideCoachTyping();
+    appendCoachBubble('coach', 'Не удалось: ' + (e.message || ''));
+    hapticNotify('error');
+  }
+}
 
     function showPlanPreview(data) {
-      pendingPlan = data; const el = document.getElementById('coach-messages'); if (!el) return;
-      const dowNames = { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Вс' }; let headerTitle = ''; let planHtml = '';
-      if (data.mode === 'single') {
-        const dd = data.targetDate.split('-').reverse().slice(0, 2).join('.');
-        headerTitle = `${dowNames[data.day.dow] || ''} ${dd} · ${data.day.name}`;
-        planHtml = `<ul class="text-[11px] text-secondary list-none m-0 p-0 mt-2">${data.day.exercises.map(ex => `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`).join('')}</ul>`;
-      } else {
-        headerTitle = `План на неделю с ${data.weekStart.split('-').reverse().slice(0, 2).join('.')}`;
-        const days = {}; for (const day of data.plan) { if (!days[day.dow]) days[day.dow] = { name: day.name, exercises: [] }; days[day.dow].exercises.push(...day.exercises); }
-        Object.keys(days).sort((a, b) => a - b).forEach(dow => { const d = days[dow]; planHtml += `<div class="mt-2 pb-2 border-b divider last:border-0"><p class="text-xs font-semibold text-primary mb-1">${dowNames[dow] || dow} · ${escapeHtml(d.name)}</p><ul class="text-[11px] text-secondary list-none m-0 p-0">${d.exercises.map(ex => `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`).join('')}</ul></div>`; });
-      }
-      const card = document.createElement('div'); card.className = 'coach-bubble coach plan-preview'; card.style.maxWidth = '95%'; card.style.background = 'var(--bg)'; card.style.border = '1px solid var(--purple)';
-      card.innerHTML = `<div class="flex items-center gap-2 mb-2"><i data-lucide="calendar" class="w-4 h-4" style="color: var(--purple);"></i><span class="text-xs font-semibold text-primary">${escapeHtml(headerTitle)}</span></div>${planHtml}<div class="flex gap-2 mt-3"><button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">✓ Применить</button><button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">Отмена</button></div>`;
-      el.appendChild(card); requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; }); safeIcons();
+  pendingPlan = data;
+  const el = document.getElementById('coach-messages');
+  if (!el) return;
+
+  const dowNames = { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Вс' };
+  let headerTitle = '';
+  let planHtml = '';
+
+  if (data.mode === 'single') {
+    const dd = data.targetDate.split('-').reverse().slice(0, 2).join('.');
+    headerTitle = `${dowNames[data.day.dow] || ''} ${dd} · ${data.day.name}`;
+    planHtml = `<ul class="text-[11px] text-secondary list-none m-0 p-0 mt-2">${data.day.exercises.map(ex => `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`).join('')}</ul>`;
+  } else if (data.mode === 'week') {
+    headerTitle = `План на неделю с ${data.weekStart.split('-').reverse().slice(0, 2).join('.')}`;
+    const days = {};
+    for (const day of data.plan) {
+      if (!days[day.dow]) days[day.dow] = { name: day.name, exercises: [] };
+      days[day.dow].exercises.push(...day.exercises);
     }
+    Object.keys(days).sort((a, b) => a - b).forEach(dow => {
+      const d = days[dow];
+      planHtml += `<div class="mt-2 pb-2 border-b divider last:border-0"><p class="text-xs font-semibold text-primary mb-1">${dowNames[dow] || dow} · ${escapeHtml(d.name)}</p><ul class="text-[11px] text-secondary list-none m-0 p-0">${d.exercises.map(ex => `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`).join('')}</ul></div>`;
+    });
+  } else if (data.mode === 'multi') {
+    headerTitle = `${data.durationLabel} · ${data.totalWorkouts} тренировок`;
+    const byWeek = {};
+    (data.plan || []).forEach(item => {
+      if (!byWeek[item.week]) byWeek[item.week] = { sessions: [] };
+      byWeek[item.week].sessions.push(item);
+    });
+    Object.keys(byWeek).sort((a, b) => Number(a) - Number(b)).forEach(wkNum => {
+      const wk = byWeek[wkNum];
+      planHtml += `<div class="mt-3 pb-2 border-b divider last:border-0"><p class="text-xs font-semibold mb-1.5" style="color: var(--purple);">Неделя ${wkNum}</p>`;
+      wk.sessions.forEach(s => {
+        const dateLabel = s.date ? s.date.split('-').slice(1).reverse().join('.') : '';
+        planHtml += `<div class="mt-2"><p class="text-[11px] font-semibold text-primary mb-1">${dowNames[s.dow] || ''} ${dateLabel} · ${escapeHtml(s.name)}${s.note ? ` <span class="text-[10px] text-tertiary">— ${escapeHtml(s.note)}</span>` : ''}</p><ul class="text-[10px] text-secondary list-none m-0 p-0">`;
+        s.exercises.forEach(ex => {
+          planHtml += `<li class="py-0.5">• ${escapeHtml(ex.name)} ${ex.weight > 0 ? ex.weight + 'кг' : 'собств.'} × ${ex.sets}×${ex.reps}</li>`;
+        });
+        planHtml += `</ul></div>`;
+      });
+      planHtml += `</div>`;
+    });
+  }
+
+  const card = document.createElement('div');
+  card.className = 'coach-bubble coach plan-preview';
+  card.style.maxWidth = '95%';
+  card.style.background = 'var(--bg)';
+  card.style.border = '1px solid var(--purple)';
+  card.style.maxHeight = '500px';
+  card.style.overflowY = 'auto';
+
+  card.innerHTML = `<div class="flex items-center gap-2 mb-2"><i data-lucide="calendar" class="w-4 h-4" style="color: var(--purple);"></i><span class="text-xs font-semibold text-primary">${escapeHtml(headerTitle)}</span></div>${planHtml}<div class="flex gap-2 mt-3"><button onclick="applyPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--purple); color: #fff;">✓ Применить</button><button onclick="cancelPlanPreview()" class="flex-1 py-2 rounded-xl text-xs font-semibold" style="background: var(--neutral-fill); color: var(--text-primary);">Отмена</button></div>`;
+
+  el.appendChild(card);
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  safeIcons();
+}
 
     async function applyPlanPreview() {
-      if (!pendingPlan) return; haptic('medium'); toast('Записываю...');
-      try {
-        let body;
-        if (pendingPlan.mode === 'single') body = { mode: 'single', targetDate: pendingPlan.targetDate, day: pendingPlan.day };
-        else body = { mode: 'week', plan: pendingPlan.plan, weekStart: pendingPlan.weekStart };
-        const res = await apiPost('applyPlan', body);
-        if (!res || !res.ok) throw new Error('Не удалось');
-        hapticNotify('success'); toast(`✓ ${res.exercises} упражнений`);
-        pendingPlan = null; document.querySelectorAll('#coach-messages .plan-preview').forEach(c => c.remove());
-        await reloadWorkoutPlanFromServer();
-        if (res.mode === 'single' && res.targetDate === todayStr()) { if (currentScreen === 'workout-today') renderWorkoutToday(); }
-      } catch (e) { toast('Ошибка: ' + (e.message || '')); }
+  if (!pendingPlan) return;
+  haptic('medium');
+  toast('Записываю...');
+
+  try {
+    let body;
+    if (pendingPlan.mode === 'single') {
+      body = { mode: 'single', targetDate: pendingPlan.targetDate, day: pendingPlan.day };
+    } else if (pendingPlan.mode === 'week') {
+      body = { mode: 'week', plan: pendingPlan.plan, weekStart: pendingPlan.weekStart };
+    } else if (pendingPlan.mode === 'multi') {
+      body = { mode: 'multi', plan: pendingPlan.plan, startDate: pendingPlan.startDate };
+    } else {
+      throw new Error('Неизвестный режим плана');
     }
+
+    const res = await apiPost('applyPlan', body);
+    if (!res || !res.ok) throw new Error('Не удалось применить');
+
+    hapticNotify('success');
+    toast(`✓ ${res.exercises} упражнений записано`);
+
+    // Обновляем кэш календаря
+    calendarPlanCache = {};
+    if (currentScreen === 'workout-calendar') {
+      await renderWorkoutCalendar();
+    }
+
+    pendingPlan = null;
+    document.querySelectorAll('#coach-messages .plan-preview').forEach(c => c.remove());
+    await reloadWorkoutPlanFromServer();
+    if (currentScreen === 'workout-today') renderWorkoutToday();
+  } catch (e) {
+    toast('Ошибка: ' + (e.message || ''));
+  }
+}
     function cancelPlanPreview() { pendingPlan = null; haptic('light'); document.querySelectorAll('#coach-messages .plan-preview').forEach(c => c.remove()); toast('Отменено'); }
     async function reloadWorkoutPlanFromServer() { try { const fresh = await apiGet('getAll'); if (fresh && fresh.workoutPlan && typeof fresh.workoutPlan === 'object') { localStorage.setItem('aura_workout_plan', JSON.stringify(fresh.workoutPlan)); localStorage.setItem('aura_workout_plan_synced_at', Date.now().toString()); } } catch (e) {} }
     function clearCoachHistory() { if (!confirm('Очистить историю?')) return; haptic('medium'); try { localStorage.removeItem(COACH_HISTORY_KEY); } catch (e) {} renderCoachMessages(); updateCoachChips(); toast('Очищено'); }
