@@ -1987,8 +1987,23 @@
 
     async function renderHomeMenuPreview() {
       const el = document.getElementById('home-menu-preview'); if (!el) return;
-      let dayData = getCachedFoodDay(todayStr());
-      if (!dayData) dayData = await fetchFoodDay(todayStr());
+            let dayData = getCachedFoodDay(todayStr());
+      if (!dayData) {
+        el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Загрузка...</p>';
+        // Пробуем загрузить в фоне — не блокируем рендер
+        fetchFoodDay(todayStr()).then(fresh => {
+          if (fresh && fresh.exists !== false) {
+            const meals = fresh.meals || {}; const totals = fresh.totals || { kcal: 0 };
+            let eatenKcal = 0;
+            MEAL_ORDER.forEach(k => { if (meals[k] && meals[k].eaten) eatenKcal += meals[k].kcal || 0; });
+            const lines = MEAL_ORDER.map(k => { const m = meals[k]; if (!m) return ''; return `<div class="flex items-center gap-2 py-0.5"><span style="opacity:.7;">${m.eaten ? '✓' : '○'}</span><span class="flex-1 text-xs text-primary truncate">${escapeHtml(m.name)}</span><span class="text-[10px] text-tertiary">${m.kcal}</span></div>`; }).join('');
+            el.innerHTML = `<div>${lines}</div><div class="mt-2 pt-2 border-t divider flex justify-between text-[11px]"><span class="text-tertiary">Съедено:</span><span class="font-semibold text-primary">${eatenKcal} / ${totals.kcal} ккал</span></div>`;
+          } else {
+            el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Меню не задано</p>';
+          }
+        });
+        return;
+      }
       if (!dayData || dayData.exists === false) { el.innerHTML = '<p class="text-xs text-tertiary text-center py-2">Меню не задано</p>'; return; }
       const meals = dayData.meals || {}; const totals = dayData.totals || { kcal: 0 };
       let eatenKcal = 0;
@@ -2766,7 +2781,7 @@ function renderCalendarDayDetail(ds) {
     document.getElementById('trx-comment').addEventListener('focus', () => { document.querySelector('.trx-keypad-wrap').style.display='none'; document.getElementById('trx-submit').style.display='none'; });
     document.getElementById('trx-comment').addEventListener('blur', () => { document.querySelector('.trx-keypad-wrap').style.display=''; document.getElementById('trx-submit').style.display=''; });
 
-    function initApp() {
+        function initApp() {
       showScreen('home'); safeIcons();
       renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview();
       // FIX: скелетоны только если нет локальных данных
@@ -2778,14 +2793,18 @@ function renderCalendarDayDetail(ds) {
       updateGreeting();
 
       updateQueueBadge();
-      flushPendingQueue(false).then(() => {
-        bootstrapFromBackend().then(ok => {
-          setSyncStatus(ok ? 'online' : 'offline');
-          renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); renderFinanceTotal();
-          if (ok) apiGet('getBudget').then(data => { if (data) { localStorage.setItem('aura_budget_cache', JSON.stringify(data)); updateHomeBudget(); renderHomeInsight(); } }).catch(e => {});
-        });
+
+      // 1.2: Флашим очередь в фоне — не блокирует загрузку данных
+      flushPendingQueue(false);
+
+      // 1.2: Загружаем данные параллельно, не дожидаясь flush
+      bootstrapFromBackend().then(ok => {
+        setSyncStatus(ok ? 'online' : 'offline');
+        renderHomeRecent(); renderFinanceRecent(); renderTodayTransactions(); renderHomeTasks(); renderHomeMenuPreview(); renderHomeWorkoutPreview(); updateHomeBudget(); renderHomeInsight(); renderFinanceTotal();
+        // 1.1: getBudget больше не нужен — он уже пришёл внутри getAll
       });
     }
+    
 
    
 
